@@ -1,10 +1,9 @@
-const LogicUnitFactory = require('../logicunitfactory');
 const AbstractLogicModule = require('../abstractlogicmodule');
 
 /**
  * 连接线适配器
  *
- * 只连接上一个逻辑单元部分（宽度）数据。
+ * 只连接上一个连接线部分（宽度）数据。
  * 即 wire [targetDataWidth - 1:0] target = source[targetDataWidth + dataOffset - 1:dataOffset]
  */
 class Adapter extends AbstractLogicModule {
@@ -18,20 +17,17 @@ class Adapter extends AbstractLogicModule {
      */
     constructor(name, dataWidth, sourceDataWidth, sourceDataOffset) {
         super(name, {
+            dataWidth: dataWidth,
+            sourceDataWidth: sourceDataWidth,
             sourceDataOffset: sourceDataOffset
         });
 
-        // 输出线
-        let outputWire = LogicUnitFactory.createWire('out', dataWidth);
-        this.outputUnits.push(outputWire);
+        let outputWire = this.addOutputWire('out', dataWidth);
+        let inputWire = this.addInputWire('in', sourceDataWidth);
 
-        // 输入线
-        let inputWire = LogicUnitFactory.createWire('in', sourceDataWidth);
-        this.inputUnits.push(inputWire);
-
-        inputWire.output.push(data => {
+        inputWire.addListener(data => {
             let partialData = data.getBits(sourceDataOffset, dataWidth);
-            outputWire.input(partialData);
+            outputWire.setData(partialData);
         });
     }
 }

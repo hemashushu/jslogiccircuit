@@ -1,6 +1,3 @@
-const {Binary} = require('binary');
-
-const LogicUnitFactory = require('../logicunitfactory');
 const AbstractLogicModule = require('../abstractlogicmodule');
 
 /**
@@ -15,21 +12,17 @@ class NotGate extends AbstractLogicModule {
     constructor(name) {
         super(name);
 
-        let outputWire = LogicUnitFactory.createWire('out', 1);
-        this.outputUnits.push(outputWire);
+        let outputWire = this.addOutputWire('out', 1);
+        let inputWire = this.addInputWire('in', 1);
 
-        let inputWire = LogicUnitFactory.createWire('in', 1);
-
-        inputWire.output.push(data => {
+        inputWire.addLisener(data => {
             let value = data.getBit(0);
             let result = value === 0 ? 1 : 0;
 
             let outputData = outputWire.data;
             outputData.setBit(0, result);
-            outputWire.input(outputData);
+            outputWire.setData(outputData);
         });
-
-        this.inputUnits.push(inputWire);
     }
 }
 

@@ -1,10 +1,9 @@
-const LogicUnitFactory = require('../logicunitfactory');
 const AbstractLogicModule = require('../abstractlogicmodule');
 
 /**
  * 连接线组合器
  *
- * 用于拼接多个逻辑单元的输入，形成一个单一逻辑输出。
+ * 用于拼接多个连接线的输入，形成一个单一逻辑输出。
  * 比如将 `wire [3:0] a` 和 `wire [11:0] b` 组成
  * `wire [15:0] c = {a, b}`
  *
@@ -14,7 +13,7 @@ const AbstractLogicModule = require('../abstractlogicmodule');
  * let b = new Wire('b', 12);
  *
  * let c = new Combiner('c', 16, [4, 12])
- * connects([a,b], c.inputUnits)
+ * connects([a,b], c.inputWires)
  *
  */
 class Combiner extends AbstractLogicModule {
@@ -22,41 +21,38 @@ class Combiner extends AbstractLogicModule {
     /**
      *
      * @param {*} name 模块名称
-     * @param {*} dataWidth 输出数据的宽度
-     * @param {*} sourceDataWidths 各个源数据的宽度之集合
+     * @param {*} sourceDataWidths 各个源数据的宽度之集合，比如
+     *     [2,3,4] 表示有 3 路输入，各线路的数据宽度分别是 2，3，4。
+     *     它们将会合并为一个宽度为 9 的输出线。
+     *     相当于 Verilog 的 assign wire [8:0] out = {in0, in1, in2};
+     *     第 1 条输入线的数据会被合并到输出线的最高位，最后一条输入线的数据
+     *     会被合并到输出线的最低位。比如 in1 = 0b11, in2 = 0b000, in3 = 0b1010，
+     *     会被合并为 0b110001010
      */
-    constructor(name, dataWidth, sourceDataWidths) {
+    constructor(name, sourceDataWidths) {
         super(name, {
-            dataWidth: dataWidth,
             sourceDataWidths: sourceDataWidths
         });
 
-        // 输出线
-        let outputWire = LogicUnitFactory.createWire('out', dataWidth);
-        this.outputUnits.push(outputWire);
+        let dataWidth = sourceDataWidths.reduce((accumulator, currentValue) => accumulator + currentValue);
+        let outputWire = this.addOutputWire('out', dataWidth);
 
-        // 输入线
         let createInputWire = (idx, targetDataOffset) => {
-            let dataWidth = sourceDataWidths[idx];
-            let inputWire = LogicUnitFactory.createWire('in' + idx, dataWidth);
+            let sourceDataWidth = sourceDataWidths[idx];
+            let inputWire = this.addInputWire('in' + idx, sourceDataWidth);
 
-            inputWire.output.push(data => {
+            inputWire.addListener(data => {
                 let outputData = outputWire.data;
                 outputData.setBits(data, targetDataOffset);
-
-                outputWire.input(outputData);
+                outputWire.setData(outputData);
             });
-
-            return inputWire;
         };
 
-        let targetDataOffset = 0;
+        let targetDataWidths = 0;
         for (let idx = 0; idx < sourceDataWidths.length; idx++) {
-            let inputWire = createInputWire(idx, targetDataOffset);
-            this.inputUnits.push(inputWire);
-
-            // 增加数据偏移值
-            targetDataOffset += dataWidth;
+            targetDataWidths += sourceDataWidths[idx]; // 增加数据偏移值
+            let targetDataOffset = dataWidth - targetDataWidths;
+            createInputWire(idx, targetDataOffset);
         }
     }
 }

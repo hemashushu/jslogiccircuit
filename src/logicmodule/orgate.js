@@ -1,6 +1,3 @@
-const {Binary} = require('binary');
-
-const LogicUnitFactory = require('../logicunitfactory');
 const AbstractLogicModule = require('../abstractlogicmodule');
 
 /**
@@ -18,15 +15,14 @@ class OrGate extends AbstractLogicModule {
             inputWireCount: inputWireCount
         });
 
-        let outputWire = LogicUnitFactory.createWire('out', 1);
-        this.outputUnits.push(outputWire);
+        let outputWire = this.addOutputWire('out', 1);
 
         let createInputWire = (idx) => {
-            let inputWire = LogicUnitFactory.createWire('in' + idx, 1);
+            let inputWire = this.addInputWire('in' + idx, 1);
 
-            inputWire.output.push(data => {
+            inputWire.addLisener(() => {
                 let result = 0
-                for(let inputUnit of this.inputUnits) {
+                for(let inputUnit of this.inputWires) {
                     if (inputUnit.data.getBit(0) === 1) {
                         result = 1;
                         break;
@@ -35,16 +31,13 @@ class OrGate extends AbstractLogicModule {
 
                 let outputData = outputWire.data;
                 outputData.setBit(0, result);
-                outputWire.input(outputData);
+                outputWire.setData(outputData);
             });
-
-            return inputWire;
         };
 
         // 输入线们
         for (let idx = 0; idx < inputWireCount; idx++) {
-            let inputWire = createInputWire(idx);
-            this.inputUnits.push(inputWire);
+            createInputWire(idx);
         }
     }
 }

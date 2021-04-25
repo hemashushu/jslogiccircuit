@@ -1,8 +1,7 @@
-const { Binary } = require('binary');
+const { Binary } = require('jsbinary');
 
 const AbstractLogicModule = require('../abstractlogicmodule');
 const LogicCircuitException = require('../logiccircuitexception');
-const LogicUnitFactory = require('../logicunitfactory');
 
 /**
  * 多路复用器
@@ -28,39 +27,32 @@ class Multiplexer extends AbstractLogicModule {
             throw new LogicCircuitException('Control wire data width error.');
         }
 
-        // 输出线
-        let outputWire = LogicUnitFactory.createWire('out', dataWidth);
-        this.outputUnits.push(outputWire);
+        let outputWire = this.addOutputWire('out', dataWidth);
 
-        // 输入线
         let buildInputWire = (idx) => {
-            let inputWire = LogicUnitFactory.createWire('in' + idx, dataWidth);
+            let inputWire = this.addInputWire('in' + idx, dataWidth);
 
-            inputWire.output.push(data => {
+            inputWire.addListener(data => {
                 if (Binary.equals(data, controlWire.data)) {
-                    outputWire.input(data);
+                    outputWire.setData(data);
                 }
             });
-
-            return inputWire;
         };
 
         for (let idx = 0; idx < sourceWireCount; idx++) {
-            let inputWire = buildInputWire(idx);
-            this.inputUnits.push(inputWire);
+            buildInputWire(idx);
         }
 
         // 控制线
-        let controlWire = LogicUnitFactory.createWire('control', controlWireDataWidth);
-        this.inputUnits.push(controlWire);
+        let controlWire = this.addInputWire('control', controlWireDataWidth);
 
         // 当控制信号改变时，重新传递相应源数据到输出线。
-        controlWire.output.push(data => {
+        controlWire.addListener(data => {
             let sourceIdx = data.value;
-            let inputWire = this.inputUnits[sourceIdx];
+            let inputWire = this.inputWires[sourceIdx];
 
             let outputData = inputWire.data;
-            outputWire.input(outputData);
+            outputWire.setData(outputData);
         });
     }
 }

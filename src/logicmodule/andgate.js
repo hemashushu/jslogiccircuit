@@ -1,6 +1,5 @@
-const {Binary} = require('binary');
+const {Binary} = require('jsbinary');
 
-const LogicUnitFactory = require('../logicunitfactory');
 const AbstractLogicModule = require('../abstractlogicmodule');
 
 /**
@@ -18,35 +17,28 @@ class AndGate extends AbstractLogicModule {
             inputWireCount: inputWireCount
         });
 
-        // 输出线
-        let outputWire = LogicUnitFactory.createWire('out', 1);
-        this.outputUnits.push(outputWire);
+        let outputWire = this.addOutputWire('out', 1);
 
         let createInputWire = (idx) => {
-            let inputWire = LogicUnitFactory.createWire('in' + idx, 1);
+            let inputWire = this.addInputWire('in' + idx, 1);
 
-            inputWire.output.push(data => {
+            inputWire.addListener(() => {
                 let result = 1
-                for(let inputUnit of this.inputUnits) {
-                    if (inputUnit.data.getBit(0) === 0) {
+                for(let inputWire of this.inputWires) {
+                    if (inputWire.data.getBit(0) === 0) {
                         result = 0;
                         break;
                     }
                 }
 
-                let outputData = outputWire.data;
-                outputData.setBit(0, result);
-
-                outputWire.input(outputData);
+                let outputData = new Binary(result, 1);
+                outputWire.setData(outputData);
             });
-
-            return inputWire;
         };
 
         // 输入线们
         for (let idx = 0; idx < inputWireCount; idx++) {
-            let inputWire = createInputWire(idx);
-            this.inputUnits.push(inputWire);
+            createInputWire(idx);
         }
     }
 }

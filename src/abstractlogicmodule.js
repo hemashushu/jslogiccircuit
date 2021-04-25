@@ -1,3 +1,5 @@
+const Wire = require('./wire');
+
 /**
  * 抽象逻辑模块
  *
@@ -8,23 +10,23 @@ class AbstractLogicModule {
     /**
      *
      * @param {*} name 模块的名称
-     * @param {*} properties 调用构造函数时的各个参数名称及其数值。
+     * @param {*} properties 构造当前模块时所需的各种初始参数的名称及其数值。
      */
     constructor(name, properties) {
         // 模块名称
         this.name = name;
 
-        // 输入的逻辑单元集合
-        this.inputUnits = [];
+        // 输入的连接线集合
+        this.inputWires = [];
 
-        // 输出的逻辑单元集合
+        // 输出的连接线集合
         this.outputUnits = [];
 
-        // 当前模块使用到的所有对时钟信号感知的逻辑单元或者逻辑模块
+        // 当前模块使用到的所有对时钟信号感知的连接线或者逻辑模块
         //
-        // 在模块内创建一个对时钟信号感知的逻辑单元或者逻辑模块时，需要
+        // 在模块内创建一个对时钟信号感知的连接线或者逻辑模块时，需要
         // 手动把它添加到这个集合。
-        this.allPulseComponents = [];
+        this.pulseAwareModules = [];
 
         // 当前模块的初始参数名称及其数值
         this.propertyBag = new Map();
@@ -35,27 +37,53 @@ class AbstractLogicModule {
     }
 
     /**
-     * 通过名字获取输入单元
-     * @param {*} name
+     * 创建并添加输入连接线
+     *
+     * @param {*} name 输入线名称
+     * @param {*} dataWidth 数据宽度
+     * @returns
      */
-    getInputUnit(name) {
-        this.inputUnits.find(item => item.name === name);
+    addInputWire(name, dataWidth) {
+        let inputWire = new Wire(name, dataWidth);
+        this.inputWires.push(inputWire);
+        return inputWire;
     }
 
     /**
-     * 通过名字获取输出单元
+     * 创建并添加输出连接线
+     *
+     * @param {*} name 输出线名称
+     * @param {*} dataWidth 数据宽度
+     * @returns
+     */
+    addOutputWire(name, dataWidth) {
+        let outputWire = new Wire(name, dataWidth);
+        this.outputUnits.push(outputWire);
+        return outputWire;
+    }
+
+    /**
+     * 通过名字获取输入连接线
+     * @param {*} name
+     */
+    getInputWire(name) {
+        return this.inputWires.find(item => item.name === name);
+    }
+
+    /**
+     * 通过名字获取输出连接线
      * @param {*} name
      */
     getOutputUnit(name) {
-        this.outputUnits.find(item => item.name === name);
+        return this.outputUnits.find(item => item.name === name);
     }
 
     /**
      * 时钟触发信号到来。
      */
     pulse() {
-        for(let pulseComponent of this.allPulseComponents) {
-            pulseComponent.pulse();
+        for(let pulseAwareModule of this.pulseAwareModules) {
+            pulseAwareModule.pulse();
         }
     }
 }
