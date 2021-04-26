@@ -15,7 +15,7 @@ class NotGate extends AbstractLogicModule {
         let outputWire = this.addOutputWire('out', 1);
         let inputWire = this.addInputWire('in', 1);
 
-        inputWire.addLisener(data => {
+        inputWire.addListener(data => {
             let value = data.getBit(0);
             let result = value === 0 ? 1 : 0;
 

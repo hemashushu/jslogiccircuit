@@ -20,7 +20,7 @@ class OrGate extends AbstractLogicModule {
         let createInputWire = (idx) => {
             let inputWire = this.addInputWire('in' + idx, 1);
 
-            inputWire.addLisener(() => {
+            inputWire.addListener(() => {
                 let result = 0
                 for(let inputUnit of this.inputWires) {
                     if (inputUnit.data.getBit(0) === 1) {

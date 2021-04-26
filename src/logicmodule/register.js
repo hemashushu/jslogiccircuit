@@ -25,7 +25,7 @@ class Register extends AbstractLogicModule {
 
         let inputWire = this.addInputWire('in', dataWidth);
 
-        inputWire.addLisener(data => {
+        inputWire.addListener(data => {
             this.tempData.update(data);
         });
     }

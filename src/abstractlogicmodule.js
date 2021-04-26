@@ -20,7 +20,7 @@ class AbstractLogicModule {
         this.inputWires = [];
 
         // 输出的连接线集合
-        this.outputUnits = [];
+        this.outputWires = [];
 
         // 当前模块使用到的所有对时钟信号感知的连接线或者逻辑模块
         //
@@ -58,7 +58,7 @@ class AbstractLogicModule {
      */
     addOutputWire(name, dataWidth) {
         let outputWire = new Wire(name, dataWidth);
-        this.outputUnits.push(outputWire);
+        this.outputWires.push(outputWire);
         return outputWire;
     }
 
@@ -74,8 +74,8 @@ class AbstractLogicModule {
      * 通过名字获取输出连接线
      * @param {*} name
      */
-    getOutputUnit(name) {
-        return this.outputUnits.find(item => item.name === name);
+    getOutputWire(name) {
+        return this.outputWires.find(item => item.name === name);
     }
 
     /**

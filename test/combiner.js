@@ -8,10 +8,12 @@ describe('Combiner Test', () => {
     it('Base', () => {
         let c1 = new Combiner('combiner1', [2,3,4]);
 
+        assert.equal(c1.inputWires.length, 3);
+
         let inputWire0 = c1.getInputWire('in0');
         let inputWire1 = c1.getInputWire('in1');
         let inputWire2 = c1.getInputWire('in2');
-        let outputWire = c1.getOutputUnit('out');
+        let outputWire = c1.getOutputWire('out');
 
         assert.equal(outputWire.dataWidth, 9);
         assert(Binary.equals(outputWire.data, Binary.fromBinaryString('000000000', 9)));

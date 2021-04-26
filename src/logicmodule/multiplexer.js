@@ -1,7 +1,6 @@
 const { Binary } = require('jsbinary');
 
 const AbstractLogicModule = require('../abstractlogicmodule');
-const LogicCircuitException = require('../logiccircuitexception');
 
 /**
  * 多路复用器
@@ -12,28 +11,26 @@ class Multiplexer extends AbstractLogicModule {
      *
      * @param {*} name 模块名称
      * @param {*} dataWidth 数据宽度
-     * @param {*} sourceWireCount 源数据线（候选数据线）的数量
-     * @param {*} controlWireDataWidth 控制信号的数据宽度，必须满足
-     *   '2 ** controlWireDataWidth === sourceWireCount' 条件。
+     * @param {*} controlWireDataWidth 控制信号的数据宽度，
+     *     输入线的数量为 2^controlWireDataWidth，例如
+     *     当控制线宽度为 2 时，输入线数量为 2^2=4，
+     *     当控制线宽度为 4 时，输入线的数量为 2^4=8
      */
-    constructor(name, dataWidth, sourceWireCount, controlWireDataWidth) {
+    constructor(name, dataWidth, controlWireDataWidth) {
         super(name, {
             dataWidth: dataWidth,
-            sourceWireCount: sourceWireCount,
             controlWireDataWidth: controlWireDataWidth
         });
 
-        if (2 ** controlWireDataWidth !== sourceWireCount) {
-            throw new LogicCircuitException('Control wire data width error.');
-        }
-
+        let sourceWireCount = 2 ** controlWireDataWidth;
         let outputWire = this.addOutputWire('out', dataWidth);
 
         let buildInputWire = (idx) => {
+            // 输入线的名称分别为 in0, in1, ... inN
             let inputWire = this.addInputWire('in' + idx, dataWidth);
 
             inputWire.addListener(data => {
-                if (Binary.equals(data, controlWire.data)) {
+                if (controlWire.data.value === idx) {
                     outputWire.setData(data);
                 }
             });
@@ -48,8 +45,8 @@ class Multiplexer extends AbstractLogicModule {
 
         // 当控制信号改变时，重新传递相应源数据到输出线。
         controlWire.addListener(data => {
-            let sourceIdx = data.value;
-            let inputWire = this.inputWires[sourceIdx];
+            let inputWireIdx = data.value;
+            let inputWire = this.inputWires[inputWireIdx];
 
             let outputData = inputWire.data;
             outputWire.setData(outputData);

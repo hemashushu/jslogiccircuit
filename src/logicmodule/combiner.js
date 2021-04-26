@@ -3,16 +3,16 @@ const AbstractLogicModule = require('../abstractlogicmodule');
 /**
  * 连接线组合器
  *
- * 用于拼接多个连接线的输入，形成一个单一逻辑输出。
- * 比如将 `wire [3:0] a` 和 `wire [11:0] b` 组成
- * `wire [15:0] c = {a, b}`
+ * 用于拼接多个连接线的输入，形成一个单一输出线。
+ * 比如将 "wire [3:0] a" 和 "wire [11:0] b" 组成
+ * "assign wire [15:0] c = {a, b}"
  *
  * 实现如下：
  *
  * let a = new Wire('a', 4);
  * let b = new Wire('b', 12);
  *
- * let c = new Combiner('c', 16, [4, 12])
+ * let c = new Combiner('c', [4, 12])
  * connects([a,b], c.inputWires)
  *
  */
@@ -34,9 +34,11 @@ class Combiner extends AbstractLogicModule {
             sourceDataWidths: sourceDataWidths
         });
 
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
         let dataWidth = sourceDataWidths.reduce((accumulator, currentValue) => accumulator + currentValue);
         let outputWire = this.addOutputWire('out', dataWidth);
 
+        // 输入线的名称分别为 in0, in1, ... inN
         let createInputWire = (idx, targetDataOffset) => {
             let sourceDataWidth = sourceDataWidths[idx];
             let inputWire = this.addInputWire('in' + idx, sourceDataWidth);

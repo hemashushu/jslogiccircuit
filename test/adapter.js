@@ -9,7 +9,10 @@ describe('Adapter Test', () => {
         let a1 = new Adapter('adapter1', 4, 12, 4);
 
         let inputWire = a1.getInputWire('in');
-        let outputWire = a1.getOutputUnit('out');
+        let outputWire = a1.getOutputWire('out');
+
+        assert.equal(inputWire.dataWidth, 12);
+        assert.equal(outputWire.dataWidth, 4);
 
         let b1 = Binary.fromBinaryString('100011110000', 12);
         inputWire.setData(b1);

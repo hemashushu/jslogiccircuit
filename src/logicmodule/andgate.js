@@ -19,6 +19,7 @@ class AndGate extends AbstractLogicModule {
 
         let outputWire = this.addOutputWire('out', 1);
 
+        // 输入线的名称分别为 in0, in1, ... inN
         let createInputWire = (idx) => {
             let inputWire = this.addInputWire('in' + idx, 1);
 
