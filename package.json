@@ -25,6 +25,7 @@
     "mocha": "^8.3.2"
   },
   "dependencies": {
+    "js-yaml": "^4.0.0",
     "jsbinary": "github:hemashushu/jsbinary"
   }
 }
