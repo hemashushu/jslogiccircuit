@@ -9,11 +9,11 @@ class AbstractLogicModule {
 
     /**
      *
-     * @param {*} name 模块的名称
+     * @param {*} name 模块实例的名称
      * @param {*} properties 构造当前模块时所需的各种初始参数的名称及其数值。
      */
     constructor(name, properties) {
-        // 模块名称
+        // 模块实例的
         this.name = name;
 
         // 输入的连接线集合
@@ -76,6 +76,14 @@ class AbstractLogicModule {
      */
     getOutputWire(name) {
         return this.outputWires.find(item => item.name === name);
+    }
+
+    getUIElement() {
+        // 返回当前模块的 UI 元素
+    }
+
+    getUIEventManager() {
+        // 返回当前模块的 UIEventManager 实例
     }
 
     /**

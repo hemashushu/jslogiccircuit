@@ -15,7 +15,7 @@ class Wire {
     /**
      * 构造函数
      *
-     * @param {*} name 连接线的名称，相当于 Verilog 里的 wire 变量的名称。
+     * @param {*} name 连接线实例的名称，相当于 Verilog 里的 wire 变量的名称。
      * @param {*} dataWidth 连接线的数据宽度，单位为“位”，比如
      *     一条连接线可以只传输 1 bit 数据，也可以同时传输 8 bit。
      *     相当于 Verilog 诸如 logic [31:0] 里面的 [31:0]。
