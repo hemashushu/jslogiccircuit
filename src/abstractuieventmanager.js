@@ -1,5 +1,5 @@
 class AbstractUIEventManager {
-    addEventListener(uiEventType, eventHandler) {
+    addEventListener(uiEventName, eventHandler) {
         //
     }
 

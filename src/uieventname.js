@@ -1,4 +1,4 @@
-const UIEventType = {
+const UIEventName = {
     click: 'click',
     mouseDown: 'mousedown',
     mouseUp: 'mouseup',
@@ -7,4 +7,4 @@ const UIEventType = {
     keyUp: 'keyup'
 };
 
-module.exports = UIEventType;
+module.exports = UIEventName;

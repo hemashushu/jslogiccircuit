@@ -1,4 +1,4 @@
-const LogicCircuitException = require('../logiccircuitexception');
+const LogicCircuitException = require('./logiccircuitexception');
 
 let moduleClazz = new Map();
 
