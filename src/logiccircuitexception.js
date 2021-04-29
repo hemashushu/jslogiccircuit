@@ -1,5 +1,5 @@
 class LogicCircuitException extends Error {
-    constructor(message = 'logic circuite error.') {
+    constructor(message = 'Logic circuit error.') {
         super(message);
     }
 }

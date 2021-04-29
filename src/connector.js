@@ -5,8 +5,8 @@ const LogicCircuitException = require('./logiccircuitexception');
  */
 class Connector {
     static connect(previousWire, nextWire) {
-        if (previousWire.dataWidth !== nextWire.dataWidth) {
-            throw new LogicCircuitException("Wire length does not match.");
+        if (previousWire.bitWidth !== nextWire.bitWidth) {
+            throw new LogicCircuitException("Wire bit width does not match.");
         }
 
         previousWire.addListener(data => {

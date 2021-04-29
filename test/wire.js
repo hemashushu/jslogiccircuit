@@ -10,7 +10,7 @@ describe('Wire Test', () => {
         it('Constructor', () => {
             let w1 = new Wire('wire1', 4);
             assert.equal(w1.name, 'wire1');
-            assert.equal(w1.dataWidth, 4);
+            assert.equal(w1.bitWidth, 4);
         });
 
         it('Set data', () => {
