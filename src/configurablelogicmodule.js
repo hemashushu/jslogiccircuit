@@ -1,6 +1,7 @@
 const Wire = require('./wire');
 const LogicModuleFactory = require('./logicmodulefactory');
 const Connector = require('./connector');
+const AbstractLogicModule = require('./abstractlogicmodule');
 
 /**
  * 可配置的逻辑模块
@@ -8,7 +9,7 @@ const Connector = require('./connector');
  * 用于从配置文件构建逻辑模块实例
  *
  */
-class ConfigurableLogicModule {
+class ConfigurableLogicModule extends AbstractLogicModule {
 
     /**
      *

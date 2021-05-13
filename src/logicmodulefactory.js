@@ -1,6 +1,24 @@
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
 
+/**
+ * 通过代码或者配置文件创建逻辑模块
+ *
+ * 当使用代码创建逻辑模块时，模块是一个 class，它必须继承 AbstractLogicModule；
+ * 当使用配置文件创建模块时，配置文件名称必须是 struct.yaml，内容如下：
+ *
+ * - inputWires: [{name, bitWidth}, ...] 输入线/端口的名称即位宽；
+ * - outputWires: [{name, bitWidth}, ...] 输出线/端口的名称即位宽；
+ * - logicModules: [{packageName, moduleClassName, name, parameters}, ...]
+ *   此模块所需的所有子模块，一个逻辑模块是由一个或多个其他逻辑组合而成；
+ * - inputConnections: [{inputWireName, moduleInstanceName, moduleInputWireName}, ...]
+ *   指明哪些子模块连接到输入线；
+ * - outputConnections: [{outputWireName, moduleInstanceName, moduleOutputWireName}, ...]
+ *   指明输出线连接到哪些子模块；
+ * - moduleConnections: [{previousModuleInstanceName, previousModuleOutputWireName,
+ *   nextModuleInstanceName, nextModuleInputWireName}, ...]
+ *   指明子模块之间如何连接。
+ */
 class LogicModuleFactory {
 
     /**
@@ -10,15 +28,10 @@ class LogicModuleFactory {
      * @param {*} moduleClassName
      * @param {*} moduleInstanceName
      * @param {*} parameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
-     * @returns 如果找不到指定的逻辑模块类，则返回 UNDEFINED。
+     * @returns 如果找不到指定的逻辑模块类，则返回 undefined。
      */
     static createModuleInstance(packageName, moduleClassName, moduleInstanceName, parameters = {}, parentParameters = {}) {
         let logicModuleItem = LogicModuleLoader.getModuleClass(packageName, moduleClassName);
-
-        // if (logicModuleItem === undefined) {
-        //     throw new LogicCircuitException('Can not find the specified logic module: [' +
-        //         packageName + ':' + moduleClassName + '].');
-        // }
 
         if (logicModuleItem === undefined) {
             return;

@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.0.0",
-    "jsbinary": "github:hemashushu/jsbinary"
+    "jsbinary": "github:hemashushu/jsbinary",
+    "jsfileconfig": "github:hemashushu/jsfileconfig"
   }
 }

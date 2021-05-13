@@ -1,12 +1,15 @@
 const path = require('path');
 
-const AbstractConfigFile = require('./persistent/abstractconfigfile');
-const JSONConfigFile = require('./persistent/jsonconfigfile');
+const {
+    YAMLFileConfig,
+    JSONFileConfig,
+    PromiseFileConfig} = require('jsfileconfig');
+
+const AbstractConfigFile = require('./configfile/abstractconfigfile');
 const LocalePropertyReader = require('./utils/localepropertyreader');
 const LogicCircuitException = require('./logiccircuitexception');
 const LogicModuleLoader = require('./logicmoduleloader');
 const LogicPackageItem = require('./logicpackageitem');
-const YAMLConfigFile = require('./persistent/yamlconfigfile');
 
 // 全局逻辑包集合
 // key: packagename
@@ -27,12 +30,22 @@ let logicPackageReferenceCounts = global._logicPackageReferenceCounts;
  * 可以包含一个或若多个逻辑模块（logic module class）。
  *
  * 逻辑包根目录除了必须包含 package.json 文件之外，还必须有一个
- * 名字为 logic-package.yaml 的文件，此文件包含了：
+ * 名字为 logic-package.yaml 的文件，此文件包含以下必要的属性：
  *
- * - 逻辑包的基本信息，比如标题、描述等；
- * - 依赖项列表；
- * - 逻辑模块项列表。
+ * - title：逻辑包的标题，支持 locale；
+ * - description：逻辑包的描述，Markdown 格式文本，支持 locale；
+ * - iconFilename：图标文件名，图标文件存放于逻辑包的根目录，建议
+ *   使用 512x512 的 png/webp 格式；
+ * - dependencies：依赖项（逻辑包）的名称列表；
+ * - modules：当前逻辑包提供的逻辑模块项的名称列表。
  *
+ * package.json 文件有以下必要的属性：
+ *
+ * - name：逻辑包的名称，需跟其目录名称一致；
+ * - version：逻辑包的版本；
+ * - author：作者的名称，格式为 "name <email> (url)" 字符串，或者
+ *   {name, email, url} 对象，其中 email 和 url 都是可选的；
+ * - homepage：逻辑包的主页；
  */
 class LogicPackageLoader {
 
@@ -103,14 +116,17 @@ class LogicPackageLoader {
         let logicPackagePath = path.join(packageRepositoryDirectory, packageName);
 
         // 获取 package name, version, author(name), email, homepage 等信息
-        let npmPackageConfigFilePath = path.join(logicPackagePath, 'package.json');
-        let npmPackageConfigFile = new JSONConfigFile(npmPackageConfigFilePath);
-        let npmPackageConfig = npmPackageConfigFile.load();
+        let npmConfigFilePath = path.join(logicPackagePath, 'package.json');
 
-        let name = npmPackageConfig.name;
-        let version = npmPackageConfig.version;
-        let author = npmPackageConfig.author;
-        let homepage = npmPackageConfig.homepage;
+        let jsonFileConfig = new JSONFileConfig();
+        let jsonPromiseFileConfig = new PromiseFileConfig(jsonFileConfig);
+
+        let npmConfig = jsonPromiseFileConfig.load(npmConfigFilePath);
+
+        let name = npmConfig.name;
+        let version = npmConfig.version;
+        let author = npmConfig.author;
+        let homepage = npmConfig.homepage;
 
         if (name !== packageName) {
             throw new LogicCircuitException('Logic package directory name does not match the package name.');
@@ -151,20 +167,22 @@ class LogicPackageLoader {
             throw new LogicCircuitException('Can not find the logic package config file: ' + packageConfigFilePath);
         }
 
-        let packageConfigFile = new YAMLConfigFile(packageConfigFilePath);
+        let yamlFileConfig = new YAMLFileConfig();
+        let yamlPromiseFileConfig = new PromiseFileConfig(yamlFileConfig);
+        let packageConfig = await yamlPromiseFileConfig.load(packageConfigFilePath);
 
-        let title = LocalePropertyReader.getValue(packageConfigFile, 'title', localeCode)
-        let description = LocalePropertyReader.getValue(packageConfigFile, 'description', localeCode)
-        let iconFilename = packageConfigFile.iconFilename;
+        let title = LocalePropertyReader.getValue(packageConfig, 'title', localeCode)
+        let description = LocalePropertyReader.getValue(packageConfig, 'description', localeCode)
+        let iconFilename = packageConfig.iconFilename;
 
         // 加载依赖项信息
-        let dependencies = packageConfigFile.dependencies;
+        let dependencies = packageConfig.dependencies;
         for (let dependencyPackageName of dependencies) {
             LogicPackageLoader.loadDependency(packageRepositoryDirectory, dependencyPackageName);
         }
 
         // 加载逻辑模块项信息
-        let modules = packageConfigFile.modules;
+        let modules = packageConfig.modules;
         for (let moduleClassName of modules) {
             LogicModuleLoader.loadLogicModule(
                 logicPackagePath, packageName, moduleClassName, localeCode);

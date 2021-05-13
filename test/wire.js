@@ -1,36 +1,33 @@
 const { Binary } = require('jsbinary');
+const assert = require('assert/strict');
 
 const Connector = require('../src/connector');
 const Wire = require('../src/wire');
 
-var assert = require('assert/strict');
-
 describe('Wire Test', () => {
-    describe('Base test', () => {
-        it('Constructor', () => {
-            let w1 = new Wire('wire1', 4);
-            assert.equal(w1.name, 'wire1');
-            assert.equal(w1.bitWidth, 4);
-        });
-
-        it('Set data', () => {
-            let w1 = new Wire('wire1', 4);
-            let b1 = Binary.fromBinaryString('0000', 4);
-
-            // https://nodejs.org/api/assert.html#assert_assert_value_message
-            assert(Binary.equals(w1.data, b1));
-
-            let b2 = Binary.fromBinaryString('1010', 4);
-            w1.setData(b2);
-            assert(Binary.equals(w1.data, b2));
-
-            let b3 = Binary.fromBinaryString('1111', 4);
-            w1.setData(b3);
-            assert(Binary.equals(w1.data, b3));
-        });
+    it('Test Constructor', () => {
+        let w1 = new Wire('wire1', 4);
+        assert.equal(w1.name, 'wire1');
+        assert.equal(w1.bitWidth, 4);
     });
 
-    describe('Transit test', () => {
+    it('Test setData()', () => {
+        let w1 = new Wire('wire1', 4);
+        let b1 = Binary.fromBinaryString('0000', 4);
+
+        // https://nodejs.org/api/assert.html#assert_assert_value_message
+        assert(Binary.equals(w1.data, b1));
+
+        let b2 = Binary.fromBinaryString('1010', 4);
+        w1.setData(b2);
+        assert(Binary.equals(w1.data, b2));
+
+        let b3 = Binary.fromBinaryString('1111', 4);
+        w1.setData(b3);
+        assert(Binary.equals(w1.data, b3));
+    });
+
+    describe('Test data transit', () => {
         it('Add lisener', (done) => {
             let w1 = new Wire('wire1', 4);
 
@@ -73,7 +70,7 @@ describe('Wire Test', () => {
         });
     });
 
-    describe('Connect test', ()=>{
+    describe('Test connection', () => {
         it('Chain multiple wires', (done) => {
             let w1 = new Wire('wire1', 4);
             let w2 = new Wire('wire2', 4);
@@ -96,7 +93,7 @@ describe('Wire Test', () => {
             assert(Binary.equals(w3.data, b1));
         });
 
-        it('Connect multiple wires', ()=>{
+        it('Connect multiple wires', () => {
             let w1 = new Wire('wire1', 2);
             let w2 = new Wire('wire2', 2);
             let d1 = new Wire('dest1', 2);

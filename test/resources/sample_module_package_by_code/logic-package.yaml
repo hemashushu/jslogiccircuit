@@ -1,0 +1,7 @@
+title: Sample Module Package (Code)
+description: A module package for unit testing.
+iconFilename: icon.png
+dependencies: []
+modules:
+  - "and-gate"
+  - "nand-gate"
