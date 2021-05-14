@@ -6,8 +6,8 @@
  *
  */
 class ParameterPlaceholder {
-    constructor(name) {
-        this.name = name;
+    constructor(placeholder) {
+        this.placeholder = placeholder;
     }
 }
 

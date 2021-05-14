@@ -27,6 +27,8 @@
   "dependencies": {
     "js-yaml": "^4.0.0",
     "jsbinary": "github:hemashushu/jsbinary",
-    "jsfileconfig": "github:hemashushu/jsfileconfig"
+    "jsexception": "github:hemashushu/jsexception",
+    "jsfileconfig": "github:hemashushu/jsfileconfig",
+    "jsobjectutils": "github:hemashushu/jsobjectutils"
   }
 }

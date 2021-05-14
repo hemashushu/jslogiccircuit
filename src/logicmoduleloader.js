@@ -2,10 +2,10 @@ const path = require('path');
 
 const {
     YAMLFileConfig,
-    PromiseFileConfig} = require('jsfileconfig');
+    PromiseFileConfig,
+    LocalePropertyReader
+    } = require('jsfileconfig');
 
-const AbstractConfigFile = require('./configfile/abstractconfigfile');
-const LocalePropertyReader = require('./utils/localepropertyreader');
 const LogicModuleItem = require('./logicmoduleitem');
 
 // 全局模块（类）对象
@@ -43,12 +43,12 @@ class LogicModuleLoader {
         logicModuleItems.set(key, logicModuleItem);
     }
 
-    static removeLogicModuleItem(packageName, logicModuleClassName) {
+    static removeLogicModuleItemByName(packageName, logicModuleClassName) {
         let key = `${packageName}:${logicModuleClassName}`;
         logicModuleItems.delete(key);
     }
 
-    static getLogicModuleItem(packageName, logicModuleClassName) {
+    static getLogicModuleItemByName(packageName, logicModuleClassName) {
         let key = `${packageName}:${logicModuleClassName}`;
         return logicModuleItems.get(key);
     }
@@ -69,9 +69,12 @@ class LogicModuleLoader {
         let moduleFilePath = path.join(logicPackagePath, moduleClassName);
 
         let moduleConfigFilePath = path.join(moduleFilePath, moduleClassName);
-        if (!AbstractConfigFile.exists(moduleConfigFilePath)) {
-            throw new LogicCircuitException('Can not find the logic module config file: ' + moduleConfigFilePath);
-        }
+
+        // TODO::
+        // use FileUtils.exists
+        // if (!AbstractConfigFile.exists(moduleConfigFilePath)) {
+        //     throw new LogicCircuitException('Can not find the logic module config file: ' + moduleConfigFilePath);
+        // }
 
         let fileConfig = new YAMLFileConfig();
         let promiseFileConfig = new PromiseFileConfig(fileConfig);
@@ -86,13 +89,16 @@ class LogicModuleLoader {
         let moduleClass;
 
         let structConfigFilePath = path.join(moduleFilePath, 'struct.yaml');
-        if (AbstractConfigFile.exists(structConfigFilePath)) {
-            // 优先从 struct.yaml 加载逻辑模块
-            moduleClass = await promiseFileConfig.load(structConfigFilePath);
 
-        }else {
+        // TODO::
+        // use FileUtils.exists
+//         if (AbstractConfigFile.exists(structConfigFilePath)) {
+//             // 优先从 struct.yaml 加载逻辑模块
+//             moduleClass = await promiseFileConfig.load(structConfigFilePath);
+//
+//         }else {
             moduleClass = require(moduleFilePath);
-        }
+        // }
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,

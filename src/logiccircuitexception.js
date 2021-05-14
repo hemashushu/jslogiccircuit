@@ -1,6 +1,8 @@
-class LogicCircuitException extends Error {
-    constructor(message = 'Logic circuit error.') {
-        super(message);
+const {Exception} = require('jsexception');
+
+class LogicCircuitException extends Exception {
+    constructor(message = 'Logic circuit error.', cause) {
+        super(message, cause);
     }
 }
 

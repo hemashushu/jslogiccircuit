@@ -1,5 +1,5 @@
 const Wire = require('./wire');
-const LogicCircuitException = require('./logiccircuitexception');
+const { ObjectUtils } = require('jsobjectutils');
 
 /**
  * 抽象逻辑模块
@@ -16,13 +16,14 @@ const LogicCircuitException = require('./logiccircuitexception');
 class AbstractLogicModule {
 
     /**
+     * 实例化逻辑模块（类）
      *
-     * @param {*} name 模块实例的名称
-     * @param {*} parameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
+     * @param {*} instanceName 模块实例的名称
+     * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      */
-    constructor(name, parameters) {
+    constructor(instanceName, instanceParameters, defaultParameters) {
         // 模块实例的
-        this.name = name;
+        this.instanceName = instanceName;
 
         // 输入的连接线集合
         this.inputWires = [];
@@ -30,23 +31,38 @@ class AbstractLogicModule {
         // 输出的连接线集合
         this.outputWires = [];
 
-        // 当前模块的初始参数
+        // 实例化当前模块的初始参数
         // 一个 {name:value, ...} 对象
-        this.parameters = {};
+        this.instanceParameters = instanceParameters;
 
-        // 复制一份
-        for (let name in parameters) {
-            let value = parameters[name];
-            this.parameters[name] = value;
-        }
+        // 模块的默认参数
+        // 模块的默认参数是由配置文件 “logic-module.yaml” 配置的，
+        // 所以需要在实例化时一起传入。
+        this.defaultParameters = defaultParameters;
+
+        // 实例实际使用的参数，由实例参数与模块（类）提供的默认参数
+        // 合并而得。
+        this.parameters = ObjectUtils.objectMerge(
+            instanceParameters,
+            defaultParameters);
     }
 
+    /**
+     * LogicModule 实现所在的包的名称
+     * 名称需符合 npm package 命名规范
+     */
     getPackageName() {
-        throw new LogicCircuitException('Logic module does not provide package name yet.');
+        // 子类需要重写（override）此方法
+        return '';
     }
 
+    /**
+     * LogicModule 实现的名称
+     * 名称需符合 npm package 命名规范
+     */
     getModuleClassName() {
-        throw new LogicCircuitException('Logic module does not provide class name yet.');
+        // 子类需要重写（override）此方法
+        return '';
     }
 
     /**
@@ -79,7 +95,7 @@ class AbstractLogicModule {
      * 通过名字获取输入连接线
      * @param {*} name
      */
-    getInputWire(name) {
+    getInputWireByName(name) {
         return this.inputWires.find(item => item.name === name);
     }
 
@@ -87,24 +103,59 @@ class AbstractLogicModule {
      * 通过名字获取输出连接线
      * @param {*} name
      */
-    getOutputWire(name) {
+    getOutputWireByName(name) {
         return this.outputWires.find(item => item.name === name);
     }
 
-    getParameter(name) {
+    getInputWires() {
+        return this.inputWires;
+    }
+
+    getOutputWires() {
+        return this.outputWires;
+    }
+
+    /**
+     * LogicModule 的默认参数
+     * 注意这个参数是配置的默认参数、定义参数，并非实例参数。
+     * 实例会将实例参数跟这个默认参数合并作为最终运行时所用的参数。
+     */
+    getDefaultParameters() {
+        return this.defaultParameters;
+    }
+
+    getInstanceParameters() {
+        return this.instanceParameters;
+    }
+
+    getParameters() {
+        return this.parameters;
+    }
+
+    /**
+     * 获取当前模块实例所使用的初始化参数
+     *
+     * 此参数由实例化时传入的参数与模块类默认参数合并而得。
+     *
+     * @param {*} name
+     * @returns
+     */
+    getParameterByName(name) {
         return this.parameters[name];
     }
 
-    setParameter(name, value) {
-        this.parameters[name] = value;
-    }
-
+    /**
+     * 返回当前模块的 UI 元素
+     */
     getUIElement() {
-        // 返回当前模块的 UI 元素
+        // 子类需要重写（override）此方法
     }
 
+    /**
+     * 返回当前模块的 UIEventManager 实例
+     */
     getUIEventManager() {
-        // 返回当前模块的 UIEventManager 实例
+        // 子类需要重写（override）此方法
     }
 }
 

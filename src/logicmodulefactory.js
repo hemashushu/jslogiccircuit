@@ -1,15 +1,18 @@
+const {ObjectUtils} = require('jsobjectutils');
+
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
 
 /**
  * 通过代码或者配置文件创建逻辑模块
  *
- * 当使用代码创建逻辑模块时，模块是一个 class，它必须继承 AbstractLogicModule；
- * 当使用配置文件创建模块时，配置文件名称必须是 struct.yaml，内容如下：
+ * - 当使用代码创建逻辑模块时，模块是一个 class，它必须继承 AbstractLogicModule；
+ * - 当使用配置文件创建模块时，配置文件名称必须是 struct.yaml，
+ *   配置信息如下：
  *
  * - inputWires: [{name, bitWidth}, ...] 输入线/端口的名称即位宽；
  * - outputWires: [{name, bitWidth}, ...] 输出线/端口的名称即位宽；
- * - logicModules: [{packageName, moduleClassName, name, parameters}, ...]
+ * - logicModules: [{packageName, moduleClassName, instanceName, instanceParameters}, ...]
  *   此模块所需的所有子模块，一个逻辑模块是由一个或多个其他逻辑组合而成；
  * - inputConnections: [{inputWireName, moduleInstanceName, moduleInputWireName}, ...]
  *   指明哪些子模块连接到输入线；
@@ -18,6 +21,8 @@ const LogicModuleLoader = require('./logicmoduleloader');
  * - moduleConnections: [{previousModuleInstanceName, previousModuleOutputWireName,
  *   nextModuleInstanceName, nextModuleInputWireName}, ...]
  *   指明子模块之间如何连接。
+ * - defaultParameters: {name: value, ...} 模块的默认参数（定义参数）
+ *
  */
 class LogicModuleFactory {
 
@@ -26,63 +31,65 @@ class LogicModuleFactory {
      *
      * @param {*} packageName
      * @param {*} moduleClassName
-     * @param {*} moduleInstanceName
-     * @param {*} parameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
+     * @param {*} instanceName
+     * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象，注意这个
+     *     是实例的参数，它将会跟模块的默认参数（即定义参数进行合并）
+     * @param {*} parentParameters 实例化指定模块时的父模块实例的参数
      * @returns 如果找不到指定的逻辑模块类，则返回 undefined。
      */
-    static createModuleInstance(packageName, moduleClassName, moduleInstanceName, parameters = {}, parentParameters = {}) {
-        let logicModuleItem = LogicModuleLoader.getModuleClass(packageName, moduleClassName);
+    static createModuleInstance(packageName, moduleClassName,
+        instanceName, instanceParameters = {}, parentParameters = {}) {
+
+        let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 
         if (logicModuleItem === undefined) {
             return;
         }
 
-        let moduleClass = logicModuleItem.moduleClass;
         let defaultParameters = logicModuleItem.defaultParameters;
 
-        let combinedParameters = {};
-        for (let name in parameters) {
-            combinedParameters[name] = parameters[name];
-        }
+        // 实例参数有可能包含占位符，比如某个子模块希望使用父模块的
+        // 某个参数值（相当于 Verilog 工程里的常量），则可以将此参数值
+        // 赋值为一个对象 {placeholder: 'name string'}，实例化时会
+        // 将此属性值转换为父对象实例参数中的 'name string' 属性对应的值。
 
-        let keys = Object.keys(combinedParameters);
-        for (let name in defaultParameters) {
-            if (keys.includes(name)) {
-                continue;
-            }
+        let resolvedInstanceParameters = {};
 
-            combinedParameters[name] = defaultParameters[name];
-        }
-
-        // fill the parameter placeholder
-        let resolvedParameters = {};
-
-        for (let name in combinedParameters) {
+        for (let name in instanceParameters) {
             let value = combinedParameters[name];
-            if (typeof value === 'object') {
-                let placeholderName = value.name;
+            if (ObjectUtils.isObject(value)) {
+                let placeholderName = value.placeholder;
                 value = parentParameters[placeholderName];
             }
-            resolvedParameters[name] = value;
+            resolvedInstanceParameters[name] = value;
         }
 
         // moduleClass 可以是一个 Class，也可以是一个描述如何构建实例的 YAML 对象
+        let moduleClass = logicModuleItem.moduleClass;
 
         if (typeof moduleClass === 'function') {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
-            return Reflect.construct(moduleClass, [moduleInstanceName, resolvedParameters]);
+            return Reflect.construct(moduleClass, [
+                instanceName,
+                resolvedInstanceParameters,
+                defaultParameters]);
 
         } else {
             return LogicModuleFactory.constructModuleInstance(
                 packageName, moduleClassName,
-                moduleClass, moduleInstanceName, resolvedParameters);
+                moduleClass,
+                instanceName, resolvedInstanceParameters, defaultParameters);
         }
     }
 
-    constructModuleInstance(packageName, moduleClassName, moduleConfig, moduleInstanceName, parameters) {
+    constructModuleInstanceByConfig(
+        packageName, moduleClassName,
+        moduleConfig,
+        moduleInstanceName, instanceParameters, defaultParameters) {
+
         let moduleInstance = new ConfigurableLogicModule(
             packageName, moduleClassName,
-            moduleInstanceName, parameters);
+            moduleInstanceName, instanceParameters, defaultParameters);
 
         // add input wires
         let configInputWires = moduleConfig.inputWires;
@@ -105,11 +112,11 @@ class LogicModuleFactory {
         for (let configLogicModule of configLogicModules) {
             let packageName = configLogicModule.packageName;
             let moduleClassName = configLogicModule.moduleClassName;
-            let name = configLogicModule.name;
-            let parameters = configLogicModule.parameters;
+            let instanceName = configLogicModule.instanceName;
+            let instanceParameters = configLogicModule.instanceParameters;
 
             moduleInstance.addLogicModule(
-                packageName, moduleClassName, name, parameters);
+                packageName, moduleClassName, instanceName, instanceParameters);
         }
 
         // add input connectors

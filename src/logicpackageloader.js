@@ -3,10 +3,9 @@ const path = require('path');
 const {
     YAMLFileConfig,
     JSONFileConfig,
-    PromiseFileConfig} = require('jsfileconfig');
+    PromiseFileConfig,
+    LocalePropertyReader} = require('jsfileconfig');
 
-const AbstractConfigFile = require('./configfile/abstractconfigfile');
-const LocalePropertyReader = require('./utils/localepropertyreader');
 const LogicCircuitException = require('./logiccircuitexception');
 const LogicModuleLoader = require('./logicmoduleloader');
 const LogicPackageItem = require('./logicpackageitem');
@@ -36,8 +35,8 @@ let logicPackageReferenceCounts = global._logicPackageReferenceCounts;
  * - description：逻辑包的描述，Markdown 格式文本，支持 locale；
  * - iconFilename：图标文件名，图标文件存放于逻辑包的根目录，建议
  *   使用 512x512 的 png/webp 格式；
- * - dependencies：依赖项（逻辑包）的名称列表；
- * - modules：当前逻辑包提供的逻辑模块项的名称列表。
+ * - dependencies：依赖项（逻辑包）的名称列表，为一个 String 数组；
+ * - modules：当前逻辑包提供的逻辑模块项的名称列表，为一个 String 数组。
  *
  * package.json 文件有以下必要的属性：
  *
@@ -54,7 +53,7 @@ class LogicPackageLoader {
         logicPackageReferenceCounts.set(logicPackageItem.packageName, 1);
     }
 
-    static removeLogicPackageItem(packageName) {
+    static removeLogicPackageItemByName(packageName) {
         let logicPackageItem = logicPackageItems.get(packageName);
 
         if (logicPackageItem === undefined) {
@@ -78,14 +77,14 @@ class LogicPackageLoader {
         // 再移除依赖包
         let dependencies = logicPackageItem.dependencies;
         for (let dependencyPackageName of dependencies) {
-            LogicPackageLoader.removeLogicPackageItem(dependencyPackageName);
+            LogicPackageLoader.removeLogicPackageItemByName(dependencyPackageName);
         }
 
         logicPackageReferenceCounts.delete(packageName);
         logicPackageItems.delete(packageName);
     }
 
-    static getLogicPackageItem(packageName) {
+    static getLogicPackageItemByName(packageName) {
         return logicPackageItems.get(packageName);
     }
 
@@ -121,7 +120,7 @@ class LogicPackageLoader {
         let jsonFileConfig = new JSONFileConfig();
         let jsonPromiseFileConfig = new PromiseFileConfig(jsonFileConfig);
 
-        let npmConfig = jsonPromiseFileConfig.load(npmConfigFilePath);
+        let npmConfig = await jsonPromiseFileConfig.load(npmConfigFilePath);
 
         let name = npmConfig.name;
         let version = npmConfig.version;
@@ -163,9 +162,11 @@ class LogicPackageLoader {
 
         let packageConfigFilePath = path.join(logicPackagePath, 'logic-package.yaml');
 
-        if (!AbstractConfigFile.exists(packageConfigFilePath)) {
-            throw new LogicCircuitException('Can not find the logic package config file: ' + packageConfigFilePath);
-        }
+        // TODO::
+        // use FileUtils.exists
+        // if (!AbstractConfigFile.exists(packageConfigFilePath)) {
+        //     throw new LogicCircuitException('Can not find the logic package config file: ' + packageConfigFilePath);
+        // }
 
         let yamlFileConfig = new YAMLFileConfig();
         let yamlPromiseFileConfig = new PromiseFileConfig(yamlFileConfig);
@@ -178,7 +179,7 @@ class LogicPackageLoader {
         // 加载依赖项信息
         let dependencies = packageConfig.dependencies;
         for (let dependencyPackageName of dependencies) {
-            LogicPackageLoader.loadDependency(packageRepositoryDirectory, dependencyPackageName);
+            LogicPackageLoader.loadDependency(packageRepositoryDirectory, dependencyPackageName, localeCode);
         }
 
         // 加载逻辑模块项信息
@@ -217,8 +218,8 @@ class LogicPackageLoader {
             return;
         }
 
-        LogicPackageLoader.loadLogicPackage(packageRepositoryDirectory,
-            packageName, localeCode);
+        LogicPackageLoader.loadLogicPackage(
+            packageRepositoryDirectory, packageName, localeCode);
     }
 }
 

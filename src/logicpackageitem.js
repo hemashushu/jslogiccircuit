@@ -1,3 +1,6 @@
+/**
+ * LogicPackage 的配置信息
+ */
 class LogicPackageItem {
 
     /**
