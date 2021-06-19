@@ -4,9 +4,11 @@ const {
     YAMLFileConfig,
     JSONFileConfig,
     PromiseFileConfig,
-    LocalePropertyReader} = require('jsfileconfig');
+    LocaleProperty} = require('jsfileconfig');
 
-const LogicCircuitException = require('./logiccircuitexception');
+const { PromiseFileUtils } = require('jsfileutils');
+
+const LogicCircuitException = require('./exception/logiccircuitexception');
 const LogicModuleLoader = require('./logicmoduleloader');
 const LogicPackageItem = require('./logicpackageitem');
 
@@ -69,14 +71,14 @@ class LogicPackageLoader {
         }
 
         // 先移除逻辑模块
-        let modules = logicPackageItem.modules;
-        for (let moduleClassName of modules) {
+        let moduleClassNames = logicPackageItem.modules;
+        for (let moduleClassName of moduleClassNames) {
             LogicModuleLoader.removeModuleClass(moduleClassName);
         }
 
         // 再移除依赖包
-        let dependencies = logicPackageItem.dependencies;
-        for (let dependencyPackageName of dependencies) {
+        let dependencyPackageNames = logicPackageItem.dependencies;
+        for (let dependencyPackageName of dependencyPackageNames) {
             LogicPackageLoader.removeLogicPackageItemByName(dependencyPackageName);
         }
 
@@ -84,6 +86,12 @@ class LogicPackageLoader {
         logicPackageItems.delete(packageName);
     }
 
+    /**
+     * 获取指定名称的逻辑包
+     *
+     * @param {*} packageName
+     * @returns 返回 LogicPackageItem，如果找不到指定名称的逻辑包，则返回 undefined.
+     */
     static getLogicPackageItemByName(packageName) {
         return logicPackageItems.get(packageName);
     }
@@ -100,12 +108,14 @@ class LogicPackageLoader {
      *
      *
      * @param {*} packageRepositoryDirectory 目标逻辑包所在的目录，其值一般
-     *     为目标逻辑包的 '__dirname' 的父目录。
+     *     为目标逻辑包的 '__dirname' 值的父目录。
      * @param {*} packageName 目标逻辑包的名称，这个名称同时也是目录名称。
+     * @returns 返回 LogicPackageItem
      */
-    static loadLogicPackage(packageRepositoryDirectory, packageName, localeCode = 'en') {
+    static async loadLogicPackage(packageRepositoryDirectory, packageName, localeCode = 'en') {
 
-        // 包名只可以包含 [0-9a-zA-Z_-\.] 字符
+        // 逻辑包名称只可以包含 [0-9a-zA-Z_-\.] 字符
+        // 这个判断本因在逻辑包实现里判断，但不好操作，所以在此判断。
         if (!/^[\w\.-]+$/.test(packageName)) {
             throw new LogicCircuitException("Invalid logic package name.");
         }
@@ -117,9 +127,12 @@ class LogicPackageLoader {
         // 获取 package name, version, author(name), email, homepage 等信息
         let npmConfigFilePath = path.join(logicPackagePath, 'package.json');
 
+        if (!await PromiseFileUtils.exists(npmConfigFilePath)) {
+            throw new LogicCircuitException('Can not find the package config file: ' + npmConfigFilePath);
+        }
+
         let jsonFileConfig = new JSONFileConfig();
         let jsonPromiseFileConfig = new PromiseFileConfig(jsonFileConfig);
-
         let npmConfig = await jsonPromiseFileConfig.load(npmConfigFilePath);
 
         let name = npmConfig.name;
@@ -128,6 +141,7 @@ class LogicPackageLoader {
         let homepage = npmConfig.homepage;
 
         if (name !== packageName) {
+            // 为了便于管理，当前强制要求逻辑包名称必须跟所在的目录的名称一致
             throw new LogicCircuitException('Logic package directory name does not match the package name.');
         }
 
@@ -161,41 +175,39 @@ class LogicPackageLoader {
         // 获取逻辑包标题、依赖项、逻辑模块项、图标文件名、描述等信息
 
         let packageConfigFilePath = path.join(logicPackagePath, 'logic-package.yaml');
-
-        // TODO::
-        // use FileUtils.exists
-        // if (!AbstractConfigFile.exists(packageConfigFilePath)) {
-        //     throw new LogicCircuitException('Can not find the logic package config file: ' + packageConfigFilePath);
-        // }
+        if (!await PromiseFileUtils.exists(packageConfigFilePath)) {
+            throw new LogicCircuitException('Can not find the logic package config file: ' + packageConfigFilePath);
+        }
 
         let yamlFileConfig = new YAMLFileConfig();
         let yamlPromiseFileConfig = new PromiseFileConfig(yamlFileConfig);
         let packageConfig = await yamlPromiseFileConfig.load(packageConfigFilePath);
 
-        let title = LocalePropertyReader.getValue(packageConfig, 'title', localeCode)
-        let description = LocalePropertyReader.getValue(packageConfig, 'description', localeCode)
+        let title = LocaleProperty.getValue(packageConfig, 'title', localeCode)
+        let description = LocaleProperty.getValue(packageConfig, 'description', localeCode)
         let iconFilename = packageConfig.iconFilename;
 
         // 加载依赖项信息
-        let dependencies = packageConfig.dependencies;
-        for (let dependencyPackageName of dependencies) {
-            LogicPackageLoader.loadDependency(packageRepositoryDirectory, dependencyPackageName, localeCode);
+        let dependencyPackageNames = packageConfig.dependencies;
+        for (let dependencyPackageName of dependencyPackageNames) {
+            await LogicPackageLoader.loadDependency(packageRepositoryDirectory, dependencyPackageName, localeCode);
         }
 
         // 加载逻辑模块项信息
-        let modules = packageConfig.modules;
-        for (let moduleClassName of modules) {
-            LogicModuleLoader.loadLogicModule(
+        let moduleClassNames = packageConfig.modules;
+        for (let moduleClassName of moduleClassNames) {
+            let m = await LogicModuleLoader.loadLogicModule(
                 logicPackagePath, packageName, moduleClassName, localeCode);
         }
 
         let logicPackageItem = new LogicPackageItem(
             name, version,
-            dependencies, modules,
+            dependencyPackageNames, moduleClassNames,
             title, author, homepage,
             iconFilename, description);
 
         LogicPackageLoader.addLogicPackageItem(logicPackageItem);
+        return logicPackageItem;
     }
 
     /**
@@ -207,9 +219,9 @@ class LogicPackageLoader {
      * @param {*} packageRepositoryDirectory
      * @param {*} packageName
      * @param {*} localeCode
-     * @returns
+     * @returns LogicPackageItem
      */
-    static loadDependency(packageRepositoryDirectory, packageName, localeCode) {
+    static async loadDependency(packageRepositoryDirectory, packageName, localeCode) {
         if (logicPackageItems.has(packageName)) {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
             let count = logicPackageReferenceCounts.get();
@@ -218,7 +230,7 @@ class LogicPackageLoader {
             return;
         }
 
-        LogicPackageLoader.loadLogicPackage(
+        return LogicPackageLoader.loadLogicPackage(
             packageRepositoryDirectory, packageName, localeCode);
     }
 }

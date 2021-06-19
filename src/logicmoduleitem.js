@@ -18,7 +18,7 @@ class LogicModuleItem {
         packageName,
         moduleClassName,
         moduleClass,
-        defaultParameters,
+        defaultParameters = {},
         title,
         iconFilename,
         description) {

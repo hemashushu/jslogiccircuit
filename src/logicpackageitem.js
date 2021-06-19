@@ -19,10 +19,11 @@ class LogicPackageItem {
      */
     constructor(packageName,
         version,
-        dependencies,
-        modules,
+        dependencies = [],
+        modules = [],
         packageTitle,
-        author, homepage,
+        author,
+        homepage,
         iconFilename,
         description) {
 

@@ -29,6 +29,7 @@
     "jsbinary": "github:hemashushu/jsbinary",
     "jsexception": "github:hemashushu/jsexception",
     "jsfileconfig": "github:hemashushu/jsfileconfig",
+    "jsfileutils": "github:hemashushu/jsfileutils",
     "jsobjectutils": "github:hemashushu/jsobjectutils"
   }
 }

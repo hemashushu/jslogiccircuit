@@ -1,4 +1,5 @@
 const { Binary } = require('jsbinary');
+const { IllegalArgumentException } = require('jsexception');
 
 const Connector = require('./connector');
 
@@ -20,8 +21,8 @@ class Wire {
      *     相当于 Verilog 诸如 logic [7:0] 里面的 [7:0]。
      */
     constructor(name, bitWidth) {
-        if (bitWidth <0 || bitWidth>32) {
-            throw new RangeError('Bit width out of range.');
+        if (bitWidth < 1 || bitWidth > 32) {
+            throw new IllegalArgumentException('Bit width should be from 1 to 32.');
         }
 
         this.name = name;
@@ -31,7 +32,7 @@ class Wire {
         // 数据变化监听者（即 Lisener）的集合。
         // 供其他连接线绑定当前连接线数据变化的事件。
         //
-        // 方法的签名为 "void func(Binary data)"
+        // 方法的签名为 "void function(binary_data)"
         this.listeners = [];
     }
 
@@ -44,13 +45,8 @@ class Wire {
         // 'data' 为 Binary 对象，同时它的位宽 bitWidth 必须
         // 跟当前连接线的位宽一致。
         this.data.update(data);
-        this._transit();
-    }
 
-    /**
-     * 传递当前数值给其他连接线
-     */
-    _transit() {
+        // 传递当前数值给其他连接线
         for (let lisener of this.listeners) {
             lisener(this.data);
         }
@@ -59,11 +55,11 @@ class Wire {
     /**
      * 添加数据变化事件的监听者
      *
-     * @param {*} func 监听者（方法），方法签名为 "void func(Binary data)"
+     * @param {*} func 监听者（方法），方法签名为 "void function(binary_data)"
      */
     addListener(func) {
         if (typeof func !== 'function') {
-            throw new TypeError('Listener should be a function.');
+            throw new IllegalArgumentException('The listener should be a function.');
         }
 
         this.listeners.push(func);
@@ -80,7 +76,5 @@ class Wire {
         Connector.connect(previousWire, this);
     }
 }
-
-Wire.className = 'wire';
 
 module.exports = Wire;

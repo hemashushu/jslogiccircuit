@@ -1,17 +1,17 @@
-const AbstractBaseLogicModule = require('../abstractbaselogicmodule');
-const {Binary} = require('jsbinary');
+const { AbstractLogicModule } = require('../../../../index');
+const { Binary } = require('jsbinary');
 
 /**
  * 逻辑与门
  */
-class AndGate extends AbstractBaseLogicModule {
+class AndGate extends AbstractLogicModule {
 
-    constructor(name, parameters) {
-        super(name, parameters);
+    constructor(instanceName, instanceParameters, defaultParameters) {
+        super(instanceName, instanceParameters, defaultParameters);
 
         // 模块参数
-        let inputWireCount = parameters.inputWireCount; // 输入线的数量
-        let bitWidth = parameters.bitWidth; // 数据宽度
+        let inputWireCount = this.getParameterByName('inputWireCount'); // 输入线的数量
+        let bitWidth = this.getParameterByName('bitWidth'); // 数据宽度
 
         let outputWire = this.addOutputWire('out', bitWidth);
 
@@ -21,7 +21,7 @@ class AndGate extends AbstractBaseLogicModule {
 
             inputWire.addListener(() => {
                 let outputData = this.inputWires[0].data;
-                for(let idx=1; idx<this.inputWires.length; idx++) {
+                for (let idx = 1; idx < this.inputWires.length; idx++) {
                     outputData = Binary.and(outputData, this.inputWires[idx].data);
                 }
 
@@ -37,8 +37,12 @@ class AndGate extends AbstractBaseLogicModule {
         }
     }
 
+    getPackageName() {
+        return 'sample_logic_package_by_code'; // 同目录名
+    }
+
     getModuleClassName() {
-        return 'andgate'; // 同目录名
+        return 'and-gate'; // 同目录名
     }
 }
 

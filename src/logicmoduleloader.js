@@ -3,9 +3,12 @@ const path = require('path');
 const {
     YAMLFileConfig,
     PromiseFileConfig,
-    LocalePropertyReader
+    LocaleProperty
     } = require('jsfileconfig');
 
+const { PromiseFileUtils } = require('jsfileutils');
+
+const LogicCircuitException = require('./exception/logiccircuitexception');
 const LogicModuleItem = require('./logicmoduleitem');
 
 // 全局模块（类）对象
@@ -48,6 +51,12 @@ class LogicModuleLoader {
         logicModuleItems.delete(key);
     }
 
+    /**
+     *
+     * @param {*} packageName
+     * @param {*} logicModuleClassName
+     * @returns 返回逻辑模块项（类），如果找不到指定的模块，则返回 undefined.
+     */
     static getLogicModuleItemByName(packageName, logicModuleClassName) {
         let key = `${packageName}:${logicModuleClassName}`;
         return logicModuleItems.get(key);
@@ -58,31 +67,28 @@ class LogicModuleLoader {
      *
      * @param {*} logicPackagePath
      * @param {*} logicModuleClassName
+     * @returns 返回 LogicModuleItem
      */
-    static //async
-    loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
-        // 包名只可以包含 [0-9a-zA-Z_-\.] 字符
+    static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
+        // 逻辑模块名称只可以包含 [0-9a-zA-Z_-\.] 字符
+        // 这个判断本因在逻辑包实现里判断，但不好操作，所以在此判断。
         if (!/^[\w\.-]+$/.test(moduleClassName)) {
             throw new LogicCircuitException("Invalid logic module class name.");
         }
 
         let moduleFilePath = path.join(logicPackagePath, moduleClassName);
+        let moduleConfigFilePath = path.join(moduleFilePath, 'logic-module.yaml');
 
-        let moduleConfigFilePath = path.join(moduleFilePath, moduleClassName);
-
-        // TODO::
-        // use FileUtils.exists
-        // if (!AbstractConfigFile.exists(moduleConfigFilePath)) {
-        //     throw new LogicCircuitException('Can not find the logic module config file: ' + moduleConfigFilePath);
-        // }
+        if (!await PromiseFileUtils.exists(moduleConfigFilePath)) {
+            throw new LogicCircuitException('Can not find the logic module config file: ' + moduleConfigFilePath);
+        }
 
         let fileConfig = new YAMLFileConfig();
         let promiseFileConfig = new PromiseFileConfig(fileConfig);
-
         let moduleConfig = await promiseFileConfig.load(moduleConfigFilePath);
 
-        let title = LocalePropertyReader.getValue(moduleConfig, 'title', localeCode)
-        let description = LocalePropertyReader.getValue(moduleConfig, 'description', localeCode)
+        let title = LocaleProperty.getValue(moduleConfig, 'title', localeCode)
+        let description = LocaleProperty.getValue(moduleConfig, 'description', localeCode)
         let iconFilename = moduleConfig.iconFilename;
         let defaultParameters = moduleConfig.defaultParameters;
 
@@ -90,21 +96,20 @@ class LogicModuleLoader {
 
         let structConfigFilePath = path.join(moduleFilePath, 'struct.yaml');
 
-        // TODO::
-        // use FileUtils.exists
-//         if (AbstractConfigFile.exists(structConfigFilePath)) {
-//             // 优先从 struct.yaml 加载逻辑模块
-//             moduleClass = await promiseFileConfig.load(structConfigFilePath);
-//
-//         }else {
+        if (await PromiseFileUtils.exists(structConfigFilePath)) {
+            // 优先从 struct.yaml 加载逻辑模块
+            moduleClass = await promiseFileConfig.load(structConfigFilePath);
+        }else {
             moduleClass = require(moduleFilePath);
-        // }
+        }
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
             title, iconFilename, description);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
+
+        return logicModuleItem;
     }
 }
 

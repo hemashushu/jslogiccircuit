@@ -1,4 +1,5 @@
-const {ObjectUtils} = require('jsobjectutils');
+const { ObjectUtils } = require('jsobjectutils');
+const { IllegalArgumentException } = require('jsexception');
 
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
@@ -35,7 +36,7 @@ class LogicModuleFactory {
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象，注意这个
      *     是实例的参数，它将会跟模块的默认参数（即定义参数进行合并）
      * @param {*} parentParameters 实例化指定模块时的父模块实例的参数
-     * @returns 如果找不到指定的逻辑模块类，则返回 undefined。
+     * @returns 如果找不到指定的逻辑模块类，则抛出 IllegalArgumentException 异常。
      */
     static createModuleInstance(packageName, moduleClassName,
         instanceName, instanceParameters = {}, parentParameters = {}) {
@@ -43,7 +44,7 @@ class LogicModuleFactory {
         let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 
         if (logicModuleItem === undefined) {
-            return;
+            throw new IllegalArgumentException('The specified module cannot be found.');
         }
 
         let defaultParameters = logicModuleItem.defaultParameters;

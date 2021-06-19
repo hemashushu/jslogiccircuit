@@ -1,8 +1,8 @@
 const { Binary } = require('jsbinary');
+
 const assert = require('assert/strict');
 
-const Connector = require('../src/connector');
-const Wire = require('../src/wire');
+const { Connector, Wire } = require('../index');
 
 describe('Wire Test', () => {
     it('Test Constructor', () => {

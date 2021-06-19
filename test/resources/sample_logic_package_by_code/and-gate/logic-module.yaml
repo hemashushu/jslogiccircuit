@@ -1,0 +1,6 @@
+title: AND Gate
+description: Logic "AND" Gate
+iconFilename: icon.png
+defaultParameters:
+  inputWireCount: 2
+  bitWidth: 1
