@@ -10,6 +10,14 @@ const { NotImplementedException } = require('jsexception');
  *   require() 或者 import() 方法加载然后创建实例，而应该使用
  *   LogicModuleFactory.createModuleInstance() 方法创建实例，该方法
  *   能解决模块依赖问题。
+ *
+ * 实例的属性：
+ * - instanceName
+ * - inputWires
+ * - outputWires
+ * - instanceParameters
+ * - defaultParameters
+ * - parameters
  */
 class AbstractLogicModule {
 
@@ -98,7 +106,7 @@ class AbstractLogicModule {
      * @param {*} name
      * @returns 返回 Wire 实例对象，如果找不到相应的连接线，则返回 undefined.
      */
-    getInputWireByName(name) {
+    getInputWire(name) {
         return this.inputWires.find(item => item.name === name);
     }
 
@@ -107,7 +115,7 @@ class AbstractLogicModule {
      * @param {*} name
      * @returns 返回 Wire 实例对象，如果找不到相应的连接线，则返回 undefined.
      */
-    getOutputWireByName(name) {
+    getOutputWire(name) {
         return this.outputWires.find(item => item.name === name);
     }
 
@@ -166,7 +174,7 @@ class AbstractLogicModule {
      * @param {*} name
      * @returns 返回属性值，如果指定属性名称找不到，则返回 undefined.
      */
-    getParameterByName(name) {
+    getParameter(name) {
         return this.parameters[name];
     }
 

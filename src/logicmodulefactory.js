@@ -57,7 +57,7 @@ class LogicModuleFactory {
         let resolvedInstanceParameters = {};
 
         for (let name in instanceParameters) {
-            let value = combinedParameters[name];
+            let value = instanceParameters[name];
             if (ObjectUtils.isObject(value)) {
                 let placeholderName = value.placeholder;
                 value = parentParameters[placeholderName];

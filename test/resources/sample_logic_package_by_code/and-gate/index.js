@@ -10,8 +10,8 @@ class AndGate extends AbstractLogicModule {
         super(instanceName, instanceParameters, defaultParameters);
 
         // 模块参数
-        let inputWireCount = this.getParameterByName('inputWireCount'); // 输入线的数量
-        let bitWidth = this.getParameterByName('bitWidth'); // 数据宽度
+        let inputWireCount = this.getParameter('inputWireCount'); // 输入线的数量
+        let bitWidth = this.getParameter('bitWidth'); // 数据宽度
 
         let outputWire = this.addOutputWire('out', bitWidth);
 

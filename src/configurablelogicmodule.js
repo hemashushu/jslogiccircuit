@@ -10,6 +10,21 @@ const AbstractLogicModule = require('./abstractlogicmodule');
  *
  * 用于从配置文件构建逻辑模块实例
  *
+ * 实例的属性：
+ * - instanceName（继承）
+ * - inputWires（继承）
+ * - outputWires（继承）
+ * - instanceParameters（继承）
+ * - defaultParameters（继承）
+ * - parameters（继承）
+ * - logicModules
+ *
+ * 下列属性主要供实例化工厂使用：
+ * - logicModules
+ * - inputConnectionInfos
+ * - outputConnectionInfos
+ * - moduleConnectionInfos
+ *
  */
 class ConfigurableLogicModule extends AbstractLogicModule {
 
@@ -87,6 +102,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
     /**
      * 添加内部（子）逻辑模块
+     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
      *
      * @param {*} packageName
      * @param {*} moduleClassName
@@ -107,7 +123,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      * @param {*} instanceName
      * @returns 返回子模块实例，如果找不到指定实例名称，则返回 undefiend.
      */
-    getLogicModuleByName(instanceName) {
+    getLogicModule(instanceName) {
         return this.logicModules.find(item => item.name === instanceName);
     }
 
@@ -122,8 +138,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
     /**
      * 连接当前模块输入线到内部子模块的输入线。
-     *
      * 即，将当前模块的 I/O 输入端口，连接到内部指定子模块的 I/O 输入端口。
+     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
      *
      * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
      * @param {*} inputWireName
@@ -136,7 +152,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
             throw new IllegalArgumentException('Cannot find the specified input wire.');
         }
 
-        let logicModule = this.getLogicModuleByName(moduleInstanceName);
+        let logicModule = this.getLogicModule(moduleInstanceName);
         if (logicModule === undefined) {
             throw new IllegalArgumentException('Cannot find the specified internal submodule.');
         }
@@ -157,8 +173,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
     /**
      * 连接当前模块输出线到内部子模块的输出线。
-     *
      * 即，将当前模块的 I/O 输出端口，连接到内部指定子模块的 I/O 输出端口。
+     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
      *
      * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
      *
@@ -172,7 +188,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
             throw new IllegalArgumentException('Cannot find the specified output wire.');
         }
 
-        let logicModule = this.getLogicModuleByName(moduleInstanceName);
+        let logicModule = this.getLogicModule(moduleInstanceName);
         if (logicModule === undefined) {
             throw new IllegalArgumentException('Cannot find the specified internal submodule.');
         }
@@ -193,6 +209,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
     /**
      * 连接内部子模块之间的连线。
+     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
      *
      * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
      *
@@ -204,7 +221,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     addModuleConnection(previousModuleInstanceName, previousModuleOutputWireName,
         nextModuleInstanceName, nextModuleInputWireName) {
 
-        let previousLogicModule = this.getLogicModuleByName(previousModuleInstanceName);
+        let previousLogicModule = this.getLogicModule(previousModuleInstanceName);
         if (previousLogicModule === undefined) {
             throw new IllegalArgumentException('Cannot find the specified internal submodule.');
         }
@@ -214,7 +231,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
             throw new IllegalArgumentException('Cannot find the specified output wire.');
         }
 
-        let nextLogicModule = this.getLogicModuleByName(nextModuleInstanceName);
+        let nextLogicModule = this.getLogicModule(nextModuleInstanceName);
         if (nextLogicModule === undefined) {
             throw new IllegalArgumentException('Cannot find the specified internal submodule.');
         }
