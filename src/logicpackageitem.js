@@ -5,35 +5,35 @@ class LogicPackageItem {
 
     /**
      *
-     * @param {*} packageName 同 npm package id
+     * @param {*} name 同 npm package id，每个逻辑包的名称应该是全局/全球唯一的。
      * @param {*} dependencies 依赖包的名称列表
      * @param {*} modules 模块（Class）名称列表
      * @param {*} version 版本
-     * @param {*} packageTitle 逻辑包的标题，可本地化。
-     *     packageTitle 跟 packageName 不同，packageTitle 主要
-     *     是给人阅读，而 packageName 主要用于程序内部用作标识（id）作用。
+     * @param {*} title 逻辑包的标题，可本地化。
+     *     package title 跟 package name 不同，package title 主要
+     *     是给人阅读，而 package name 主要用作标识（id）作用。
      * @param {*} author 逻辑包的作者名称
      * @param {*} homepage 逻辑包官方主页地址
      * @param {*} iconFilename 包的图标文件名称，图标一般为 512x512 的 PNG 格式图片。
      * @param {*} description 包的描述及说明文本，为 Markdown 格式文本。可本地化。
      */
-    constructor(packageName,
+    constructor(name,
         version,
         dependencies = [],
         modules = [],
-        packageTitle,
+        title,
         author,
         homepage,
         iconFilename,
         description) {
 
-        this.packageName = packageName;
+        this.name = name;
         this.version = version;
 
         this.dependencies = dependencies;
         this.modules = modules;
 
-        this.packageTitle = packageTitle;
+        this.title = title;
         this.author = author;
         this.homepage = homepage;
         this.iconFilename = iconFilename;

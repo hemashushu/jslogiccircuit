@@ -1,29 +1,25 @@
-const { ObjectUtils } = require('jsobjectutils');
 const { IllegalArgumentException } = require('jsexception');
 
 const LogicModuleFactory = require('./logicmodulefactory');
-const Connector = require('./connector');
+const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 
 /**
  * 可配置的逻辑模块
  *
- * 用于从配置文件构建逻辑模块实例
+ * 用于从配置文件构建逻辑模块实例。
+ * 一个逻辑模块可视为由：“一个或多个其他逻辑” + “一个或多个输入输出端口” 组合而成。
  *
  * 实例的属性：
  * - instanceName（继承）
- * - inputWires（继承）
- * - outputWires（继承）
+ * - inputPins（继承）
+ * - outputPins（继承）
  * - instanceParameters（继承）
  * - defaultParameters（继承）
  * - parameters（继承）
- * - logicModules
  *
- * 下列属性主要供实例化工厂使用：
  * - logicModules
- * - inputConnectionInfos
- * - outputConnectionInfos
- * - moduleConnectionInfos
+ * - connectionItems
  *
  */
 class ConfigurableLogicModule extends AbstractLogicModule {
@@ -34,7 +30,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      * @param {*} packageName
      * @param {*} moduleClassName
      * @param {*} instanceName 模块实例的名称
-     * @param {*} parameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
+     * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
+     * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
     constructor(packageName, moduleClassName, instanceName, instanceParameters, defaultParameters) {
         super(instanceName, instanceParameters, defaultParameters);
@@ -42,54 +39,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         this.packageName = packageName;
         this.moduleClassName = moduleClassName;
 
-        // logicModules:
-        // 内部（子）逻辑模块实例
-        // 从 LogicModule 实例对象可以提取实例的以下配置信息：
-        // [{
-        //     packageName: packageName,
-        //     moduleClassName: moduleClassName,
-        //     name: name,
-        //     parameters: parameters
-        // },...]
         this.logicModules = [];
-
-        // inputConnections:
-        // 输入线的连接的配置信息
-        // [{
-        //     inputWireName: inputWireName,
-        //     moduleInstanceName: moduleInstanceName,
-        //     moduleInputWireName: moduleInputWireName
-        // },...]
-        this.inputConnectionInfos = [];
-
-        // outputConnections:
-        // 输出线的连接的配置信息
-        // [{
-        //     outputWireName: outputWireName,
-        //     moduleInstanceName: moduleInstanceName,
-        //     moduleOutputWireName: moduleOutputWireName
-        // },...]
-        this.outputConnectionInfos = [];
-
-        // moduleConnections:
-        // 内部（子）模块间的连接的配置信息
-        // [{
-        //     previousModuleInstanceName: previousModuleInstanceName,
-        //     previousModuleOutputWireName: previousModuleOutputWireName,
-        //     nextModuleInstanceName: nextModuleInstanceName,
-        //     nextModuleInputWireName: nextModuleInputWireName
-        // },...]
-        this.moduleConnectionInfos = [];
-
-        // 另外还有两个继承自父类的输入/输出接口连线实例：
-        // - this.inputWires
-        // - this.outputWires
-        //
-        // 从 Wire 实例对象可以提取实例的以下配置信息：
-        // [{
-        //     name: name,
-        //     bitWidth: bitWidth
-        // },...]
+        this.connectionItems = [];
     }
 
     getPackageName() {
@@ -101,30 +52,16 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     }
 
     /**
-     * 添加内部（子）逻辑模块
-     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
-     *
-     * @param {*} packageName
-     * @param {*} moduleClassName
-     * @param {*} instanceName
-     * @param {*} instanceParameters
-     * @returns 返回子模块实例。如果找不到指定的模块，则抛出 IllegalArgumentException 异常。
-     */
-    addLogicModule(packageName, moduleClassName, instanceName, instanceParameters) {
-        let moduleInstance = LogicModuleFactory.createModuleInstance(
-            packageName, moduleClassName, instanceName, instanceParameters, this.parameters);
-
-        this.logicModules.push(moduleInstance);
-        return moduleInstance;
-    }
-
-    /**
      * 通过名字获取内部子逻辑模块的实例
      * @param {*} instanceName
      * @returns 返回子模块实例，如果找不到指定实例名称，则返回 undefiend.
      */
     getLogicModule(instanceName) {
         return this.logicModules.find(item => item.name === instanceName);
+    }
+
+    getConnectionItem(name) {
+        return this.connectionItems.find(item => item.name === name);
     }
 
     /**
@@ -136,178 +73,109 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         return this.logicModules;
     }
 
-    /**
-     * 连接当前模块输入线到内部子模块的输入线。
-     * 即，将当前模块的 I/O 输入端口，连接到内部指定子模块的 I/O 输入端口。
-     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
-     *
-     * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
-     * @param {*} inputWireName
-     * @param {*} moduleInstanceName
-     * @param {*} moduleInputWireName
-     */
-    addInputConnection(inputWireName, moduleInstanceName, moduleInputWireName) {
-        let inputWire = this.getInputWire(inputWireName);
-        if (inputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified input wire.');
-        }
-
-        let logicModule = this.getLogicModule(moduleInstanceName);
-        if (logicModule === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified internal submodule.');
-        }
-
-        let moduleInputWire = logicModule.getInputWire(moduleInputWireName);
-        if (moduleInputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified input wire of the internal submodule.');
-        }
-
-        Connector.connect(inputWire, moduleInputWire);
-
-        this.inputConnectionInfos.push({
-            inputWireName: inputWireName,
-            moduleInstanceName: moduleInstanceName,
-            moduleInputWireName: moduleInputWireName
-        });
+    getConnectionItems() {
+        return this.connectionItems;
     }
 
     /**
-     * 连接当前模块输出线到内部子模块的输出线。
-     * 即，将当前模块的 I/O 输出端口，连接到内部指定子模块的 I/O 输出端口。
-     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
+     * 添加内部（子）逻辑模块
      *
-     * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
+     * 如果找不到指定的模块，则抛出 IllegalArgumentException 异常。
      *
-     * @param {*} outputWireName
-     * @param {*} moduleInstanceName
-     * @param {*} moduleOutputWireName
+     * @param {*} packageName
+     * @param {*} moduleClassName
+     * @param {*} instanceName
+     * @param {*} instanceParameters
+     * @returns 返回子模块实例。
      */
-    addOutputConnection(outputWireName, moduleInstanceName, moduleOutputWireName) {
-        let outputWire = this.getOutputWire(outputWireName);
-        if (outputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified output wire.');
-        }
+     _addLogicModule(packageName, moduleClassName, instanceName, instanceParameters) {
+        let moduleInstance = LogicModuleFactory.createModuleInstance(
+            packageName, moduleClassName, instanceName, instanceParameters, this.parameters);
 
-        let logicModule = this.getLogicModule(moduleInstanceName);
-        if (logicModule === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified internal submodule.');
-        }
-
-        let moduleOutputWire = logicModule.getOutputWire(moduleOutputWireName);
-        if (moduleOutputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified output wire of the internal submodule.');
-        }
-
-        Connector.connect(moduleOutputWire, outputWire);
-
-        this.outputConnectionInfos.push({
-            outputWireName: outputWireName,
-            moduleInstanceName: moduleInstanceName,
-            moduleOutputWireName: moduleOutputWireName
-        });
+        this.logicModules.push(moduleInstance);
     }
 
     /**
-     * 连接内部子模块之间的连线。
-     * 该方法供“模块实例化工厂”使用，用于“从配置文件实例化一个模块”。
+     * 连接模块 input pin、output pin 以及内部子模块之间的端口连接。
      *
-     * 如果指定的线或者子模块找不到，均会抛出 IllegalArgumentException 异样。
+     * 如果指定的端口或者子模块找不到，均会抛出 IllegalArgumentException 异常。
      *
-     * @param {*} previousModuleInstanceName
-     * @param {*} previousModuleOutputWireName
-     * @param {*} nextModuleInstanceName
-     * @param {*} nextModuleInputWireName
+     * @param {*} connectionItem
      */
-    addModuleConnection(previousModuleInstanceName, previousModuleOutputWireName,
-        nextModuleInstanceName, nextModuleInputWireName) {
+    _addConnectionItem(connectionItem) {
+        if (connectionItem.previousModuleName === undefined ||
+            connectionItem.previousModuleName === null ||
+            connectionItem.previousModuleName === '') {
+            // 连接模块的 input pin 与内部子模块的 input pin
 
-        let previousLogicModule = this.getLogicModule(previousModuleInstanceName);
-        if (previousLogicModule === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified internal submodule.');
+            let moduleInputPin = this.getInputPin(connectionItem.previousPinName);
+            if (moduleInputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified input pin.');
+            }
+
+            let subModule = this.getLogicModule(connectionItem.nextModuleName);
+            if (subModule === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified internal module.');
+            }
+
+            let subModuleInputPin = subModule.getInputPin(connectionItem.nextPinName);
+            if (subModuleInputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
+            }
+
+            ConnectionUtils.connect(moduleInputPin, subModuleInputPin);
+
+        }else if(connectionItem.nextModuleName === undefined ||
+            connectionItem.nextModuleName === null ||
+            connectionItem.nextModuleName === '') {
+            // 连接模块的 output pin 与内部子模块的 output pin
+
+            let moduleOutputPin = this.getOutputPin(connectionItem.nextPinName);
+            if (moduleOutputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified output pin.');
+            }
+
+            let subModule = this.getLogicModule(connectionItem.previousModuleName);
+            if (subModule === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified internal module.');
+            }
+
+            let subModuleOutputPin = subModule.getOutputPin(connectionItem.previousPinName);
+            if (subModuleOutputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified output pin of the internal module.');
+            }
+
+            ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
+
+        } else {
+            // 连接两个子模块的 output pin 与 input pin
+
+            let previousLogicModule = this.getLogicModule(connectionItem.previousModuleName);
+            if (previousLogicModule === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified internal module.');
+            }
+
+            let previousModuleOutputPin = previousLogicModule.getInputPin(connectionItem.previousPinName);
+            if (previousModuleOutputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified output pin of the internal module.');
+            }
+
+            let nextLogicModule = this.getLogicModule(connectionItem.nextModuleName);
+            if (nextLogicModule === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified internal module.');
+            }
+
+            let nextModuleInputPin = nextLogicModule.getInputPin(connectionItem.nextPinName);
+            if (nextModuleInputPin === undefined) {
+                throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
+            }
+
+            ConnectionUtils.connect(previousModuleOutputPin, nextModuleInputPin);
         }
 
-        let previousModuleOutputWire = previousLogicModule.getInputWire(previousModuleOutputWireName);
-        if (previousModuleOutputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified output wire.');
-        }
-
-        let nextLogicModule = this.getLogicModule(nextModuleInstanceName);
-        if (nextLogicModule === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified internal submodule.');
-        }
-
-        let nextModuleInputWire = nextLogicModule.getInputWire(nextModuleInputWireName);
-        if (nextModuleInputWire === undefined) {
-            throw new IllegalArgumentException('Cannot find the specified input wire.');
-        }
-
-        Connector.connect(previousModuleOutputWire, nextModuleInputWire);
-
-        this.moduleConnectionInfos.push({
-            previousModuleInstanceName: previousModuleInstanceName,
-            previousModuleOutputWireName: previousModuleOutputWireName,
-            nextModuleInstanceName: nextModuleInstanceName,
-            nextModuleInputWireName: nextModuleInputWireName
-        });
-    }
-
-    getInputConnectionInfos() {
-        return this.inputConnectionInfos;
-    }
-
-    getOutputConnectionInfos() {
-        return this.outputConnectionInfos;
-    }
-
-    getModuleConnectionInfos() {
-        return this.moduleConnectionInfos;
+        this.connectionItems.push(connectionItem);
     }
 
 }
 
 module.exports = ConfigurableLogicModule;
-
-
-//     getInputWireConfigs() {
-//         let wireConfigs = [];
-//         for(let inputWire of this.inputWires) {
-//             let wireConfig = {
-//                 name: inputWire.name,
-//                 bitWidth: inputWire.bitWidth
-//             };
-//
-//             wireConfigs.push(wireConfig);
-//         }
-//
-//         return wireConfigs;
-//     }
-//
-//     getOutputWireConfigs() {
-//         let wireConfigs = [];
-//         for(let outputWire of this.outputWires) {
-//             let wireConfig = {
-//                 name: outputWire.name,
-//                 bitWidth: outputWire.bitWidth
-//             };
-//
-//             wireConfigs.push(wireConfig);
-//         }
-//
-//         return wireConfigs;
-//     }
-//
-//     getLogicModuleConfigs() {
-//         let logicModuleConfigs = [];
-//         for(let logicModule of this.logicModules) {
-//             let logicModuleConfig = {
-//                 packageName: logicModule.getPackageName(),
-//                 moduleClassName: logicModule.getModuleClassName(),
-//                 name: logicModule.name,
-//                 parameters: logicModule.parameters
-//             };
-//
-//             logicModuleConfigs.push(logicModuleConfig);
-//         }
-//
-//         return logicModuleConfigs;
-//     }

@@ -1,6 +1,7 @@
-const Wire = require('./wire');
 const { ObjectUtils } = require('jsobjectutils');
 const { NotImplementedException } = require('jsexception');
+
+const Pin = require('./pin');
 
 /**
  * 抽象逻辑模块
@@ -9,12 +10,12 @@ const { NotImplementedException } = require('jsexception');
  * - 当需要引用其他 logic package 里的 logic module 时，不能使用 JavaScript 的
  *   require() 或者 import() 方法加载然后创建实例，而应该使用
  *   LogicModuleFactory.createModuleInstance() 方法创建实例，该方法
- *   能解决模块依赖问题。
+ *   能解决模块的依赖问题。
  *
  * 实例的属性：
  * - instanceName
- * - inputWires
- * - outputWires
+ * - inputPins
+ * - outputPins
  * - instanceParameters
  * - defaultParameters
  * - parameters
@@ -26,16 +27,17 @@ class AbstractLogicModule {
      *
      * @param {*} instanceName 模块实例的名称
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
+     * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
     constructor(instanceName, instanceParameters = {}, defaultParameters = {}) {
         // 模块实例的名称
         this.instanceName = instanceName;
 
-        // 输入的连接线集合
-        this.inputWires = [];
+        // 输入的端口集合
+        this.inputPins = [];
 
-        // 输出的连接线集合
-        this.outputWires = [];
+        // 输出的端口集合
+        this.outputPins = [];
 
         // 实例化当前模块的初始参数
         // 一个 {name:value, ...} 对象
@@ -76,65 +78,40 @@ class AbstractLogicModule {
     }
 
     /**
-     * 创建并添加输入连接线
-     *
-     * @param {*} name 输入线名称
-     * @param {*} bitWidth 位宽
-     * @returns 返回 Wire 实例对象
-     */
-    addInputWire(name, bitWidth) {
-        let inputWire = new Wire(name, bitWidth);
-        this.inputWires.push(inputWire);
-        return inputWire;
-    }
-
-    /**
-     * 创建并添加输出连接线
-     *
-     * @param {*} name 输出线名称
-     * @param {*} bitWidth 位宽
-     * @returns 返回 Wire 实例对象
-     */
-    addOutputWire(name, bitWidth) {
-        let outputWire = new Wire(name, bitWidth);
-        this.outputWires.push(outputWire);
-        return outputWire;
-    }
-
-    /**
-     * 通过名字获取输入连接线（Wire）实例对象
+     * 通过名字获取输入端口实例对象
      * @param {*} name
-     * @returns 返回 Wire 实例对象，如果找不到相应的连接线，则返回 undefined.
+     * @returns 返回 Pin 实例对象，如果找不到相应的端口，则返回 undefined.
      */
-    getInputWire(name) {
-        return this.inputWires.find(item => item.name === name);
+    getInputPin(name) {
+        return this.inputPins.find(item => item.name === name);
     }
 
     /**
-     * 通过名字获取输出连接线（Wire）实例对象
+     * 通过名字获取输出端口实例对象
+     *
      * @param {*} name
-     * @returns 返回 Wire 实例对象，如果找不到相应的连接线，则返回 undefined.
+     * @returns 返回 Pin 实例对象，如果找不到相应的端口，则返回 undefined.
      */
-    getOutputWire(name) {
-        return this.outputWires.find(item => item.name === name);
+    getOutputPin(name) {
+        return this.outputPins.find(item => item.name === name);
     }
 
     /**
-     * 获取所有输入连接线对象。
+     * 获取所有输入端口对象。
      *
-     * @returns 返回 Wire 实例对象数组
+     * @returns 返回 Pin 实例对象数组
      */
-    getInputWires() {
-        return this.inputWires;
+    getInputPins() {
+        return this.inputPins;
     }
 
     /**
-     * 获取所有输出连接线对象。
+     * 获取所有输出端口对象。
      *
-     * @returns 返回 Wire 实例对象数组
+     * @returns 返回 Pin 实例对象数组
      */
-    getOutputWires() {
-        return this.outputWires;
+    getOutputPins() {
+        return this.outputPins;
     }
 
     /**
@@ -179,23 +156,32 @@ class AbstractLogicModule {
     }
 
     /**
-     * 返回当前模块的 UI 元素
+     * 创建并添加输入端口
+     *
+     * @param {*} name 输入端口名称
+     * @param {*} bitWidth 位宽
+     * @param {*} initialData
+     * @param {*} description
+     * @param {*} pinNumber
      */
-    getUIElement() {
-        // 子类需要重写（override）此方法
-        // TODO::
-        // 此方法尚未确定
-        throw new NotImplementedException('Not implemented yet.');
+    _addInputPin(name, bitWidth, initialData, description, pinNumber) {
+        let inputPin = new Pin(name, bitWidth, initialData, description, pinNumber);
+        this.inputPins.push(inputPin);
     }
 
     /**
-     * 返回当前模块的 UIEventManager 实例
+     * 创建并添加输出端口
+     *
+     * @param {*} name 输出端口名称
+     * @param {*} bitWidth 位宽
+     * @param {*} initialData
+     * @param {*} description
+     * @param {*} pinNumber
+     * @returns
      */
-    getUIEventManager() {
-        // 子类需要重写（override）此方法
-        // TODO::
-        // 此方法尚未确定
-        throw new NotImplementedException('Not implemented yet.');
+    _addOutputPin(name, bitWidth, initialData, description, pinNumber) {
+        let outputPin = new Pin(name, bitWidth, initialData, description, pinNumber);
+        this.outputPins.push(outputPin);
     }
 }
 

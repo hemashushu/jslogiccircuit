@@ -10,19 +10,19 @@ class AndGate extends AbstractLogicModule {
         super(instanceName, instanceParameters, defaultParameters);
 
         // 模块参数
-        let inputWireCount = this.getParameter('inputWireCount'); // 输入线的数量
+        let inputWireCount = this.getParameter('inputWireCount'); // 输入端口的数量
         let bitWidth = this.getParameter('bitWidth'); // 数据宽度
 
-        let outputWire = this.addOutputWire('out', bitWidth);
+        let outputWire = this._addOutputPin('out', bitWidth);
 
-        // 输入线的名称分别为 in0, in1, ... inN
+        // 输入端口的名称分别为 in0, in1, ... inN
         let createInputWire = (idx) => {
-            let inputWire = this.addInputWire('in' + idx, bitWidth);
+            let inputWire = this.addInputPin('in' + idx, bitWidth);
 
-            inputWire.addListener(() => {
-                let outputData = this.inputWires[0].data;
-                for (let idx = 1; idx < this.inputWires.length; idx++) {
-                    outputData = Binary.and(outputData, this.inputWires[idx].data);
+            inputWire.addDataChangeListener(() => {
+                let outputData = this.inputPins[0].data;
+                for (let idx = 1; idx < this.inputPins.length; idx++) {
+                    outputData = Binary.and(outputData, this.inputPins[idx].data);
                 }
 
                 if (!Binary.equals(outputData, outputWire.data)) {
@@ -31,7 +31,7 @@ class AndGate extends AbstractLogicModule {
             });
         };
 
-        // 输入线们
+        // 输入端口们
         for (let idx = 0; idx < inputWireCount; idx++) {
             createInputWire(idx);
         }

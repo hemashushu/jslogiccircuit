@@ -3,7 +3,7 @@ const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
-const { LogicPackageLoader, LogicModuleLoader, LogicModuleFactory, Connector, Wire } = require('../index');
+const { LogicPackageLoader, LogicModuleLoader, LogicModuleFactory, Connector, Pin } = require('../index');
 
 describe('Test LogicPackageLoader', () => {
     it('Test load packages', async () => {
@@ -95,9 +95,9 @@ describe('Test LogicPackageLoader', () => {
         assert.equal(and1.getPackageName(), packageName);
         assert.equal(and1.getModuleClassName(), 'and-gate');
 
-        let andIn0 = and1.getInputWire('in0');
-        let andIn1 = and1.getInputWire('in1');
-        let andOut = and1.getOutputWire('out');
+        let andIn0 = and1.getInputPin('in0');
+        let andIn1 = and1.getInputPin('in1');
+        let andOut = and1.getOutputPin('out');
 
         assert.equal(andIn0.name, 'in0');
         assert.equal(andIn0.bitWidth, 1);

@@ -25,6 +25,7 @@ let logicModuleItems = global._logicModuleItems;
  * 储存了逻辑模块的基本信息，有如下必要属性：
  *
  * - title：逻辑模块的标题，支持 locale；
+ * - group: 逻辑模块的分组，支持 locale；
  * - description：逻辑模块的描述，Markdown 格式的文本，支持 locale；
  * - iconFilename：图标文件名称，图标文件存放在逻辑模块的根目录里，建议
  *   使用 512x512 的 png/webp 格式；
@@ -71,7 +72,6 @@ class LogicModuleLoader {
      */
     static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
         // 逻辑模块名称只可以包含 [0-9a-zA-Z_-\.] 字符
-        // 这个判断本因在逻辑包实现里判断，但不好操作，所以在此判断。
         if (!/^[\w\.-]+$/.test(moduleClassName)) {
             throw new LogicCircuitException("Invalid logic module class name.");
         }
@@ -87,8 +87,12 @@ class LogicModuleLoader {
         let promiseFileConfig = new PromiseFileConfig(fileConfig);
         let moduleConfig = await promiseFileConfig.load(moduleConfigFilePath);
 
-        let title = LocaleProperty.getValue(moduleConfig, 'title', localeCode)
-        let description = LocaleProperty.getValue(moduleConfig, 'description', localeCode)
+        let title = LocaleProperty.getValue(moduleConfig, 'title', localeCode);
+        let group = LocaleProperty.getValue(moduleConfig, 'group', localeCode);
+        let description = LocaleProperty.getValue(moduleConfig, 'description', localeCode);
+        let document = LocaleProperty.getValue(moduleConfig, 'document', localeCode);
+
+        // TODO:: 模块的配置文件可能还包括：图文框、测试用例、演示数据、布局等等信息。
         let iconFilename = moduleConfig.iconFilename;
         let defaultParameters = moduleConfig.defaultParameters;
 
@@ -100,12 +104,13 @@ class LogicModuleLoader {
             // 优先从 struct.yaml 加载逻辑模块
             moduleClass = await promiseFileConfig.load(structConfigFilePath);
         }else {
+            // 加载单一 JavaScript Class 文件
             moduleClass = require(moduleFilePath);
         }
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
-            title, iconFilename, description);
+            title, group, iconFilename, description, document);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
 
