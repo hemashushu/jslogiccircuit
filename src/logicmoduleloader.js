@@ -4,7 +4,7 @@ const {
     YAMLFileConfig,
     PromiseFileConfig,
     LocaleProperty
-    } = require('jsfileconfig');
+} = require('jsfileconfig');
 
 const { PromiseFileUtils } = require('jsfileutils');
 
@@ -103,7 +103,7 @@ class LogicModuleLoader {
         if (await PromiseFileUtils.exists(structConfigFilePath)) {
             // 优先从 struct.yaml 加载逻辑模块
             moduleClass = await promiseFileConfig.load(structConfigFilePath);
-        }else {
+        } else {
             // 加载单一 JavaScript Class 文件
             moduleClass = require(moduleFilePath);
         }

@@ -5,21 +5,13 @@ const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 
 /**
- * 可配置的逻辑模块
- *
+ * 可配置的逻辑模块。
  * 用于从配置文件构建逻辑模块实例。
- * 一个逻辑模块可视为由：“一个或多个其他逻辑” + “一个或多个输入输出端口” 组合而成。
  *
- * 实例的属性：
- * - instanceName（继承）
- * - inputPins（继承）
- * - outputPins（继承）
- * - instanceParameters（继承）
- * - defaultParameters（继承）
- * - parameters（继承）
- *
- * - logicModules
- * - connectionItems
+ * 一个逻辑模块可视为由：
+ * - 一个或多个其他逻辑模块（子逻辑模块） +
+ * - 一个或多个输入输出端口
+ * 组合而成。
  *
  */
 class ConfigurableLogicModule extends AbstractLogicModule {
@@ -33,13 +25,17 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
-    constructor(packageName, moduleClassName, instanceName, instanceParameters, defaultParameters) {
+    constructor(packageName, moduleClassName,
+        instanceName, instanceParameters, defaultParameters) {
         super(instanceName, instanceParameters, defaultParameters);
 
         this.packageName = packageName;
         this.moduleClassName = moduleClassName;
 
+        // 子逻辑模块集合
         this.logicModules = [];
+
+        // 端口连接配置信息集合
         this.connectionItems = [];
     }
 
@@ -52,7 +48,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     }
 
     /**
-     * 通过名字获取内部子逻辑模块的实例
+     * 通过逻辑模块实例的名字获取内部子逻辑模块的实例
+     *
      * @param {*} instanceName
      * @returns 返回子模块实例，如果找不到指定实例名称，则返回 undefiend.
      */
@@ -88,11 +85,18 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      * @param {*} instanceParameters
      * @returns 返回子模块实例。
      */
-     _addLogicModule(packageName, moduleClassName, instanceName, instanceParameters) {
+    addLogicModule(packageName, moduleClassName, instanceName, instanceParameters) {
         let moduleInstance = LogicModuleFactory.createModuleInstance(
             packageName, moduleClassName, instanceName, instanceParameters, this.parameters);
 
+        // moduleInstance.addInputDataChangeEventListener(()=>{
+        //     this.isInputDataChanged = true;
+        //     this.dispatchInputDataChangeEvent();
+        // });
+
         this.logicModules.push(moduleInstance);
+
+        return moduleInstance;
     }
 
     /**
@@ -102,11 +106,11 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      *
      * @param {*} connectionItem
      */
-    _addConnectionItem(connectionItem) {
+    addConnectionItem(connectionItem) {
         if (connectionItem.previousModuleName === undefined ||
             connectionItem.previousModuleName === null ||
             connectionItem.previousModuleName === '') {
-            // 连接模块的 input pin 与内部子模块的 input pin
+            // 连接模块自身的 input pin 与内部子模块的 input pin
 
             let moduleInputPin = this.getInputPin(connectionItem.previousPinName);
             if (moduleInputPin === undefined) {
@@ -123,12 +127,14 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                 throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
             }
 
-            ConnectionUtils.connect(moduleInputPin, subModuleInputPin);
+            ConnectionUtils.connect(
+                this, moduleInputPin,
+                subModule, subModuleInputPin);
 
-        }else if(connectionItem.nextModuleName === undefined ||
+        } else if (connectionItem.nextModuleName === undefined ||
             connectionItem.nextModuleName === null ||
             connectionItem.nextModuleName === '') {
-            // 连接模块的 output pin 与内部子模块的 output pin
+            // 连接模块自身的 output pin 与内部子模块的 output pin
 
             let moduleOutputPin = this.getOutputPin(connectionItem.nextPinName);
             if (moduleOutputPin === undefined) {
@@ -145,7 +151,9 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                 throw new IllegalArgumentException('Cannot find the specified output pin of the internal module.');
             }
 
-            ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
+            ConnectionUtils.connect(
+                subModule, subModuleOutputPin,
+                this, moduleOutputPin);
 
         } else {
             // 连接两个子模块的 output pin 与 input pin
@@ -170,12 +178,29 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                 throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
             }
 
-            ConnectionUtils.connect(previousModuleOutputPin, nextModuleInputPin);
+            ConnectionUtils.connect(
+                previousLogicModule, previousModuleOutputPin,
+                nextLogicModule, nextModuleInputPin);
         }
 
         this.connectionItems.push(connectionItem);
     }
 
+    getAllLogicModules() {
+        let allLogicModules = [];
+        allLogicModules.push(this);
+
+        for (let logicModule of this.logicModules) {
+            allLogicModules.push(logicModule);
+        }
+
+        for (let logicModule of this.logicModules) {
+            let allSubLogicModules = logicModule.getAllModulesForReadInputPins();
+            allLogicModules.push(...allSubLogicModules);
+        }
+
+        return allLogicModules;
+    }
 }
 
 module.exports = ConfigurableLogicModule;

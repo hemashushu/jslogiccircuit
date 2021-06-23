@@ -2,5 +2,7 @@ title: AND Gate
 description: Logic "AND" Gate
 iconFilename: icon.png
 defaultParameters:
-  inputWireCount: 2
+  inputPinCount: 2
   bitWidth: 1
+group: "Base Gates"
+document: "Document about AND gate"

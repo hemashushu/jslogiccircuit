@@ -14,11 +14,11 @@ class ConnectionItem {
      *   - 内部子模块的 output pin 是信号源，模块的 output pin 是信号目标，
      *     此时 nextModuleName 参数的值为 undefined.
      *
-     * @param {*} name 连接线的名称
-     * @param {*} previousModuleName
-     * @param {*} previousPinName
-     * @param {*} nextModuleName
-     * @param {*} nextPinName
+     * @param {*} name 连接项对象的名称
+     * @param {*} previousModuleName 上游逻辑模块实例的名称
+     * @param {*} previousPinName 上游端口的名称
+     * @param {*} nextModuleName 下游逻辑模块实例的名称
+     * @param {*} nextPinName 下游端口的名称
      */
     constructor(
         name,

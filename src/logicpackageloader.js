@@ -4,7 +4,7 @@ const {
     YAMLFileConfig,
     JSONFileConfig,
     PromiseFileConfig,
-    LocaleProperty} = require('jsfileconfig');
+    LocaleProperty } = require('jsfileconfig');
 
 const { PromiseFileUtils } = require('jsfileutils');
 
@@ -189,6 +189,7 @@ class LogicPackageLoader {
         let title = LocaleProperty.getValue(detailConfig, 'title', localeCode)
         let description = LocaleProperty.getValue(detailConfig, 'description', localeCode)
         let iconFilename = detailConfig.iconFilename;
+        let mainModule = detailConfig.mainModule;
 
         // 加载依赖项信息
         let dependencyPackageNames = detailConfig.dependencies;
@@ -204,9 +205,9 @@ class LogicPackageLoader {
         }
 
         let logicPackageItem = new LogicPackageItem(
-            name, version,
-            dependencyPackageNames, moduleClassNames,
-            title, author, homepage,
+            name, title,
+            dependencyPackageNames, moduleClassNames, mainModule,
+            version, author, homepage,
             iconFilename, description);
 
         LogicPackageLoader.addLogicPackageItem(logicPackageItem);

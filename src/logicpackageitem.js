@@ -18,22 +18,24 @@ class LogicPackageItem {
      * @param {*} description 包的描述及说明文本，为 Markdown 格式文本。可本地化。
      */
     constructor(name,
-        version,
+        title,
         dependencies = [],
         modules = [],
-        title,
+        mainModule,
+        version,
         author,
         homepage,
         iconFilename,
         description) {
 
         this.name = name;
-        this.version = version;
+        this.title = title;
 
         this.dependencies = dependencies;
         this.modules = modules;
+        this.mainModule = mainModule;
 
-        this.title = title;
+        this.version = version;
         this.author = author;
         this.homepage = homepage;
         this.iconFilename = iconFilename;

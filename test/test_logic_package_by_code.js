@@ -3,7 +3,9 @@ const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
-const { LogicPackageLoader, LogicModuleLoader, LogicModuleFactory, Connector, Pin } = require('../index');
+const { LogicPackageLoader, LogicModuleLoader,
+    LogicModuleFactory, ModuleController,
+    ConnectionUtils, Pin } = require('../index');
 
 describe('Test LogicPackageLoader', () => {
     it('Test load packages', async () => {
@@ -13,11 +15,12 @@ describe('Test LogicPackageLoader', () => {
         let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
         let expectLogicPackageItem = {
-            packageName: 'sample_logic_package_by_code',
-            version: '1.0.0',
+            name: 'sample_logic_package_by_code',
+            title: 'Sample Logic Package (Code)',
             dependencies: [],
-            modules: ['and-gate', 'xor-gate'],
-            packageTitle: 'Sample Logic Package (Code)',
+            modules: ['and-gate', 'nor-gate'],
+            mainModule: 'and-gate',
+            version: '1.0.0',
             author: 'Hippo Spark',
             homepage: 'https://github.com/hemashushu/jslogiccircuit',
             iconFilename: 'icon.png',
@@ -38,15 +41,17 @@ describe('Test LogicPackageLoader', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'xor-gate']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'nor-gate']));
 
         let checkPropNames = [
             'packageName',
             'moduleClassName',
             'defaultParameters',
+            'group',
             'title',
             'iconFilename',
-            'description'
+            'description',
+            'document'
         ];
 
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[0]);
@@ -54,11 +59,12 @@ describe('Test LogicPackageLoader', () => {
         let expectAndGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
             moduleClassName: 'and-gate',
-            //moduleClass: [class AndGate extends AbstractLogicModule],
-            defaultParameters: { inputWireCount: 2, bitWidth: 1 },
+            defaultParameters: { inputPinCount: 2, bitWidth: 1 },
             title: 'AND Gate',
+            group: 'Base Gates',
             iconFilename: 'icon.png',
-            description: 'Logic "AND" Gate'
+            description: 'Logic "AND" Gate',
+            document: 'Document about AND gate'
         };
 
         assert(ObjectUtils.equals(
@@ -70,12 +76,13 @@ describe('Test LogicPackageLoader', () => {
 
         let expectXorGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
-            moduleClassName: 'xor-gate',
-            // moduleClass: [class XorGate extends AbstractLogicModule],
+            moduleClassName: 'nor-gate',
             defaultParameters: {},
-            title: 'XOR Gate',
+            title: 'NOR Gate',
+            group: 'Base Gates',
             iconFilename: 'icon.png',
-            description: 'Logic "XOR" Gate'
+            description: 'Logic "NOR" Gate',
+            document: 'Document about NOR gate'
         };
 
         assert(ObjectUtils.equals(
@@ -84,32 +91,44 @@ describe('Test LogicPackageLoader', () => {
         ));
     });
 
-    it('Test module factory', async () => {
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        it('Test module factory', async () => {
+            let packageName = 'sample_logic_package_by_code';
+            let testPath = __dirname;
+            let testResourcePath = path.join(testPath, 'resources');
+            await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let and1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1'); //, {bitWidth: 2, inputWireCount: 4});
+            let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1'); //, {bitWidth: 2, inputPinCount: 4});
 
-        assert.equal(and1.getPackageName(), packageName);
-        assert.equal(and1.getModuleClassName(), 'and-gate');
+            assert.equal(andGate1.getPackageName(), packageName);
+            assert.equal(andGate1.getModuleClassName(), 'and-gate');
 
-        let andIn0 = and1.getInputPin('in0');
-        let andIn1 = and1.getInputPin('in1');
-        let andOut = and1.getOutputPin('out');
+            let andIn0 = andGate1.getInputPin('in0');
+            let andIn1 = andGate1.getInputPin('in1');
+            let andOut = andGate1.getOutputPin('out');
 
-        assert.equal(andIn0.name, 'in0');
-        assert.equal(andIn0.bitWidth, 1);
-        assert(Binary.equals(andIn0.data, Binary.fromDecimalString(0,1)));
+            assert.equal(andIn0.name, 'in0');
+            assert.equal(andIn0.bitWidth, 1);
+            assert(Binary.equal(andIn0.getData(), Binary.fromDecimalString(0,1)));
 
-        assert.equal(andIn1.name, 'in1');
-        assert.equal(andIn1.bitWidth, 1);
-        assert(Binary.equals(andIn1.data, Binary.fromDecimalString(0,1)));
+            assert.equal(andIn1.name, 'in1');
+            assert.equal(andIn1.bitWidth, 1);
+            assert(Binary.equal(andIn1.getData(), Binary.fromDecimalString(0,1)));
 
-        assert.equal(andOut.name, 'out');
-        assert.equal(andOut.bitWidth, 1);
-        assert(Binary.equals(andOut.data, Binary.fromDecimalString(0,1)));
+            assert.equal(andOut.name, 'out');
+            assert.equal(andOut.bitWidth, 1);
+            assert(Binary.equal(andOut.getData(), Binary.fromDecimalString(0,1)));
 
-    });
+            let moduleController1 = new ModuleController(andGate1);
+            console.log(moduleController1);
+            // assert...
+
+            moduleController1.step();
+            console.log(andGate1.getOutputPin('out'));
+
+            andGate1.getInputPin('in0').setData(Binary.fromBinaryString('1', 1));
+            andGate1.getInputPin('in1').setData(Binary.fromBinaryString('1', 1));
+
+            moduleController1.step();
+            console.log(andGate1.getOutputPin('out'));
+        });
 });

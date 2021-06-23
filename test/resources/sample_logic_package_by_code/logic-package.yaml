@@ -4,4 +4,5 @@ iconFilename: icon.png
 dependencies: []
 modules:
   - "and-gate"
-  - "xor-gate"
+  - "nor-gate"
+mainModule: "and-gate"

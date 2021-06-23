@@ -4,21 +4,13 @@ const { NotImplementedException } = require('jsexception');
 const Pin = require('./pin');
 
 /**
- * 抽象逻辑模块
+ * 逻辑模块的抽象
  *
  * - 相当于 Verilog 的 module。
  * - 当需要引用其他 logic package 里的 logic module 时，不能使用 JavaScript 的
  *   require() 或者 import() 方法加载然后创建实例，而应该使用
  *   LogicModuleFactory.createModuleInstance() 方法创建实例，该方法
  *   能解决模块的依赖问题。
- *
- * 实例的属性：
- * - instanceName
- * - inputPins
- * - outputPins
- * - instanceParameters
- * - defaultParameters
- * - parameters
  */
 class AbstractLogicModule {
 
@@ -33,13 +25,6 @@ class AbstractLogicModule {
         // 模块实例的名称
         this.instanceName = instanceName;
 
-        // 输入的端口集合
-        this.inputPins = [];
-
-        // 输出的端口集合
-        this.outputPins = [];
-
-        // 实例化当前模块的初始参数
         // 一个 {name:value, ...} 对象
         this.instanceParameters = instanceParameters;
 
@@ -53,6 +38,165 @@ class AbstractLogicModule {
         this.parameters = ObjectUtils.objectMerge(
             instanceParameters,
             defaultParameters);
+
+        // 输入的端口集合
+        this.inputPins = [];
+
+        // 输出的端口集合
+        this.outputPins = [];
+
+        // 表示源数据有变化，需要重新计算模块的数据。
+        this.isInputDataChanged = false;
+        // this.inputDataChangeEventListeners = [];
+
+        // 表示重新计算后，模块的数据有变化，需要传递数据（给其他模块）。
+        this.isOutputDataChanged = false;
+        // this.outputDataChangeEventListeners = [];
+    }
+
+    /**
+     * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
+     * 不应该是 0，比如 “非门”，默认输入值为 0，则正确的默认输出值应该为 1。
+     * 对于这种情况，模拟控制器采用的方法是，在模拟刚开始的时候，将所有
+     * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
+     * 重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
+     */
+    markInputDataChangedFlag() {
+        this.isInputDataChanged = true;
+    }
+
+    getAllLogicModules() {
+        return [this];
+    }
+
+    /**
+     *
+     * 更新周期的第 A1 步。
+     */
+    readInputs() {
+        for (let inputPin of this.inputPins) {
+            if (!inputPin.isDataChanged) {
+                // 标记为“已改变”的 input pin 不需要再次读取数据。
+                inputPin.readFromPreviousLogicModulePin();
+            }
+        }
+    }
+
+    /**
+     *
+     * 更新周期的第 A2 步。
+     */
+    clearOutputPinsDataChangedFlag() {
+        for (let outputPin of this.outputPins) {
+            outputPin.clearDataChangedFlag();
+        }
+    }
+
+    /**
+     *
+     * 更新周期的第 A3 步。
+     */
+    clearOutputDataChangedFlag() {
+        this.isOutputDataChanged = false;
+    }
+
+    /**
+     *
+     * 更新周期的第 A4 步。
+     */
+    updateModuleDataAndOutputPinsData() {
+        // 1. get data from input pins
+        // 2. calculate/generate new data
+        // 3. update output pins data
+    }
+
+    /**
+     *
+     * 更新周期的第 B1 步。
+     */
+    clearInputPinDataChangedFlags() {
+        for (let inputPin of this.inputPins) {
+            inputPin.clearDataChangedFlag();
+        }
+    }
+
+    /**
+     *
+     * 更新周期的第 B2 步。
+     */
+    clearInputDataChangedFlag() {
+        this.isInputDataChanged = false;
+    }
+
+    /**
+     *
+     * 更新周期的第 B3 步。
+     */
+    writeOutputPins() {
+        for (let outputPin of this.outputPins) {
+            if (outputPin.isDataChanged) {
+                // 只有数据发生改变了的 output pin 才传递数据。
+                outputPin.writeToNextLogicModulePins();
+            }
+        }
+    }
+
+    // addInputDataChangeEventListener(func) {
+    //     this.inputDataChangeEventListeners.push(func);
+    // }
+
+    //     addOutputDataChangeEventListener(func) {
+    //         this.outputDataChangeEventListeners.push(func);
+    //     }
+    //
+    //     dispatchInputDataChangeEvent() {
+    //         for(let listener of this.inputDataChangeEventListeners) {
+    //             listener();
+    //         }
+    //     }
+    //
+    //     dispatchOutputDataChangeEvent() {
+    //         for(let listener of this.outputDataChangeEventListeners) {
+    //             listener();
+    //         }
+    //     }
+
+    /**
+     *
+     * @param {*} name
+     * @param {*} bitWidth
+     * @param {*} description
+     * @param {*} pinNumber
+     * @returns
+     */
+    addInputPinByDetail(name, bitWidth, description, pinNumber) {
+        let inputPin = new Pin(name, bitWidth, description, pinNumber);
+        this.addInputPin(inputPin);
+        return inputPin;
+    }
+
+    addInputPin(inputPin) {
+        this.inputPins.push(inputPin);
+
+        inputPin.addDataChangeEventListener(() => {
+            this.isInputDataChanged = true;
+            // this.dispatchInputDataChangeEvent();
+        });
+    }
+
+    addOutputPinByDetail(name, bitWidth, description, pinNumber) {
+        let outputPin = new Pin(name, bitWidth, description, pinNumber);
+        this.addOutputPin(outputPin);
+        return outputPin;
+    }
+
+    addOutputPin(outputPin) {
+        this.outputPins.push(outputPin);
+
+        outputPin.addDataChangeEventListener(() => {
+            this.isOutputDataChanged = true;
+            // this.dispatchOutputDataChangeEvent();
+        });
     }
 
     /**
@@ -153,35 +297,6 @@ class AbstractLogicModule {
      */
     getParameter(name) {
         return this.parameters[name];
-    }
-
-    /**
-     * 创建并添加输入端口
-     *
-     * @param {*} name 输入端口名称
-     * @param {*} bitWidth 位宽
-     * @param {*} initialData
-     * @param {*} description
-     * @param {*} pinNumber
-     */
-    _addInputPin(name, bitWidth, initialData, description, pinNumber) {
-        let inputPin = new Pin(name, bitWidth, initialData, description, pinNumber);
-        this.inputPins.push(inputPin);
-    }
-
-    /**
-     * 创建并添加输出端口
-     *
-     * @param {*} name 输出端口名称
-     * @param {*} bitWidth 位宽
-     * @param {*} initialData
-     * @param {*} description
-     * @param {*} pinNumber
-     * @returns
-     */
-    _addOutputPin(name, bitWidth, initialData, description, pinNumber) {
-        let outputPin = new Pin(name, bitWidth, initialData, description, pinNumber);
-        this.outputPins.push(outputPin);
     }
 }
 
