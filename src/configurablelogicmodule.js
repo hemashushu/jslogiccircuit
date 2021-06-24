@@ -3,6 +3,7 @@ const { IllegalArgumentException } = require('jsexception');
 const LogicModuleFactory = require('./logicmodulefactory');
 const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
+const ConnectionItem = require('./connectionitem');
 
 /**
  * 可配置的逻辑模块。
@@ -21,13 +22,13 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      *
      * @param {*} packageName
      * @param {*} moduleClassName
-     * @param {*} instanceName 模块实例的名称
+     * @param {*} name 模块实例的名称
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
     constructor(packageName, moduleClassName,
-        instanceName, instanceParameters, defaultParameters) {
-        super(instanceName, instanceParameters, defaultParameters);
+        name, instanceParameters, defaultParameters) {
+        super(name, instanceParameters, defaultParameters);
 
         this.packageName = packageName;
         this.moduleClassName = moduleClassName;
@@ -50,11 +51,11 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     /**
      * 通过逻辑模块实例的名字获取内部子逻辑模块的实例
      *
-     * @param {*} instanceName
+     * @param {*} name
      * @returns 返回子模块实例，如果找不到指定实例名称，则返回 undefiend.
      */
-    getLogicModule(instanceName) {
-        return this.logicModules.find(item => item.name === instanceName);
+    getLogicModule(name) {
+        return this.logicModules.find(item => item.name === name);
     }
 
     getConnectionItem(name) {
@@ -81,13 +82,13 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      *
      * @param {*} packageName
      * @param {*} moduleClassName
-     * @param {*} instanceName
+     * @param {*} name 实例名称
      * @param {*} instanceParameters
      * @returns 返回子模块实例。
      */
-    addLogicModule(packageName, moduleClassName, instanceName, instanceParameters) {
+    addLogicModule(packageName, moduleClassName, name, instanceParameters) {
         let moduleInstance = LogicModuleFactory.createModuleInstance(
-            packageName, moduleClassName, instanceName, instanceParameters, this.parameters);
+            packageName, moduleClassName, name, instanceParameters, this.parameters);
 
         // moduleInstance.addInputDataChangeEventListener(()=>{
         //     this.isInputDataChanged = true;
@@ -97,6 +98,16 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         this.logicModules.push(moduleInstance);
 
         return moduleInstance;
+    }
+
+    addConnectionItemByDetail(name,
+        previousModuleName, previousPinName,
+        nextModuleName, nextPinName) {
+        let connectionItem = new ConnectionItem(name,
+            previousModuleName, previousPinName,
+            nextModuleName, nextPinName);
+        this.addConnectionItem(connectionItem);
+        return connectionItem;
     }
 
     /**

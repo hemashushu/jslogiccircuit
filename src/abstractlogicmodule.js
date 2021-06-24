@@ -17,13 +17,13 @@ class AbstractLogicModule {
     /**
      * 实例化逻辑模块（类）
      *
-     * @param {*} instanceName 模块实例的名称
+     * @param {*} name 模块实例的名称
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
-    constructor(instanceName, instanceParameters = {}, defaultParameters = {}) {
+    constructor(name, instanceParameters = {}, defaultParameters = {}) {
         // 模块实例的名称
-        this.instanceName = instanceName;
+        this.name = name;
 
         // 一个 {name:value, ...} 对象
         this.instanceParameters = instanceParameters;

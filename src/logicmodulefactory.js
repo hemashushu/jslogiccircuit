@@ -12,7 +12,7 @@ const LogicModuleLoader = require('./logicmoduleloader');
  *   配置信息如下：
  *   - inputPins: [{name, bitWidth, initialBinary:'binary_string', description, pinNumber}, ...] 输入端口；
  *   - outputPins: [{name, bitWidth, initialBinary:'binary_string', description, pinNumber}, ...] 输出端口；
- *   - logicModules: [{packageName, moduleClassName, instanceName, instanceParameters}, ...]
+ *   - logicModules: [{packageName, moduleClassName, name, instanceParameters}, ...]
  *     此模块所需的所有子模块，一个逻辑模块可视为由：“一个或多个其他逻辑” + “一个或多个输入输出端口” 组合而成；
  *   - connectionItems: [{name, previousModuleName, previousPinName, nextModuleName, nextPinName}, ...]
  *     指明子模块之间、输入输出端口之间如何连接。
@@ -28,14 +28,14 @@ class LogicModuleFactory {
      *
      * @param {*} packageName
      * @param {*} moduleClassName
-     * @param {*} instanceName
+     * @param {*} name 实例名称
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象，注意这个
      *     是实例的参数，它将会跟模块的默认参数（即定义模块是所定义的参数进行合并）
      * @param {*} parentParameters 实例化指定模块时的父模块实例的参数
      * @returns 如果找不到指定的逻辑模块类，则抛出 IllegalArgumentException 异常。
      */
     static createModuleInstance(packageName, moduleClassName,
-        instanceName, instanceParameters = {}, parentParameters = {}) {
+        name, instanceParameters = {}, parentParameters = {}) {
 
         let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 
@@ -79,15 +79,15 @@ class LogicModuleFactory {
         if (typeof moduleClass === 'function') {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
             return Reflect.construct(moduleClass, [
-                instanceName,
+                name,
                 resolvedInstanceParameters,
                 defaultParameters]);
 
         } else {
-            return LogicModuleFactory.constructModuleInstance(
+            return LogicModuleFactory.createModuleInstanceByConfig(
                 packageName, moduleClassName,
                 moduleClass,
-                instanceName, resolvedInstanceParameters, defaultParameters);
+                name, resolvedInstanceParameters, defaultParameters);
         }
     }
 
@@ -101,9 +101,9 @@ class LogicModuleFactory {
             moduleInstanceName, instanceParameters, defaultParameters);
 
         // 配置信息里有如下列表需要传入 ConfigurableLogicModule：
-        // - inputPins: [{name, bitWidth, initialBinary:'binary_string', description, pinNumber}, ...] 输入端口；
-        // - outputPins: [{name, bitWidth, initialBinary:'binary_string', description, pinNumber}, ...] 输出端口；
-        // - logicModules: [{packageName, moduleClassName, instanceName, instanceParameters}, ...]
+        // - inputPins: [{name, bitWidth, description, pinNumber}, ...] 输入端口；
+        // - outputPins: [{name, bitWidth, description, pinNumber}, ...] 输出端口；
+        // - logicModules: [{packageName, moduleClassName, name, instanceParameters}, ...]
         //   此模块所需的所有子模块，一个逻辑模块可视为由：“一个或多个其他逻辑” + “一个或多个输入输出端口” 组合而成；
         // - connectionItems: [{name, previousModuleName, previousPinName, nextModuleName, nextPinName}, ...]
         //   指明子模块之间、输入输出端口之间如何连接。
@@ -113,37 +113,19 @@ class LogicModuleFactory {
         for (let configInputPin of configInputPins) {
             let name = configInputPin.name;
             let bitWidth = configInputPin.bitWidth;
-            let initialData;
-
-            if (configInputPin.initialBinary !== undefined &&
-                configInputPin.initialBinary !== null) {
-                // 从二进制字符串转换为 Binary 对象。
-                initialData = Binary.fromBinaryString(configInputPin.initialBinary, bitWidth);
-            }
-
             let description = configInputPin.description;
             let pinNumber = configInputPin.pinNumber;
-
-            moduleInstance._addInputPin(name, bitWidth, initialData, description, pinNumber);
+            moduleInstance.addInputPinByDetail(name, bitWidth, description, pinNumber);
         }
 
         // add output pins
         let configOutputPins = moduleConfig.outputPins;
         for (let configOutputPin of configOutputPins) {
-            let name = configInputPin.name;
-            let bitWidth = configInputPin.bitWidth;
-            let initialData;
-
-            if (configInputPin.initialBinary !== undefined &&
-                configInputPin.initialBinary !== null) {
-                // 从二进制字符串转换为 Binary 对象。
-                initialData = Binary.fromBinaryString(configInputPin.initialBinary, bitWidth);
-            }
-
-            let description = configInputPin.description;
-            let pinNumber = configInputPin.pinNumber;
-
-            moduleInstance._addOutputPin(name, bitWidth, initialData, description, pinNumber);
+            let name = configOutputPin.name;
+            let bitWidth = configOutputPin.bitWidth;
+            let description = configOutputPin.description;
+            let pinNumber = configOutputPin.pinNumber;
+            moduleInstance.addOutputPinByDetail(name, bitWidth, description, pinNumber);
         }
 
         // add sub-module instances
@@ -151,17 +133,17 @@ class LogicModuleFactory {
         for (let configLogicModule of configLogicModules) {
             let packageName = configLogicModule.packageName;
             let moduleClassName = configLogicModule.moduleClassName;
-            let instanceName = configLogicModule.instanceName;
+            let name = configLogicModule.name;
             let instanceParameters = configLogicModule.instanceParameters;
 
-            moduleInstance._addLogicModule(
-                packageName, moduleClassName, instanceName, instanceParameters);
+            moduleInstance.addLogicModule(
+                packageName, moduleClassName, name, instanceParameters);
         }
 
         // add connection item
         let configConnectionItems = moduleConfig.connectionItems;
         for (let configConnectionItem of configConnectionItems) {
-            moduleInstance._addConnectionItem(configConnectionItem);
+            moduleInstance.addConnectionItem(configConnectionItem);
         }
 
         return moduleInstance;

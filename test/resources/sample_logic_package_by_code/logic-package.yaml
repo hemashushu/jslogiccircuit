@@ -5,4 +5,5 @@ dependencies: []
 modules:
   - "and-gate"
   - "nor-gate"
+  - "xor-gate"
 mainModule: "and-gate"

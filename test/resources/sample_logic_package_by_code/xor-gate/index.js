@@ -2,9 +2,9 @@ const { AbstractLogicModule } = require('../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
- * 逻辑或非门
+ * 逻辑异或门
  */
-class NorGate extends AbstractLogicModule {
+class XorGate extends AbstractLogicModule {
 
     constructor(name) {
         super(name);
@@ -21,17 +21,17 @@ class NorGate extends AbstractLogicModule {
     }
 
     getModuleClassName() {
-        return 'nor-gate'; // 同目录名
+        return 'xor-gate'; // 同目录名
     }
 
     // override
     updateModuleDataAndOutputPinsData() {
         let data1 = this.inputPins[0].getData();
         let data2 = this.inputPins[1].getData();
-        let resultData = Binary.nor(data1, data2);
+        let resultData = Binary.xor(data1, data2);
         this.outputPins[0].setData(resultData);
     }
 }
 
 
-module.exports = NorGate;
+module.exports = XorGate;

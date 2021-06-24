@@ -18,108 +18,122 @@ describe('Pin Test', () => {
         assert.equal(pin2.pinNumber, 'pinNumber1');
     });
 
-//     it('Test setData()', () => {
-//         let pin1 = new Pin('pin1', 4);
-//         let binary1 = Binary.fromBinaryString('0000', 4);
-//
-//         // https://nodejs.org/api/assert.html#assert_assert_value_message
-//         assert(Binary.equals(pin1.getData(), binary1));
-//
-//         let binary2 = Binary.fromBinaryString('1010', 4);
-//         pin1.setData(binary2);
-//         assert(Binary.equals(pin1.getData(), binary2));
-//
-//         let binary3 = Binary.fromBinaryString('1111', 4);
-//         pin1.setData(binary3);
-//         assert(Binary.equals(pin1.getData(), binary3));
-//     });
-//
-//     describe('Test data transit', () => {
-//         it('Add lisener', (done) => {
-//             let pin1 = new Pin('pin1', 4);
-//             let binary1 = Binary.fromBinaryString('1010', 4);
-//
-//             pin1.addDataChangeListener(data => {
-//                 assert(Binary.equals(data, binary1));
-//                 done();
-//             });
-//
-//             pin1.setData(binary1);
-//         });
-//
-//         it('Add multiple liseners', (done) => {
-//             let pin1 = new Pin('pin1', 4);
-//
-//             let binary1 = Binary.fromBinaryString('1010', 4);
-//
-//             let count = 0;
-//             let plusOne = () => {
-//                 count++;
-//                 if (count === 3) {
-//                     done();
-//                 }
-//             };
-//
-//             pin1.addDataChangeListener((data) => {
-//                 assert(Binary.equal(data, binary1));
-//                 plusOne();
-//             });
-//
-//             pin1.addDataChangeListener((data) => {
-//                 assert(Binary.equal(data, binary1));
-//                 plusOne();
-//             });
-//
-//             pin1.addDataChangeListener((data) => {
-//                 assert(Binary.equal(data, binary1));
-//                 plusOne();
-//             });
-//
-//             pin1.setData(binary1);
-//         });
-//     });
-//
-//     describe('Test connection', () => {
-//         it('Chain multiple wires', (done) => {
-//             let pin1 = new Pin('pin1', 4);
-//             let pin2 = new Pin('pin2', 4);
-//             let pin3 = new Pin('pin3', 4);
-//
-//             ConnectionUtils.connect(pin1, pin2);
-//             ConnectionUtils.connect(pin2, pin3);
-//
-//             let binary1 = Binary.fromBinaryString('1010', 4);
-//
-//             pin3.addDataChangeListener(data => {
-//                 assert(Binary.equals(data, binary1));
-//                 done();
-//             });
-//
-//             pin1.setData(binary1);
-//
-//             assert(Binary.equals(pin1.getData(), binary1));
-//             assert(Binary.equals(pin2.getData(), binary1));
-//             assert(Binary.equals(pin3.getData(), binary1));
-//         });
-//
-//         it('Connect multiple wires', () => {
-//             let sourcePin1 = new Pin('pin1', 2);
-//             let sourcePin2 = new Pin('pin2', 2);
-//             let destPin1 = new Pin('pin3', 2);
-//             let destPin2 = new Pin('pin4', 2);
-//
-//             ConnectionUtils.connects(
-//                 [sourcePin1, sourcePin2],
-//                 [destPin1, destPin2]);
-//
-//             let binary1 = Binary.fromBinaryString('10', 2);
-//             let binary2 = Binary.fromBinaryString('11', 2);
-//
-//             sourcePin1.setData(binary1);
-//             sourcePin2.setData(binary2);
-//
-//             assert(Binary.equals(destPin1.getData(), binary1));
-//             assert(Binary.equals(destPin2.getData(), binary2));
-//         });
-//     });
+    it('Test setData()', () => {
+        let pin1 = new Pin('pin1', 4);
+        let binary1 = Binary.fromBinaryString('0000', 4);
+
+        // https://nodejs.org/api/assert.html#assert_assert_value_message
+        assert(Binary.equal(pin1.getData(), binary1));
+
+        let binary2 = Binary.fromBinaryString('1010', 4);
+        pin1.setData(binary2);
+        assert(Binary.equal(pin1.getData(), binary2));
+
+        let binary3 = Binary.fromBinaryString('1111', 4);
+        pin1.setData(binary3);
+        assert(Binary.equal(pin1.getData(), binary3));
+    });
+
+    it('Test flags and events', (done) => {
+        let pin1 = new Pin('pin1', 4);
+        let binary1 = Binary.fromBinaryString('1010', 4);
+
+        pin1.addDataChangeEventListener(data => {
+            assert(Binary.equal(data, binary1));
+            assert(pin1.isDataChanged);
+
+            // 重置 dataChanged 标记
+            pin1.clearDataChangedFlag();
+            assert(!pin1.isDataChanged);
+
+            done();
+        });
+
+        pin1.setData(binary1);
+    });
+
+    it('Test connection', () => {
+        let pin1 = new Pin('pin1', 4);
+        let pin2 = new Pin('pin2', 4);
+
+        let binary1 = Binary.fromBinaryString('0000', 4);
+
+        ConnectionUtils.connect(undefined, pin1, undefined, pin2);
+
+        // 改变 pin1 数据
+        let binary2 = Binary.fromBinaryString('1010', 4);
+        pin1.setData(binary2);
+        assert(pin1.isDataChanged);
+        assert(Binary.equal(pin1.getData(), binary2));
+
+        // pin2 尚未改变
+        assert(!pin2.isDataChanged);
+        assert(Binary.equal(pin2.getData(), binary1));
+
+        // 让 pin1 写数据
+        pin1.writeToNextLogicModulePins();
+        assert(pin2.isDataChanged);
+        assert(Binary.equal(pin2.getData(), binary2));
+
+        // 重置 dataChanged 标记
+        pin1.clearDataChangedFlag();
+        pin2.clearDataChangedFlag();
+
+        assert(!pin1.isDataChanged);
+        assert(!pin2.isDataChanged);
+
+        // 再次改变 pin1 的数据
+        let binary3 = Binary.fromBinaryString('1100', 4);
+        pin1.setData(binary3);
+        assert(pin1.isDataChanged);
+        assert(Binary.equal(pin1.getData(), binary3));
+
+        // 让 pin2 读取数据
+        pin2.readFromPreviousLogicModulePin();
+        assert(pin2.isDataChanged);
+        assert(Binary.equal(pin2.getData(), binary3));
+    });
+
+    it('Test connecting to multiple pins', () => {
+        let pin1 = new Pin('pin1', 4);
+        let pin2 = new Pin('pin2', 4);
+        let pin3 = new Pin('pin3', 4);
+        let pin4 = new Pin('pin4', 4);
+
+        // pin1 -|-- pin2 --- pin4
+        //       |-- pin3
+
+        ConnectionUtils.connect(undefined, pin1, undefined, pin2);
+        ConnectionUtils.connect(undefined, pin1, undefined, pin3);
+        ConnectionUtils.connect(undefined, pin2, undefined, pin4);
+
+        let binary1 = Binary.fromBinaryString('0000', 4);
+        let binary2 = Binary.fromBinaryString('1010', 4);
+
+        pin1.setData(binary2);
+        assert(pin1.isDataChanged);
+        assert(!pin2.isDataChanged);
+        assert(!pin3.isDataChanged);
+        assert(!pin4.isDataChanged);
+
+        assert(Binary.equal(pin1.getData(), binary2));
+        assert(Binary.equal(pin2.getData(), binary1));
+        assert(Binary.equal(pin3.getData(), binary1));
+        assert(Binary.equal(pin4.getData(), binary1));
+
+        pin1.writeToNextLogicModulePins();
+        assert(pin1.isDataChanged);
+        assert(pin2.isDataChanged);
+        assert(pin3.isDataChanged);
+        assert(!pin4.isDataChanged);
+
+        assert(Binary.equal(pin1.getData(), binary2));
+        assert(Binary.equal(pin2.getData(), binary2));
+        assert(Binary.equal(pin3.getData(), binary2));
+        assert(Binary.equal(pin4.getData(), binary1));
+
+        pin2.writeToNextLogicModulePins();
+        assert(pin4.isDataChanged);
+        assert(Binary.equal(pin4.getData(), binary2));
+    });
 });

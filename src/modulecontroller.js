@@ -27,6 +27,8 @@ class ModuleController {
      * - 这里假设最多只需要经历跟“模块个数”一样的次数更新周期
      *   便能达到稳定状态，否则视为振荡电路，即状态永远不会停止
      *   的电路，并抛出 OscillatingException 异常。
+     *
+     * @returns 返回达到稳定状态时所需的更新次数
      */
     step() {
         let cycle = 0;
@@ -54,8 +56,8 @@ class ModuleController {
 
             // 计算信号
             for (let logicModule of this.allLogicModulesForRead) {
-                logicModule.clearOutputPinsDataChangedFlag();    // A2
-                logicModule.clearOutputDataChangedFlag();        // A3
+                logicModule.clearOutputPinsDataChangedFlag();        // A2
+                logicModule.clearOutputDataChangedFlag();            // A3
 
                 if (logicModule.isInputDataChanged) {
                     logicModule.updateModuleDataAndOutputPinsData(); // A4
@@ -65,8 +67,8 @@ class ModuleController {
             // 后半周期，写信号，受到新信号影响的模块的 isInputDataChanged 的
             // 标记会被设置为 true。
             for (let logicModule of this.allLogicModulesForWrite) {
-                logicModule.clearInputPinDataChangedFlags(); // B1
-                logicModule.clearInputDataChangedFlag();     // B2
+                logicModule.clearInputPinDataChangedFlags();     // B1
+                logicModule.clearInputDataChangedFlag();         // B2
 
                 if (logicModule.isOutputDataChanged) {
                     logicModule.writeOutputPins();               // B3
@@ -82,6 +84,8 @@ class ModuleController {
 
             throw new OscillatingException(undefined, issuedLogicModules);
         }
+
+        return cycle;
     }
 }
 

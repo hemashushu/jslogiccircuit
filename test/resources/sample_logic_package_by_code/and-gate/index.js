@@ -6,8 +6,8 @@ const { Binary } = require('jsbinary');
  */
 class AndGate extends AbstractLogicModule {
 
-    constructor(instanceName, instanceParameters, defaultParameters) {
-        super(instanceName, instanceParameters, defaultParameters);
+    constructor(name, instanceParameters, defaultParameters) {
+        super(name, instanceParameters, defaultParameters);
 
         // 模块参数
         let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
@@ -18,20 +18,9 @@ class AndGate extends AbstractLogicModule {
         // 输入端口的名称分别为 in0, in1, ... inN
         let createInputPin = (idx) => {
             this.addInputPinByDetail('in' + idx, bitWidth);
-
-//             inputWire.addDataChangeListener(() => {
-//                 let outputData = this.inputPins[0].data;
-//                 for (let idx = 1; idx < this.inputPins.length; idx++) {
-//                     outputData = Binary.and(outputData, this.inputPins[idx].data);
-//                 }
-//
-//                 if (!Binary.equals(outputData, outputWire.data)) {
-//                     outputWire.setData(outputData);
-//                 }
-//             });
         };
 
-        // 输入端口们
+        // 输入端口
         for (let idx = 0; idx < inputPinCount; idx++) {
             createInputPin(idx);
         }
