@@ -125,9 +125,10 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(
-                this, moduleInputPin,
-                subModule, subModuleInputPin);
+            // ConnectionUtils.connect(
+            //     this, moduleInputPin,
+            //     subModule, subModuleInputPin);
+            ConnectionUtils.connect(moduleInputPin, subModuleInputPin);
 
         } else if (connectionItem.nextModuleName === undefined ||
             connectionItem.nextModuleName === null ||
@@ -152,9 +153,10 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified output pin "${connectionItem.previousPinName}" of the internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(
-                subModule, subModuleOutputPin,
-                this, moduleOutputPin);
+            // ConnectionUtils.connect(
+            //     subModule, subModuleOutputPin,
+            //     this, moduleOutputPin);
+            ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
 
         } else {
             // 连接两个子模块的 output pin 与 input pin
@@ -183,9 +185,10 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(
-                previousLogicModule, previousModuleOutputPin,
-                nextLogicModule, nextModuleInputPin);
+            // ConnectionUtils.connect(
+            //     previousLogicModule, previousModuleOutputPin,
+            //     nextLogicModule, nextModuleInputPin);
+            ConnectionUtils.connect(previousModuleOutputPin, nextModuleInputPin);
         }
 
         this.connectionItems.push(connectionItem);
@@ -197,7 +200,8 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         // input pins 的状态需要传递到下游/内部的子模块
         for (let inputPin of this.inputPins) {
             if (inputPin.isDataChanged) {
-                inputPin.writeToNextLogicModulePins();
+                // inputPin.writeToNextLogicModulePins();
+                inputPin.writeToNextPins();
             }
         }
     }

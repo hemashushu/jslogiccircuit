@@ -13,17 +13,19 @@ class ConnectionUtils {
      * @param {*} nextLogicModule
      * @param {*} nextPin
      */
-    static connect(previousLogicModule, previousPin,
-        nextLogicModule, nextPin) {
+    // static connect(previousLogicModule, previousPin,
+    //     nextLogicModule, nextPin) {
+    static connect(previousPin, nextPin) {
         if (previousPin.bitWidth !== nextPin.bitWidth) {
             throw new LogicCircuitException("Pin bit width does not match.");
         }
 
-        let nextLogicModulePin = new LogicModulePin(nextLogicModule, nextPin);
-        previousPin.addNextLogicModulePin(nextLogicModulePin);
-
-        let previousLogicModulePin = new LogicModulePin(previousLogicModule, previousPin);
-        nextPin.setPreviousLogicModulePin(previousLogicModulePin);
+        // let nextLogicModulePin = new LogicModulePin(nextLogicModule, nextPin);
+//         previousPin.addNextLogicModulePin(nextLogicModulePin);
+//
+//         let previousLogicModulePin = new LogicModulePin(previousLogicModule, previousPin);
+//         nextPin.setPreviousLogicModulePin(previousLogicModulePin);
+        previousPin.addNextPin(nextPin);
     }
 }
 

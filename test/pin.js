@@ -58,7 +58,8 @@ describe('Pin Test', () => {
 
         let binary1 = Binary.fromBinaryString('0000', 4);
 
-        ConnectionUtils.connect(undefined, pin1, undefined, pin2);
+        // ConnectionUtils.connect(undefined, pin1, undefined, pin2);
+        ConnectionUtils.connect(pin1, pin2);
 
         // 改变 pin1 数据
         let binary2 = Binary.fromBinaryString('1010', 4);
@@ -71,7 +72,8 @@ describe('Pin Test', () => {
         assert(Binary.equal(pin2.getData(), binary1));
 
         // 让 pin1 写数据
-        pin1.writeToNextLogicModulePins();
+        // pin1.writeToNextLogicModulePins();
+        pin1.writeToNextPins();
         assert(pin2.isDataChanged);
         assert(Binary.equal(pin2.getData(), binary2));
 
@@ -88,10 +90,10 @@ describe('Pin Test', () => {
         assert(pin1.isDataChanged);
         assert(Binary.equal(pin1.getData(), binary3));
 
-        // 让 pin2 读取数据
-        pin2.readFromPreviousLogicModulePin();
-        assert(pin2.isDataChanged);
-        assert(Binary.equal(pin2.getData(), binary3));
+        // // 让 pin2 读取数据
+        // pin2.readFromPreviousLogicModulePin();
+        // assert(pin2.isDataChanged);
+        // assert(Binary.equal(pin2.getData(), binary3));
     });
 
     it('Test connecting to multiple pins', () => {
@@ -103,9 +105,13 @@ describe('Pin Test', () => {
         // pin1 -|-- pin2 --- pin4
         //       |-- pin3
 
-        ConnectionUtils.connect(undefined, pin1, undefined, pin2);
-        ConnectionUtils.connect(undefined, pin1, undefined, pin3);
-        ConnectionUtils.connect(undefined, pin2, undefined, pin4);
+        // ConnectionUtils.connect(undefined, pin1, undefined, pin2);
+        // ConnectionUtils.connect(undefined, pin1, undefined, pin3);
+        // ConnectionUtils.connect(undefined, pin2, undefined, pin4);
+
+        ConnectionUtils.connect(pin1, pin2);
+        ConnectionUtils.connect(pin1, pin3);
+        ConnectionUtils.connect(pin2, pin4);
 
         let binary1 = Binary.fromBinaryString('0000', 4);
         let binary2 = Binary.fromBinaryString('1010', 4);
@@ -121,7 +127,8 @@ describe('Pin Test', () => {
         assert(Binary.equal(pin3.getData(), binary1));
         assert(Binary.equal(pin4.getData(), binary1));
 
-        pin1.writeToNextLogicModulePins();
+        // pin1.writeToNextLogicModulePins();
+        pin1.writeToNextPins();
         assert(pin1.isDataChanged);
         assert(pin2.isDataChanged);
         assert(pin3.isDataChanged);
@@ -132,7 +139,8 @@ describe('Pin Test', () => {
         assert(Binary.equal(pin3.getData(), binary2));
         assert(Binary.equal(pin4.getData(), binary1));
 
-        pin2.writeToNextLogicModulePins();
+        // pin2.writeToNextLogicModulePins();
+        pin2.writeToNextPins();
         assert(pin4.isDataChanged);
         assert(Binary.equal(pin4.getData(), binary2));
     });

@@ -33,11 +33,12 @@ class Pin extends ObservableSignal {
         this.description = description;
         this.pinNumber = pinNumber;
 
-        // 对上游端口的引用。
-        this.previousLogicModulePin = undefined;
+        // // 对上游端口的引用。
+        // this.previousLogicModulePin = undefined;
 
         // 下游端口的集合。
-        this.nextLogicModulePins = [];
+        this.nextPins = [];
+        // this.nextLogicModulePins = [];
 
         // - 对于一个最小的逻辑模块，比如一个逻辑门，
         //   它的输入端口只有 previousLogicModulePin，而没有
@@ -49,31 +50,44 @@ class Pin extends ObservableSignal {
         //   都有既有 previousLogicModulePin，也有 nextLogicModulePins。
     }
 
-    setPreviousLogicModulePin(logicModulePin) {
-        this.previousLogicModulePin = logicModulePin;
+//     setPreviousLogicModulePin(logicModulePin) {
+//         this.previousLogicModulePin = logicModulePin;
+//     }
+//
+//     readFromPreviousLogicModulePin() {
+//         if (this.previousLogicModulePin === undefined) {
+//             return;
+//         }
+//         let previousPin = this.previousLogicModulePin.pin;
+//         let data = previousPin.getData();
+//         this.setData(data);
+//     }
+
+    addNextPin(pin) {
+        // this.nextLogicModulePins.push(logicModulePin);
+        this.nextPins.push(pin);
     }
 
-    readFromPreviousLogicModulePin() {
-        if (this.previousLogicModulePin === undefined) {
-            return;
-        }
-        let previousPin = this.previousLogicModulePin.pin;
-        let data = previousPin.getData();
-        this.setData(data);
-    }
-
-    addNextLogicModulePin(logicModulePin) {
-        this.nextLogicModulePins.push(logicModulePin);
-    }
-
-    writeToNextLogicModulePins() {
+    writeToNextPins() {
         let data = this.getData();
 
-        for (let nextLogicModulePin of this.nextLogicModulePins) {
-            let pin = nextLogicModulePin.pin;
-            pin.setData(data);
+        for (let nextPin of this.nextPins) {
+            nextPin.setData(data);
         }
     }
+
+//     addNextLogicModulePin(logicModulePin) {
+//         this.nextLogicModulePins.push(logicModulePin);
+//     }
+//
+//     writeToNextLogicModulePins() {
+//         let data = this.getData();
+//
+//         for (let nextLogicModulePin of this.nextLogicModulePins) {
+//             let pin = nextLogicModulePin.pin;
+//             pin.setData(data);
+//         }
+//     }
 
 }
 

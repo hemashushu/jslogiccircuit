@@ -165,7 +165,8 @@ class AbstractLogicModule {
         for (let outputPin of this.outputPins) {
             if (outputPin.isDataChanged) {
                 // 只有数据发生改变了的 output pin 才传递数据。
-                outputPin.writeToNextLogicModulePins();
+                // outputPin.writeToNextLogicModulePins();
+                outputPin.writeToNextPins();
             }
         }
     }
