@@ -1,6 +1,5 @@
 const { ObjectUtils } = require('jsobjectutils');
 const { NotImplementedException } = require('jsexception');
-const {Binary} = require('jsbinary');
 
 const Pin = require('./pin');
 

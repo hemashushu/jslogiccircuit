@@ -137,8 +137,6 @@ class LogicModuleFactory {
             let subModuleInstance = LogicModuleFactory.createModuleInstance(
                 packageName, moduleClassName, name, instanceParameters);
 
-            // moduleInstance.addLogicModule(
-            //     packageName, moduleClassName, name, instanceParameters);
             moduleInstance.addLogicModule(subModuleInstance);
         }
 

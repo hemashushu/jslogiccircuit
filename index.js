@@ -8,7 +8,6 @@ const ConnectionUtils = require('./src/connectionutils');
 const LogicModuleFactory = require('./src/logicmodulefactory');
 const LogicModuleItem = require('./src/logicmoduleitem');
 const LogicModuleLoader = require('./src/logicmoduleloader');
-const LogicModulePin = require('./src/logicmodulepin');
 const LogicPackageItem = require('./src/logicpackageitem');
 const LogicPackageLoader = require('./src/logicpackageloader');
 const ModuleController = require('./src/modulecontroller');
@@ -27,7 +26,6 @@ module.exports = {
     LogicModuleFactory: LogicModuleFactory,
     LogicModuleItem: LogicModuleItem,
     LogicModuleLoader: LogicModuleLoader,
-    LogicModulePin: LogicModulePin,
     LogicPackageItem: LogicPackageItem,
     LogicPackageLoader: LogicPackageLoader,
     ModuleController: ModuleController,

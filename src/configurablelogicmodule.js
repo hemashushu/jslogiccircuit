@@ -1,6 +1,5 @@
 const { IllegalArgumentException } = require('jsexception');
 
-// const LogicModuleFactory = require('./logicmodulefactory');
 const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 const ConnectionItem = require('./connectionitem');
@@ -125,9 +124,6 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
-            // ConnectionUtils.connect(
-            //     this, moduleInputPin,
-            //     subModule, subModuleInputPin);
             ConnectionUtils.connect(moduleInputPin, subModuleInputPin);
 
         } else if (connectionItem.nextModuleName === undefined ||
@@ -153,9 +149,6 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified output pin "${connectionItem.previousPinName}" of the internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
-            // ConnectionUtils.connect(
-            //     subModule, subModuleOutputPin,
-            //     this, moduleOutputPin);
             ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
 
         } else {
@@ -185,9 +178,6 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
-            // ConnectionUtils.connect(
-            //     previousLogicModule, previousModuleOutputPin,
-            //     nextLogicModule, nextModuleInputPin);
             ConnectionUtils.connect(previousModuleOutputPin, nextModuleInputPin);
         }
 
