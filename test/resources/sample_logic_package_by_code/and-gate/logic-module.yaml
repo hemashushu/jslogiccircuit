@@ -1,8 +1,6 @@
 title: AND Gate
 description: Logic "AND" Gate
+# https://en.wikipedia.org/wiki/Logic_gate
 iconFilename: icon.png
-defaultParameters:
-  inputPinCount: 2
-  bitWidth: 1
-group: "Base Gates"
+group: "Logic"
 document: "Document about AND gate"

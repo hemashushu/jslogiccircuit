@@ -1,0 +1,50 @@
+inputPins:
+  - name: A
+    bitWidth: 1
+  - name: B
+    bitWidth: 1
+outputPins:
+  - name: S
+    bitWidth: 1
+  - name: C
+    bitWidth: 1
+logicModules:
+  - packageName: sample_logic_package_by_code
+    moduleClassName: and-gate
+    name: and1
+    parameters: {}
+  - packageName: sample_logic_package_by_code
+    moduleClassName: xor-gate
+    name: xor1
+    parameters: {}
+connections:
+  - name: a-xor1-a
+    previousModuleName: ''
+    previousPinName: A
+    nextModuleName: xor1
+    nextPinName: A
+  - name: a-and1-a
+    previousModuleName: ''
+    previousPinName: A
+    nextModuleName: and1
+    nextPinName: A
+  - name: b-xor1-b
+    previousModuleName: ''
+    previousPinName: B
+    nextModuleName: xor1
+    nextPinName: B
+  - name: b-and1-b
+    previousModuleName: ''
+    previousPinName: B
+    nextModuleName: and1
+    nextPinName: B
+  - name: xor1-q-s
+    previousModuleName: xor1
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: S
+  - name: and1-q-c
+    previousModuleName: and1
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: C

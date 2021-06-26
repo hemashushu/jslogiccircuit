@@ -17,7 +17,7 @@ describe('Test sample_logic_package_by_code', () => {
             name: 'sample_logic_package_by_code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
-            modules: ['and-gate', 'nor-gate', 'xor-gate'],
+            modules: ['and-gate', 'and-gate-ext', 'nor-gate', 'xor-gate'],
             mainModule: 'and-gate',
             version: '1.0.0',
             author: 'Hippo Spark',
@@ -40,7 +40,7 @@ describe('Test sample_logic_package_by_code', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'nor-gate', 'xor-gate']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'and-gate-ext', 'nor-gate', 'xor-gate']));
 
         let checkPropNames = [
             'packageName',
@@ -58,9 +58,9 @@ describe('Test sample_logic_package_by_code', () => {
         let expectAndGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
             moduleClassName: 'and-gate',
-            defaultParameters: { inputPinCount: 2, bitWidth: 1 },
+            defaultParameters: {},
             title: 'AND Gate',
-            group: 'Base Gates',
+            group: 'Logic',
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate',
             document: 'Document about AND gate'
@@ -73,24 +73,42 @@ describe('Test sample_logic_package_by_code', () => {
 
         let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[1]);
 
+        let expectAndGateExtLogicModuleItem = {
+            packageName: 'sample_logic_package_by_code',
+            moduleClassName: 'and-gate-ext',
+            defaultParameters: { inputPinCount: 2, bitWidth: 1 },
+            title: 'AND Gate Ext',
+            group: 'Logic',
+            iconFilename: 'icon.png',
+            description: 'Logic "AND" Gate Extension',
+            document: 'Document about AND gate extension'
+        };
+
+        assert(ObjectUtils.equals(
+            ObjectComposer.compose(logicModuleItem2, checkPropNames),
+            expectAndGateExtLogicModuleItem
+        ));
+
+        let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[2]);
+
         let expectXorGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
             moduleClassName: 'nor-gate',
             defaultParameters: {},
             title: 'NOR Gate',
-            group: 'Base Gates',
+            group: 'Logic',
             iconFilename: 'icon.png',
             description: 'Logic "NOR" Gate',
             document: 'Document about NOR gate'
         };
 
         assert(ObjectUtils.equals(
-            ObjectComposer.compose(logicModuleItem2, checkPropNames),
+            ObjectComposer.compose(logicModuleItem3, checkPropNames),
             expectXorGateLogicModuleItem
         ));
 
-        let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[2]);
-        assert.equal(logicModuleItem3.moduleClassName, 'xor-gate');
+        let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[3]);
+        assert.equal(logicModuleItem4.moduleClassName, 'xor-gate');
     });
 
     it('Test module factory', async () => {
@@ -99,40 +117,48 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1');
+        let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and1');
 
-        assert.equal(andGate1.name, 'and1');
-        assert(ObjectUtils.isEmpty(andGate1.instanceParameters));
-        assert(ObjectUtils.equals(andGate1.defaultParameters, { inputPinCount: 2, bitWidth: 1 }));
-        assert(ObjectUtils.equals(andGate1.parameters, { inputPinCount: 2, bitWidth: 1 }));
-        assert.equal(andGate1.getPackageName(), packageName);
-        assert.equal(andGate1.getModuleClassName(), 'and-gate');
-        assert.equal(andGate1.getParameter('inputPinCount'), 2);
-        assert.equal(andGate1.getParameter('bitWidth'), 1);
-        assert(!andGate1.isInputDataChanged);
-        assert(!andGate1.isOutputDataChanged);
+        assert.equal(andGateExt1.name, 'and1');
+        assert(ObjectUtils.isEmpty(andGateExt1.instanceParameters));
+        assert(ObjectUtils.equals(andGateExt1.defaultParameters, { inputPinCount: 2, bitWidth: 1 }));
+        assert(ObjectUtils.equals(andGateExt1.parameters, { inputPinCount: 2, bitWidth: 1 }));
+        assert.equal(andGateExt1.getPackageName(), packageName);
+        assert.equal(andGateExt1.getModuleClassName(), 'and-gate-ext');
+        assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
+        assert.equal(andGateExt1.getParameter('bitWidth'), 1);
+        assert(!andGateExt1.isInputDataChanged);
+        assert(!andGateExt1.isOutputDataChanged);
 
-        let andIn0 = andGate1.getInputPin('in0');
-        let andIn1 = andGate1.getInputPin('in1');
-        let andOut = andGate1.getOutputPin('out');
+        let andIn0 = andGateExt1.getInputPin('in0');
+        let andIn1 = andGateExt1.getInputPin('in1');
+        let andOut = andGateExt1.getOutputPin('out');
+
+        let binary0 = Binary.fromDecimalString(0, 1);
 
         assert.equal(andIn0.name, 'in0');
         assert.equal(andIn0.bitWidth, 1);
-        assert(Binary.equal(andIn0.getData(), Binary.fromDecimalString(0, 1)));
+        assert(Binary.equal(andIn0.getData(), binary0));
 
         assert.equal(andIn1.name, 'in1');
         assert.equal(andIn1.bitWidth, 1);
-        assert(Binary.equal(andIn1.getData(), Binary.fromDecimalString(0, 1)));
+        assert(Binary.equal(andIn1.getData(), binary0));
 
         assert.equal(andOut.name, 'out');
         assert.equal(andOut.bitWidth, 1);
-        assert(Binary.equal(andOut.getData(), Binary.fromDecimalString(0, 1)));
+        assert(Binary.equal(andOut.getData(), binary0));
 
         // 加入实例化参数
-        let andGate2 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and2', { bitWidth: 8, inputPinCount: 4 });
-        assert.equal(andGate2.getInputPins().length, 4);
-        assert.equal(andGate2.getInputPin('in0').bitWidth, 8);
-        assert.equal(andGate2.getOutputPin('out').bitWidth, 8);
+        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
+        assert.equal(andGateExt2.getInputPins().length, 4);
+        assert.equal(andGateExt2.getInputPin('in0').bitWidth, 8);
+        assert.equal(andGateExt2.getOutputPin('out').bitWidth, 8);
+
+        // 实例化 and 模块
+        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1');
+        assert.equal(andGate1.name, 'and1');
+        assert.equal(andGate1.getPackageName(), packageName);
+        assert.equal(andGate1.getModuleClassName(), 'and-gate');
 
         // 实例化 nor 模块
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor-gate', 'nor1');
@@ -147,7 +173,7 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(xorGate1.getModuleClassName(), 'xor-gate');
     });
 
-    it('Test module controller', async () => {
+    it('Test module controller - AND gate', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
 
@@ -156,7 +182,6 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        // 测试 AND gate
         let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1');
         assert(!andGate1.isInputDataChanged);
         assert(!andGate1.isOutputDataChanged);
@@ -167,7 +192,7 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moduleController1.allLogicModulesForWrite.length, 1);
         assert.equal(moduleController1.logicModuleCount, 1);
 
-        // 测试 AND gate 从初始状态进入稳定状态
+        // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
         assert(andGate1.isInputDataChanged);
         assert(!andGate1.isOutputDataChanged);
 
@@ -176,11 +201,11 @@ describe('Test sample_logic_package_by_code', () => {
 
         assert(!andGate1.isInputDataChanged);
         assert(!andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('out').getData(), binary0));
+        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary0));
 
         // 改变输入信号为 1,1
-        andGate1.getInputPin('in0').setData(binary1);
-        andGate1.getInputPin('in1').setData(binary1);
+        andGate1.getInputPin('A').setData(binary1);
+        andGate1.getInputPin('B').setData(binary1);
         assert(andGate1.isInputDataChanged);
         assert(!andGate1.isOutputDataChanged);
 
@@ -188,11 +213,11 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moves2, 1);
         assert(!andGate1.isInputDataChanged);
         assert(andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('out').getData(), binary1));
+        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary1));
 
         // 改变输入信号为 1,0
-        andGate1.getInputPin('in0').setData(binary1);
-        andGate1.getInputPin('in1').setData(binary0);
+        andGate1.getInputPin('A').setData(binary1);
+        andGate1.getInputPin('B').setData(binary0);
         assert(andGate1.isInputDataChanged);
         assert(andGate1.isOutputDataChanged);
 
@@ -200,9 +225,18 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moves3, 1);
         assert(!andGate1.isInputDataChanged);
         assert(andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('out').getData(), binary0));
+        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary0));
+    });
 
-        // 测试 NOR gate
+    it('Test module controller - NOR gate', async () => {
+        let binary0 = Binary.fromBinaryString('0', 1);
+        let binary1 = Binary.fromBinaryString('1', 1);
+
+        let packageName = 'sample_logic_package_by_code';
+        let testPath = __dirname;
+        let testResourcePath = path.join(testPath, 'resources');
+        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor-gate', 'nor1');
         assert(!norGate1.isInputDataChanged);
         assert(!norGate1.isOutputDataChanged);
@@ -213,7 +247,7 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moduleController2.allLogicModulesForWrite.length, 1);
         assert.equal(moduleController2.logicModuleCount, 1);
 
-        // 测试 NOR gate 从初始状态进入稳定状态
+        // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
         assert(norGate1.isInputDataChanged);
         assert(!norGate1.isOutputDataChanged);
 
@@ -222,11 +256,11 @@ describe('Test sample_logic_package_by_code', () => {
 
         assert(!norGate1.isInputDataChanged);
         assert(norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('out').getData(), binary1));
+        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary1));
 
         // 改变输入信号为 1,1
-        norGate1.getInputPin('in0').setData(binary1);
-        norGate1.getInputPin('in1').setData(binary1);
+        norGate1.getInputPin('A').setData(binary1);
+        norGate1.getInputPin('B').setData(binary1);
         assert(norGate1.isInputDataChanged);
         assert(norGate1.isOutputDataChanged);
 
@@ -234,11 +268,11 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(movesb2, 1);
         assert(!norGate1.isInputDataChanged);
         assert(norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('out').getData(), binary0));
+        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary0));
 
         // 改变输入信号为 1,0
-        norGate1.getInputPin('in0').setData(binary1);
-        norGate1.getInputPin('in1').setData(binary0);
+        norGate1.getInputPin('A').setData(binary1);
+        norGate1.getInputPin('B').setData(binary0);
         assert(norGate1.isInputDataChanged);
         assert(norGate1.isOutputDataChanged);
 
@@ -246,6 +280,6 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(movesb3, 1);
         assert(!norGate1.isInputDataChanged);
         assert(!norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('out').getData(), binary0));
+        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary0));
     });
 });

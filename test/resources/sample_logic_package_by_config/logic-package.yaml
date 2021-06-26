@@ -1,0 +1,9 @@
+title: Sample Logic Package (Config)
+description: A logic package for unit testing.
+iconFilename: icon.png
+dependencies:
+  - "sample_logic_package_by_code"
+modules:
+  - "half-adder"
+  - "rs"
+mainModule: "half-adder"

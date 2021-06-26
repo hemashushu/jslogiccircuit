@@ -1,0 +1,50 @@
+inputPins:
+  - name: R
+    bitWidth: 1
+  - name: S
+    bitWidth: 1
+outputPins:
+  - name: Q
+    bitWidth: 1
+  - name: "~Q"
+    bitWidth: 1
+logicModules:
+  - packageName: sample_logic_package_by_code
+    moduleClassName: nor-gate
+    name: nor1
+    parameters: {}
+  - packageName: sample_logic_package_by_code
+    moduleClassName: nor-gate
+    name: nor2
+    parameters: {}
+connections:
+  - name: r-nor1-a
+    previousModuleName: ''
+    previousPinName: R
+    nextModuleName: nor1
+    nextPinName: A
+  - name: s-nor2-b
+    previousModuleName: ''
+    previousPinName: S
+    nextModuleName: nor2
+    nextPinName: B
+  - name: nor1-q-nor2-a
+    previousModuleName: nor1
+    previousPinName: Q
+    nextModuleName: nor2
+    nextPinName: A
+  - name: nor2-q-nor1-b
+    previousModuleName: nor2
+    previousPinName: Q
+    nextModuleName: nor1
+    nextPinName: B
+  - name: nor1-q-q
+    previousModuleName: nor1
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: Q
+  - name: 'nor2-q-~q'
+    previousModuleName: nor2
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: '~Q'

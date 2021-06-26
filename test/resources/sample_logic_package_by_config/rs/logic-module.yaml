@@ -1,0 +1,7 @@
+title: RS
+description: RS NOR latch
+# https://en.wikipedia.org/wiki/Flip-flop_(electronics)
+iconFilename: icon.png
+group: "Sequential"
+document: "Document about RS NOR latch"
+defaultParameters: {}

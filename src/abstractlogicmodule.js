@@ -1,5 +1,6 @@
 const { ObjectUtils } = require('jsobjectutils');
 const { NotImplementedException } = require('jsexception');
+const {Binary} = require('jsbinary');
 
 const Pin = require('./pin');
 
@@ -25,7 +26,10 @@ class AbstractLogicModule {
         // 模块实例的名称
         this.name = name;
 
-        // 一个 {name:value, ...} 对象
+        // 一个 {name:value, ...} 对象，只有实例化一个模块内部的
+        // 子模块时才有这个参数。实例一个逻辑包的顶层模块时，不存在这个参数。
+        // 不过有时作单元测试时，测试程序可能会构造不同的参数用于完整
+        // 测试各种情况。
         this.instanceParameters = instanceParameters;
 
         // 模块的默认参数
@@ -39,6 +43,14 @@ class AbstractLogicModule {
             instanceParameters,
             defaultParameters);
 
+        // 注意：
+        // 1. instanceParameters，defaultParameters，parameters 都只读，不要往里面添加
+        //    新项或者写入新值。
+        // 2. 在模块内部，**不要使用（读取）** instanceParameters 和 defaultParameters，
+        //    这两个成员仅用于构造 parameters，以及供实例化工厂所使用。
+        //    在模块内部只能使用前两者所合并的 parameters， 或者通过 getParameter(name) 方法
+        //    获取所需要的正确的参数值。
+
         // 输入的端口集合
         this.inputPins = [];
 
@@ -46,12 +58,24 @@ class AbstractLogicModule {
         this.outputPins = [];
 
         // 表示源数据有变化，需要重新计算模块的数据。
+        //
+        // isInputDataChanged 属性对于外部并无多少意义，
+        // 都是只对 ModuleController.step 方法有意义。
         this.isInputDataChanged = false;
-        // this.inputDataChangeEventListeners = [];
 
         // 表示重新计算后，模块的数据有变化，需要传递数据（给其他模块）。
+        //
+        // 注意，对于复杂的逻辑模块，可能会包含有子模块，每次更新状态（ModuleController.step 方法）
+        // 可能需要次循环才完成，这个 isOutputDataChanged 只记录了最后一次循环是否存在
+        // 输出变化的情况。
+        //
+        // 所以存在输出数据在中间某次循环已经输出，而最后一次循环并不需输出（因为输出信号没变化）
+        // 的情况，这时候，isOutputDataChanged 的值为 false，但对于当次更新来说，其实是（中途）有
+        // 输出数据变化。因此不能通过这个标记（isOutputDataChanged）用于判断模块的输出
+        // 有无变化。
+        // 也就是说，对于 ModuleController.step 方法完成之后，isOutputDataChanged 属性对于外部
+        // 并无多少意义，跟 isInputDataChanged 属性一样，都是只对 ModuleController.step 方法有意义。
         this.isOutputDataChanged = false;
-        // this.outputDataChangeEventListeners = [];
     }
 
     /**
@@ -70,16 +94,21 @@ class AbstractLogicModule {
     }
 
     /**
+     * 确保模块输入的信号是最新的值。
      *
      * 更新周期的第 A1 步。
      */
-    readInputs() {
-        for (let inputPin of this.inputPins) {
-            if (!inputPin.isDataChanged) {
-                // 标记为“已改变”的 input pin 不需要再次读取数据。
-                inputPin.readFromPreviousLogicModulePin();
-            }
-        }
+    ensureInputData() {
+        // 当部分 input pin 数据发生改变时（input pin 的 setData 方法被调用），会
+        // 引起本模块的 isInputDataChanged 标记设置为 true。
+        //
+        // 对于简单的逻辑模块，比如 AND，XOR 等逻辑门模块，并不需要额外
+        // 读取 input pins 的数据，因为外界已经通过 input pin 的 setData
+        // 方法更新了 input pin 的数据，在 updateModuleDataAndOutputPinsData
+        // 方法内部只需直接读取 input pin 的数据即可。
+        //
+        // 但对于复杂的、多层次的逻辑模块，可能需要将信号/数据发生改变的 input pin
+        // 的数据读取并传播到内部模块。
     }
 
     /**
@@ -141,26 +170,6 @@ class AbstractLogicModule {
         }
     }
 
-    // addInputDataChangeEventListener(func) {
-    //     this.inputDataChangeEventListeners.push(func);
-    // }
-
-    //     addOutputDataChangeEventListener(func) {
-    //         this.outputDataChangeEventListeners.push(func);
-    //     }
-    //
-    //     dispatchInputDataChangeEvent() {
-    //         for(let listener of this.inputDataChangeEventListeners) {
-    //             listener();
-    //         }
-    //     }
-    //
-    //     dispatchOutputDataChangeEvent() {
-    //         for(let listener of this.outputDataChangeEventListeners) {
-    //             listener();
-    //         }
-    //     }
-
     /**
      *
      * @param {*} name
@@ -180,7 +189,6 @@ class AbstractLogicModule {
 
         inputPin.addDataChangeEventListener(() => {
             this.isInputDataChanged = true;
-            // this.dispatchInputDataChangeEvent();
         });
     }
 
@@ -195,7 +203,6 @@ class AbstractLogicModule {
 
         outputPin.addDataChangeEventListener(() => {
             this.isOutputDataChanged = true;
-            // this.dispatchOutputDataChangeEvent();
         });
     }
 

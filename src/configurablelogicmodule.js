@@ -1,6 +1,6 @@
 const { IllegalArgumentException } = require('jsexception');
 
-const LogicModuleFactory = require('./logicmodulefactory');
+// const LogicModuleFactory = require('./logicmodulefactory');
 const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 const ConnectionItem = require('./connectionitem');
@@ -78,26 +78,10 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     /**
      * 添加内部（子）逻辑模块
      *
-     * 如果找不到指定的模块，则抛出 IllegalArgumentException 异常。
-     *
-     * @param {*} packageName
-     * @param {*} moduleClassName
-     * @param {*} name 实例名称
-     * @param {*} instanceParameters
-     * @returns 返回子模块实例。
+     * @param {*} moduleInstance
      */
-    addLogicModule(packageName, moduleClassName, name, instanceParameters) {
-        let moduleInstance = LogicModuleFactory.createModuleInstance(
-            packageName, moduleClassName, name, instanceParameters, this.parameters);
-
-        // moduleInstance.addInputDataChangeEventListener(()=>{
-        //     this.isInputDataChanged = true;
-        //     this.dispatchInputDataChangeEvent();
-        // });
-
+    addLogicModule(moduleInstance) {
         this.logicModules.push(moduleInstance);
-
-        return moduleInstance;
     }
 
     addConnectionItemByDetail(name,
@@ -125,17 +109,20 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
             let moduleInputPin = this.getInputPin(connectionItem.previousPinName);
             if (moduleInputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified input pin.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified input pin "${connectionItem.previousPinName}" in module "${this.name}".`);
             }
 
             let subModule = this.getLogicModule(connectionItem.nextModuleName);
             if (subModule === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
             let subModuleInputPin = subModule.getInputPin(connectionItem.nextPinName);
             if (subModuleInputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
             ConnectionUtils.connect(
@@ -149,17 +136,20 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
             let moduleOutputPin = this.getOutputPin(connectionItem.nextPinName);
             if (moduleOutputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified output pin.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified output pin in module "${this.name}".`);
             }
 
             let subModule = this.getLogicModule(connectionItem.previousModuleName);
             if (subModule === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
             let subModuleOutputPin = subModule.getOutputPin(connectionItem.previousPinName);
             if (subModuleOutputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified output pin of the internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified output pin "${connectionItem.previousPinName}" of the internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
             ConnectionUtils.connect(
@@ -171,22 +161,26 @@ class ConfigurableLogicModule extends AbstractLogicModule {
 
             let previousLogicModule = this.getLogicModule(connectionItem.previousModuleName);
             if (previousLogicModule === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
-            let previousModuleOutputPin = previousLogicModule.getInputPin(connectionItem.previousPinName);
+            let previousModuleOutputPin = previousLogicModule.getOutputPin(connectionItem.previousPinName);
             if (previousModuleOutputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified output pin of the internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified output pin "${connectionItem.previousPinName}" of the internal module "${connectionItem.previousModuleName}" in module "${this.name}".`);
             }
 
             let nextLogicModule = this.getLogicModule(connectionItem.nextModuleName);
             if (nextLogicModule === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
             let nextModuleInputPin = nextLogicModule.getInputPin(connectionItem.nextPinName);
             if (nextModuleInputPin === undefined) {
-                throw new IllegalArgumentException('Cannot find the specified input pin of the internal module.');
+                throw new IllegalArgumentException(
+                    `Cannot find the specified input pin "${connectionItem.nextPinName}" of the internal module "${connectionItem.nextModuleName}" in module "${this.name}".`);
             }
 
             ConnectionUtils.connect(
@@ -197,16 +191,40 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         this.connectionItems.push(connectionItem);
     }
 
+    // override
+    ensureInputData() {
+        // 配置型逻辑模块（ConfigurableLogicModule）没有自己的业务逻辑代码，
+        // input pins 的状态需要传递到下游/内部的子模块
+        for (let inputPin of this.inputPins) {
+            if (inputPin.isDataChanged) {
+                inputPin.writeToNextLogicModulePins();
+            }
+        }
+    }
+
     getAllLogicModules() {
         let allLogicModules = [];
+
+        // 对于一个含有子模块的逻辑模块，其状态更新过程大致经历如下三个过程：
+        // 1. ensureInputData
+        // 2. 重新计算内部信号/数据
+        // 3. writeOutputPins
+        //
+        // 其中第一步 ensureInputData 时，需要先让最外围的模块确保（ensure）
+        // 输入端口的信号，然后让内部模块确保输入端口信号，最后让内部模块的
+        // 内部模块确保输入信号，因为信号是由外部“传入”内部的。
+        //
+        // 到了第三步 writeOutputPins，则过程刚好相反，应该先让最内部的子模块
+        // 写输出信号，然后让中间模块写输出信号，最后让最外围的本模块
+        // 写输出信号（到模块的 output pins）。
+        //
+        // 下面的列表是按照 ensureInputData 所需的顺序组织模块的顺序，只需把这个
+        // 列表倒转，就能得到 writeOutputPins 所需的顺序。
+
         allLogicModules.push(this);
 
         for (let logicModule of this.logicModules) {
-            allLogicModules.push(logicModule);
-        }
-
-        for (let logicModule of this.logicModules) {
-            let allSubLogicModules = logicModule.getAllModulesForReadInputPins();
+            let allSubLogicModules = logicModule.getAllLogicModules();
             allLogicModules.push(...allSubLogicModules);
         }
 

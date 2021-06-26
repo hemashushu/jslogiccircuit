@@ -109,7 +109,7 @@ class LogicPackageLoader {
      *    LogicModuleLoader 加载它们。
      * 3. 把当前逻辑包加入到 "_logicPackageItems" 全局集合中。
      * 4. 当一个逻辑包成功加载后，它所有的依赖包，依赖包的依赖包，以及所有逻辑包
-     *    里面的所有逻辑模块都完成加载。
+     *    里面的所有逻辑模块都完成加载，只是逻辑模块没有实例化而已。
      *
      * @param {*} packageRepositoryDirectory 目标逻辑包所在的目录，即逻辑包完整路径
      *     的父目录，其值一般为目标逻辑包的 '__dirname' 值的父目录。
@@ -119,7 +119,8 @@ class LogicPackageLoader {
     static async loadLogicPackage(packageRepositoryDirectory, packageName, localeCode = 'en') {
         // 逻辑包名称只可以包含 [0-9a-zA-Z_-\.] 字符
         if (!/^[\w\.-]+$/.test(packageName)) {
-            throw new LogicCircuitException("Invalid logic package name.");
+            throw new LogicCircuitException(
+                `Invalid logic package name "${packageName}".`);
         }
 
         // 逻辑包的基本信息分布在目录的 package.json 以及 logic-package.yaml 这
@@ -131,7 +132,8 @@ class LogicPackageLoader {
         let packageBaseConfigFilePath = path.join(logicPackagePath, 'package.json');
 
         if (!await PromiseFileUtils.exists(packageBaseConfigFilePath)) {
-            throw new LogicCircuitException('Can not find the package config file: ' + packageBaseConfigFilePath);
+            throw new LogicCircuitException(
+                `Can not find the package config file: "${packageBaseConfigFilePath}"`);
         }
 
         let jsonFileConfig = new JSONFileConfig();
@@ -145,7 +147,8 @@ class LogicPackageLoader {
 
         if (name !== packageName) {
             // 为了便于管理，当前强制要求逻辑包名称必须跟所在的目录的名称一致
-            throw new LogicCircuitException('Logic package directory name does not match the package name.');
+            throw new LogicCircuitException(
+                `Logic package directory name "${packageName}" does not match the package name "${name}".`);
         }
 
         // author 可能是一个对象 {name, email, url}
@@ -179,7 +182,8 @@ class LogicPackageLoader {
 
         let packageDetailConfigFilePath = path.join(logicPackagePath, 'logic-package.yaml');
         if (!await PromiseFileUtils.exists(packageDetailConfigFilePath)) {
-            throw new LogicCircuitException('Can not find the logic package config file: ' + packageDetailConfigFilePath);
+            throw new LogicCircuitException(
+                `Can not find the logic package config file: "${packageDetailConfigFilePath}"`);
         }
 
         let yamlFileConfig = new YAMLFileConfig();

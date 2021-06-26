@@ -73,14 +73,16 @@ class LogicModuleLoader {
     static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
         // 逻辑模块名称只可以包含 [0-9a-zA-Z_-\.] 字符
         if (!/^[\w\.-]+$/.test(moduleClassName)) {
-            throw new LogicCircuitException("Invalid logic module class name.");
+            throw new LogicCircuitException(
+                `Invalid logic module class name "${moduleClassName}".`);
         }
 
         let moduleFilePath = path.join(logicPackagePath, moduleClassName);
         let moduleConfigFilePath = path.join(moduleFilePath, 'logic-module.yaml');
 
         if (!await PromiseFileUtils.exists(moduleConfigFilePath)) {
-            throw new LogicCircuitException('Can not find the logic module config file: ' + moduleConfigFilePath);
+            throw new LogicCircuitException(
+                `Can not find the logic module config file: "${moduleConfigFilePath}"`);
         }
 
         let fileConfig = new YAMLFileConfig();

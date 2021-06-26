@@ -9,11 +9,9 @@ class XorGate extends AbstractLogicModule {
     constructor(name) {
         super(name);
 
-        this.addOutputPinByDetail('out', 1);
-
-        // 输入端口的名称分别为 in0, in1, ... inN
-        this.addInputPinByDetail('in0', 1);
-        this.addInputPinByDetail('in1', 1);
+        this.addInputPinByDetail('A', 1);
+        this.addInputPinByDetail('B', 1);
+        this.addOutputPinByDetail('Q', 1);
     }
 
     getPackageName() {
