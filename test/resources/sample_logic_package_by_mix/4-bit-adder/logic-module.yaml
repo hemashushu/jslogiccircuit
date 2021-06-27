@@ -1,0 +1,6 @@
+title: 4 Bit Adder
+description: 4 bit adder by 4 full adders
+iconFilename: icon.png
+group: "Combinatorial"
+document: "Document about 4 Bit Adder"
+defaultParameters: {}

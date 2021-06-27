@@ -17,7 +17,7 @@ describe('Test sample_logic_package_by_code', () => {
             name: 'sample_logic_package_by_code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
-            modules: ['and-gate', 'and-gate-ext', 'nor-gate', 'xor-gate'],
+            modules: ['and-gate', 'and-gate-ext', 'nor-gate', 'or-gate', 'xor-gate'],
             mainModule: 'and-gate',
             version: '1.0.0',
             author: 'Hippo Spark',
@@ -40,7 +40,7 @@ describe('Test sample_logic_package_by_code', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'and-gate-ext', 'nor-gate', 'xor-gate']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'and-gate-ext', 'nor-gate', 'or-gate', 'xor-gate']));
 
         let checkPropNames = [
             'packageName',
@@ -108,7 +108,10 @@ describe('Test sample_logic_package_by_code', () => {
         ));
 
         let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[3]);
-        assert.equal(logicModuleItem4.moduleClassName, 'xor-gate');
+        assert.equal(logicModuleItem4.moduleClassName, 'or-gate');
+
+        let logicModuleItem5 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[4]);
+        assert.equal(logicModuleItem5.moduleClassName, 'xor-gate');
     });
 
     it('Test module factory', async () => {
@@ -165,6 +168,12 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(norGate1.name, 'nor1');
         assert.equal(norGate1.getPackageName(), packageName);
         assert.equal(norGate1.getModuleClassName(), 'nor-gate');
+
+        // 实例化 or 模块
+        let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or-gate', 'or1');
+        assert.equal(orGate1.name, 'or1');
+        assert.equal(orGate1.getPackageName(), packageName);
+        assert.equal(orGate1.getModuleClassName(), 'or-gate');
 
         // 实例化 xor 模块
         let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor-gate', 'xor1');

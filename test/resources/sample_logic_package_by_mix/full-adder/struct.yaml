@@ -1,0 +1,71 @@
+inputPins:
+  - name: A
+    bitWidth: 1
+  - name: B
+    bitWidth: 1
+  - name: Cin
+    bitWidth: 1
+outputPins:
+  - name: S
+    bitWidth: 1
+  - name: Cout
+    bitWidth: 1
+logicModules:
+  - packageName: sample_logic_package_by_config
+    moduleClassName: half-adder
+    name: ha1
+  - packageName: sample_logic_package_by_config
+    moduleClassName: half-adder
+    name: ha2
+  - packageName: sample_logic_package_by_code
+    moduleClassName: or-gate
+    name: or1
+
+connections:
+# input pins
+  - name: a-ha1-a
+    previousModuleName: ''
+    previousPinName: A
+    nextModuleName: ha1
+    nextPinName: A
+  - name: b-ha1-b
+    previousModuleName: ''
+    previousPinName: B
+    nextModuleName: ha1
+    nextPinName: B
+  - name: cin-ha2-b
+    previousModuleName: ''
+    previousPinName: Cin
+    nextModuleName: ha2
+    nextPinName: B
+
+# 2 half-adders
+  - name: ha1-s-ha2-a
+    previousModuleName: ha1
+    previousPinName: S
+    nextModuleName: ha2
+    nextPinName: A
+
+# or
+  - name: ha1-c-or1-a
+    previousModuleName: ha1
+    previousPinName: C
+    nextModuleName: or1
+    nextPinName: A
+  - name: ha2-c-or1-b
+    previousModuleName: ha2
+    previousPinName: C
+    nextModuleName: or1
+    nextPinName: B
+
+# output pins
+  - name: ha2-s-s
+    previousModuleName: ha2
+    previousPinName: S
+    nextModuleName: ''
+    nextPinName: S
+  - name: or1-q-cout
+    previousModuleName: or1
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: Cout

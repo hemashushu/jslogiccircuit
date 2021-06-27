@@ -1,0 +1,10 @@
+title: Sample Logic Package (Mix)
+description: A logic package for unit testing.
+iconFilename: icon.png
+dependencies:
+  - "sample_logic_package_by_code"
+  - "sample_logic_package_by_config"
+modules:
+  - "full-adder"
+  - "4-bit-adder"
+mainModule: "full-adder"

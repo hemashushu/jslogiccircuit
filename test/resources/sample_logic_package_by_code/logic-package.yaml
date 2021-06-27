@@ -6,5 +6,6 @@ modules:
   - "and-gate"
   - "and-gate-ext"
   - "nor-gate"
+  - "or-gate"
   - "xor-gate"
 mainModule: "and-gate"

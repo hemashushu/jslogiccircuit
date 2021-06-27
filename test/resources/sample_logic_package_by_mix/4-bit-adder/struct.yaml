@@ -1,0 +1,145 @@
+inputPins:
+  - name: Cin
+    bitWidth: 1
+
+  - name: A0
+    bitWidth: 1
+  - name: B0
+    bitWidth: 1
+
+  - name: A1
+    bitWidth: 1
+  - name: B1
+    bitWidth: 1
+
+  - name: A2
+    bitWidth: 1
+  - name: B2
+    bitWidth: 1
+
+  - name: A3
+    bitWidth: 1
+  - name: B3
+    bitWidth: 1
+
+outputPins:
+  - name: S0
+    bitWidth: 1
+  - name: S1
+    bitWidth: 1
+  - name: S2
+    bitWidth: 1
+  - name: S3
+    bitWidth: 1
+  - name: Cout
+    bitWidth: 1
+
+logicModules:
+  - packageName: sample_logic_package_by_mix
+    moduleClassName: full-adder
+    name: fa0
+  - packageName: sample_logic_package_by_mix
+    moduleClassName: full-adder
+    name: fa1
+  - packageName: sample_logic_package_by_mix
+    moduleClassName: full-adder
+    name: fa2
+  - packageName: sample_logic_package_by_mix
+    moduleClassName: full-adder
+    name: fa3
+
+connections:
+# A,B input pins + S output pin
+  - name: a0-fa0-a
+    previousModuleName: ''
+    previousPinName: A0
+    nextModuleName: fa0
+    nextPinName: A
+  - name: b0-fa0-b
+    previousModuleName: ''
+    previousPinName: B0
+    nextModuleName: fa0
+    nextPinName: B
+  - name: fa0-s-s0
+    previousModuleName: fa0
+    previousPinName: S
+    nextModuleName: ''
+    nextPinName: S0
+
+  - name: a1-fa1-a
+    previousModuleName: ''
+    previousPinName: A1
+    nextModuleName: fa1
+    nextPinName: A
+  - name: b1-fa1-b
+    previousModuleName: ''
+    previousPinName: B1
+    nextModuleName: fa1
+    nextPinName: B
+  - name: fa1-s-s1
+    previousModuleName: fa1
+    previousPinName: S
+    nextModuleName: ''
+    nextPinName: S1
+
+  - name: a2-fa2-a
+    previousModuleName: ''
+    previousPinName: A2
+    nextModuleName: fa2
+    nextPinName: A
+  - name: b2-fa2-b
+    previousModuleName: ''
+    previousPinName: B2
+    nextModuleName: fa2
+    nextPinName: B
+  - name: fa2-s-s2
+    previousModuleName: fa2
+    previousPinName: S
+    nextModuleName: ''
+    nextPinName: S2
+
+  - name: a3-fa3-a
+    previousModuleName: ''
+    previousPinName: A3
+    nextModuleName: fa3
+    nextPinName: A
+  - name: b3-fa3-b
+    previousModuleName: ''
+    previousPinName: B3
+    nextModuleName: fa3
+    nextPinName: B
+  - name: fa3-s-s3
+    previousModuleName: fa3
+    previousPinName: S
+    nextModuleName: ''
+    nextPinName: S3
+
+# Cin and Cout
+
+  - name: cin-fa0-cin
+    previousModuleName: ''
+    previousPinName: Cin
+    nextModuleName: fa0
+    nextPinName: Cin
+  - name: fa3-cout-cout
+    previousModuleName: fa3
+    previousPinName: Cout
+    nextModuleName: ''
+    nextPinName: Cout
+
+# carry pins
+  - name: fa0-cout-fa1-cin
+    previousModuleName: fa0
+    previousPinName: Cout
+    nextModuleName: fa1
+    nextPinName: Cin
+  - name: fa1-cout-fa2-cin
+    previousModuleName: fa1
+    previousPinName: Cout
+    nextModuleName: fa2
+    nextPinName: Cin
+  - name: fa2-cout-fa3-cin
+    previousModuleName: fa2
+    previousPinName: Cout
+    nextModuleName: fa3
+    nextPinName: Cin
