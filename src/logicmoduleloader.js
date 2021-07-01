@@ -13,10 +13,10 @@ const LogicModuleItem = require('./logicmoduleitem');
 
 // 全局模块（类）对象
 // 模块工厂将使用从这里获得的模块（类）然后实例化为对象。
-global._logicModuleItems = new Map();
+global._logicModuleItemMap = new Map();
 
 // 简化引用
-let logicModuleItems = global._logicModuleItems;
+let logicModuleItemMap = global._logicModuleItemMap;
 
 /**
  * 每个逻辑模块必须存放于逻辑包根目录的单独一个目录里。
@@ -44,12 +44,12 @@ class LogicModuleLoader {
 
     static addLogicModuleItem(packageName, logicModuleClassName, logicModuleItem) {
         let key = `${packageName}:${logicModuleClassName}`;
-        logicModuleItems.set(key, logicModuleItem);
+        logicModuleItemMap.set(key, logicModuleItem);
     }
 
     static removeLogicModuleItemByName(packageName, logicModuleClassName) {
         let key = `${packageName}:${logicModuleClassName}`;
-        logicModuleItems.delete(key);
+        logicModuleItemMap.delete(key);
     }
 
     /**
@@ -60,7 +60,11 @@ class LogicModuleLoader {
      */
     static getLogicModuleItemByName(packageName, logicModuleClassName) {
         let key = `${packageName}:${logicModuleClassName}`;
-        return logicModuleItems.get(key);
+        return logicModuleItemMap.get(key);
+    }
+
+    static getLogicModuleItems() {
+        return Array.from(logicModuleItemMap.values());
     }
 
     /**

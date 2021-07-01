@@ -27,6 +27,9 @@ describe('Test sample_logic_package_by_config', () => {
         };
 
         assert(ObjectUtils.equals(logicPackageItem, expectLogicPackageItem));
+
+        let logicModuleItems = LogicPackageLoader.getLogicPackageItems();
+        assert.equal(logicModuleItems.length, 2);
     });
 
     it('Test load modules', async () => {

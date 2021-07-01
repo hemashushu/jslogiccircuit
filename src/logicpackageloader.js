@@ -15,16 +15,16 @@ const LogicPackageItem = require('./logicpackageitem');
 // 全局逻辑包集合
 // key: packagename
 // value: PackageItem
-global._logicPackageItems = new Map();
+global._logicPackageItemMap = new Map();
 
 // 全局逻辑包引用计数
 // key: packagename
 // value: int （值为该逻辑包被引用的次数）
-global._logicPackageReferenceCounts = new Map();
+global._logicPackageReferenceCountMap = new Map();
 
 // 简化引用
-let logicPackageItems = global._logicPackageItems;
-let logicPackageReferenceCounts = global._logicPackageReferenceCounts;
+let logicPackageItemMap = global._logicPackageItemMap;
+let logicPackageReferenceCountMap = global._logicPackageReferenceCountMap;
 
 /**
  * 一个逻辑包（logic package），同时也是一个标准的 npm package，
@@ -51,22 +51,22 @@ let logicPackageReferenceCounts = global._logicPackageReferenceCounts;
 class LogicPackageLoader {
 
     static addLogicPackageItem(logicPackageItem) {
-        logicPackageItems.set(logicPackageItem.name, logicPackageItem);
-        logicPackageReferenceCounts.set(logicPackageItem.name, 1);
+        logicPackageItemMap.set(logicPackageItem.name, logicPackageItem);
+        logicPackageReferenceCountMap.set(logicPackageItem.name, 1);
     }
 
     static removeLogicPackageItemByName(packageName) {
-        let logicPackageItem = logicPackageItems.get(packageName);
+        let logicPackageItem = logicPackageItemMap.get(packageName);
 
         if (logicPackageItem === undefined) {
             return;
         }
 
-        let count = logicPackageReferenceCounts.get(packageName);
+        let count = logicPackageReferenceCountMap.get(packageName);
         if (count > 1) {
             // 减少引用数量
             count--;
-            logicPackageReferenceCounts.set(packageName, count);
+            logicPackageReferenceCountMap.set(packageName, count);
             return;
         }
 
@@ -82,8 +82,8 @@ class LogicPackageLoader {
             LogicPackageLoader.removeLogicPackageItemByName(dependencyPackageName);
         }
 
-        logicPackageReferenceCounts.delete(packageName);
-        logicPackageItems.delete(packageName);
+        logicPackageReferenceCountMap.delete(packageName);
+        logicPackageItemMap.delete(packageName);
     }
 
     /**
@@ -93,11 +93,15 @@ class LogicPackageLoader {
      * @returns 返回 LogicPackageItem，如果找不到指定名称的逻辑包，则返回 undefined.
      */
     static getLogicPackageItemByName(packageName) {
-        return logicPackageItems.get(packageName);
+        return logicPackageItemMap.get(packageName);
     }
 
     static existPackageItem(packageName) {
-        return logicPackageItems.has(packageName);
+        return logicPackageItemMap.has(packageName);
+    }
+
+    static getLogicPackageItems() {
+        return Array.from(logicPackageItemMap.values());
     }
 
     /**
@@ -107,7 +111,7 @@ class LogicPackageLoader {
      * 1. 分析依赖哪些逻辑包（logic package），并逐一加载它们，即先加载依赖包；
      * 2. 分析当前逻辑包提供了哪些逻辑模块（logic module class），并通过
      *    LogicModuleLoader 加载它们。
-     * 3. 把当前逻辑包加入到 "_logicPackageItems" 全局集合中。
+     * 3. 把当前逻辑包加入到 "_logicPackageItemMap" 全局集合中。
      * 4. 当一个逻辑包成功加载后，它所有的依赖包，依赖包的依赖包，以及所有逻辑包
      *    里面的所有逻辑模块都完成加载，只是逻辑模块没有实例化而已。
      *
@@ -241,9 +245,9 @@ class LogicPackageLoader {
         // 只需 packageName 即可，不需要连同 packageRepositoryDirectory 比较。
         if (LogicPackageLoader.existPackageItem(packageName)) {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-            let count = logicPackageReferenceCounts.get();
+            let count = logicPackageReferenceCountMap.get();
             count++;
-            logicPackageReferenceCounts.set(packageName, count);
+            logicPackageReferenceCountMap.set(packageName, count);
             return;
         }
 

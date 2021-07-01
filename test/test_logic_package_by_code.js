@@ -27,6 +27,10 @@ describe('Test sample_logic_package_by_code', () => {
         };
 
         assert(ObjectUtils.equals(logicPackageItem, expectLogicPackageItem));
+
+        let logicPackageItems = LogicPackageLoader.getLogicPackageItems();
+        assert.equal(logicPackageItems.length, 1);
+        assert(logicPackageItems[0] === logicPackageItem);
     });
 
     it('Test load modules', async () => {
@@ -76,7 +80,7 @@ describe('Test sample_logic_package_by_code', () => {
         let expectAndGateExtLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
             moduleClassName: 'and-gate-ext',
-            defaultParameters: { inputPinCount: 2, bitWidth: 1 },
+            defaultParameters: { inputPinNumber: 2, bitWidth: 1 },
             title: 'AND Gate Ext',
             group: 'Logic',
             iconFilename: 'icon.png',
@@ -112,6 +116,16 @@ describe('Test sample_logic_package_by_code', () => {
 
         let logicModuleItem5 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[4]);
         assert.equal(logicModuleItem5.moduleClassName, 'xor-gate');
+
+        let logicModuleItems = LogicModuleLoader.getLogicModuleItems();
+        assert.equal(logicModuleItems.length, 5);
+
+        let allLogicModuleItemNames = logicModuleItems.map(item => {
+            return item.moduleClassName;
+        });
+
+        allLogicModuleItemNames.sort();
+        assert(ObjectUtils.arrayEquals(allLogicModuleItemNames, moduleClassNames));
     });
 
     it('Test module factory', async () => {
@@ -124,11 +138,11 @@ describe('Test sample_logic_package_by_code', () => {
 
         assert.equal(andGateExt1.name, 'and1');
         assert(ObjectUtils.isEmpty(andGateExt1.instanceParameters));
-        assert(ObjectUtils.equals(andGateExt1.defaultParameters, { inputPinCount: 2, bitWidth: 1 }));
-        assert(ObjectUtils.equals(andGateExt1.parameters, { inputPinCount: 2, bitWidth: 1 }));
+        assert(ObjectUtils.equals(andGateExt1.defaultParameters, { inputPinNumber: 2, bitWidth: 1 }));
+        assert(ObjectUtils.equals(andGateExt1.parameters, { inputPinNumber: 2, bitWidth: 1 }));
         assert.equal(andGateExt1.getPackageName(), packageName);
         assert.equal(andGateExt1.getModuleClassName(), 'and-gate-ext');
-        assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
+        assert.equal(andGateExt1.getParameter('inputPinNumber'), 2);
         assert.equal(andGateExt1.getParameter('bitWidth'), 1);
         assert(!andGateExt1.isInputDataChanged);
         assert(!andGateExt1.isOutputDataChanged);
@@ -152,7 +166,7 @@ describe('Test sample_logic_package_by_code', () => {
         assert(Binary.equal(andOut.getData(), binary0));
 
         // 加入实例化参数
-        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
+        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and2', { bitWidth: 8, inputPinNumber: 4 });
         assert.equal(andGateExt2.getInputPins().length, 4);
         assert.equal(andGateExt2.getInputPin('in0').bitWidth, 8);
         assert.equal(andGateExt2.getOutputPin('out').bitWidth, 8);
