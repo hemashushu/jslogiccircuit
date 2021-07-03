@@ -261,10 +261,10 @@ describe('Test sample_logic_package_by_config', () => {
         let R = rs1.getInputPin('R');
         let S = rs1.getInputPin('S');
         let Q = rs1.getOutputPin('Q');
-        let Qneg = rs1.getOutputPin('~Q');
+        let Qneg = rs1.getOutputPin('-Q');
 
         // RS
-        // R S Q ~Q
+        // R S Q -Q
         // 1 0 0  1
         // 0 0 0  1
         // 0 1 1  0
