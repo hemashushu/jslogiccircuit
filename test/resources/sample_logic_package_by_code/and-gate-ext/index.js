@@ -10,7 +10,7 @@ class AndGate extends AbstractLogicModule {
         super(name, instanceParameters, defaultParameters);
 
         // 模块参数
-        let inputPinNumber = this.getParameter('inputPinNumber'); // 输入端口的数量
+        let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
         let bitWidth = this.getParameter('bitWidth'); // 数据宽度
 
         this.addOutputPinByDetail('out', bitWidth);
@@ -21,7 +21,7 @@ class AndGate extends AbstractLogicModule {
         };
 
         // 输入端口
-        for (let idx = 0; idx < inputPinNumber; idx++) {
+        for (let idx = 0; idx < inputPinCount; idx++) {
             createInputPin(idx);
         }
 

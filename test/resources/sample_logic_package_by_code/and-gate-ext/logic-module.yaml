@@ -2,7 +2,7 @@ title: AND Gate Ext
 description: Logic "AND" Gate Extension
 iconFilename: icon.png
 defaultParameters:
-  inputPinNumber: 2
+  inputPinCount: 2
   bitWidth: 1
 group: "Logic"
 document: "Document about AND gate extension"
