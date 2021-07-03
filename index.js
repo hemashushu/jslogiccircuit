@@ -5,6 +5,7 @@ const AbstractLogicModule = require('./src/abstractlogicmodule');
 const ConfigurableLogicModule = require('./src/configurablelogicmodule');
 const ConnectionItem = require('./src/connectionitem');
 const ConnectionUtils = require('./src/connectionutils');
+const InterfacePin = require('./src/interfacepin');
 const LogicModuleFactory = require('./src/logicmodulefactory');
 const LogicModuleItem = require('./src/logicmoduleitem');
 const LogicModuleLoader = require('./src/logicmoduleloader');
@@ -23,6 +24,7 @@ module.exports = {
     ConfigurableLogicModule: ConfigurableLogicModule,
     ConnectionItem: ConnectionItem,
     ConnectionUtils: ConnectionUtils,
+    InterfacePin: InterfacePin,
     LogicModuleFactory: LogicModuleFactory,
     LogicModuleItem: LogicModuleItem,
     LogicModuleLoader: LogicModuleLoader,
