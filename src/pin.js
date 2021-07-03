@@ -11,7 +11,7 @@ const ObservableSignal = require('./observablesignal');
  *   重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
  *
  */
-class Pin extends ObservableSignal {
+class Pin extends ObservableSignal { // implements InterfacePin {
 
     /**
      * 构造 Pin 对象实例
