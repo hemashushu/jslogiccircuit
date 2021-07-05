@@ -2,6 +2,7 @@ const OscillatingException = require('./src/exception/oscillatingexception');
 const LogicCircuitException = require('./src/exception/logiccircuitexception');
 
 const AbstractLogicModule = require('./src/abstractlogicmodule');
+const BitRange = require('./src/bitrange');
 const ConfigurableLogicModule = require('./src/configurablelogicmodule');
 const ConnectionItem = require('./src/connectionitem');
 const ConnectionUtils = require('./src/connectionutils');
@@ -21,6 +22,7 @@ module.exports = {
     LogicCircuitException: LogicCircuitException,
 
     AbstractLogicModule: AbstractLogicModule,
+    BitRange: BitRange,
     ConfigurableLogicModule: ConfigurableLogicModule,
     ConnectionItem: ConnectionItem,
     ConnectionUtils: ConnectionUtils,
