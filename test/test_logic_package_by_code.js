@@ -17,8 +17,8 @@ describe('Test sample_logic_package_by_code', () => {
             name: 'sample_logic_package_by_code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
-            modules: ['and-gate', 'and-gate-ext', 'nor-gate', 'or-gate', 'xor-gate'],
-            mainModule: 'and-gate',
+            modules: ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate'],
+            mainModule: 'and_gate',
             version: '1.0.0',
             author: 'Hippo Spark',
             homepage: 'https://github.com/hemashushu/jslogiccircuit',
@@ -44,7 +44,7 @@ describe('Test sample_logic_package_by_code', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and-gate', 'and-gate-ext', 'nor-gate', 'or-gate', 'xor-gate']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate']));
 
         let checkPropNames = [
             'packageName',
@@ -61,7 +61,7 @@ describe('Test sample_logic_package_by_code', () => {
 
         let expectAndGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
-            moduleClassName: 'and-gate',
+            moduleClassName: 'and_gate',
             defaultParameters: {},
             title: 'AND Gate',
             group: 'Logic',
@@ -79,7 +79,7 @@ describe('Test sample_logic_package_by_code', () => {
 
         let expectAndGateExtLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
-            moduleClassName: 'and-gate-ext',
+            moduleClassName: 'and_gate_ext',
             defaultParameters: { inputPinCount: 2, bitWidth: 1 },
             title: 'AND Gate Ext',
             group: 'Logic',
@@ -97,7 +97,7 @@ describe('Test sample_logic_package_by_code', () => {
 
         let expectXorGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
-            moduleClassName: 'nor-gate',
+            moduleClassName: 'nor_gate',
             defaultParameters: {},
             title: 'NOR Gate',
             group: 'Logic',
@@ -112,10 +112,10 @@ describe('Test sample_logic_package_by_code', () => {
         ));
 
         let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[3]);
-        assert.equal(logicModuleItem4.moduleClassName, 'or-gate');
+        assert.equal(logicModuleItem4.moduleClassName, 'or_gate');
 
         let logicModuleItem5 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[4]);
-        assert.equal(logicModuleItem5.moduleClassName, 'xor-gate');
+        assert.equal(logicModuleItem5.moduleClassName, 'xor_gate');
 
         let logicModuleItems = LogicModuleLoader.getLogicModuleItems();
         assert.equal(logicModuleItems.length, 5);
@@ -134,14 +134,14 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and1');
+        let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and1');
 
         assert.equal(andGateExt1.name, 'and1');
         assert(ObjectUtils.isEmpty(andGateExt1.instanceParameters));
         assert(ObjectUtils.equals(andGateExt1.defaultParameters, { inputPinCount: 2, bitWidth: 1 }));
         assert(ObjectUtils.equals(andGateExt1.parameters, { inputPinCount: 2, bitWidth: 1 }));
         assert.equal(andGateExt1.getPackageName(), packageName);
-        assert.equal(andGateExt1.getModuleClassName(), 'and-gate-ext');
+        assert.equal(andGateExt1.getModuleClassName(), 'and_gate_ext');
         assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
         assert.equal(andGateExt1.getParameter('bitWidth'), 1);
         assert(!andGateExt1.isInputDataChanged);
@@ -166,34 +166,34 @@ describe('Test sample_logic_package_by_code', () => {
         assert(Binary.equal(andOut.getData(), binary0));
 
         // 加入实例化参数
-        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate-ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
+        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
         assert.equal(andGateExt2.getInputPins().length, 4);
         assert.equal(andGateExt2.getInputPin('in0').bitWidth, 8);
         assert.equal(andGateExt2.getOutputPin('out').bitWidth, 8);
 
         // 实例化 and 模块
-        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1');
+        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
         assert.equal(andGate1.name, 'and1');
         assert.equal(andGate1.getPackageName(), packageName);
-        assert.equal(andGate1.getModuleClassName(), 'and-gate');
+        assert.equal(andGate1.getModuleClassName(), 'and_gate');
 
         // 实例化 nor 模块
-        let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor-gate', 'nor1');
+        let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
         assert.equal(norGate1.name, 'nor1');
         assert.equal(norGate1.getPackageName(), packageName);
-        assert.equal(norGate1.getModuleClassName(), 'nor-gate');
+        assert.equal(norGate1.getModuleClassName(), 'nor_gate');
 
         // 实例化 or 模块
-        let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or-gate', 'or1');
+        let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or_gate', 'or1');
         assert.equal(orGate1.name, 'or1');
         assert.equal(orGate1.getPackageName(), packageName);
-        assert.equal(orGate1.getModuleClassName(), 'or-gate');
+        assert.equal(orGate1.getModuleClassName(), 'or_gate');
 
         // 实例化 xor 模块
-        let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor-gate', 'xor1');
+        let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor_gate', 'xor1');
         assert.equal(xorGate1.name, 'xor1');
         assert.equal(xorGate1.getPackageName(), packageName);
-        assert.equal(xorGate1.getModuleClassName(), 'xor-gate');
+        assert.equal(xorGate1.getModuleClassName(), 'xor_gate');
     });
 
     it('Test module controller - AND gate', async () => {
@@ -205,7 +205,7 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and-gate', 'and1');
+        let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
         assert(!andGate1.isInputDataChanged);
         assert(!andGate1.isOutputDataChanged);
 
@@ -260,7 +260,7 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor-gate', 'nor1');
+        let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
         assert(!norGate1.isInputDataChanged);
         assert(!norGate1.isOutputDataChanged);
 

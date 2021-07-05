@@ -6,15 +6,15 @@ inputPins:
 outputPins:
   - name: Q
     bitWidth: 1
-  - name: "-Q"
+  - name: "Q_"
     bitWidth: 1
 logicModules:
   - packageName: sample_logic_package_by_code
-    moduleClassName: nor-gate
+    moduleClassName: nor_gate
     name: nor1
     parameters: {}
   - packageName: sample_logic_package_by_code
-    moduleClassName: nor-gate
+    moduleClassName: nor_gate
     name: nor2
     parameters: {}
 connections:
@@ -47,4 +47,4 @@ connections:
     previousModuleName: nor2
     previousPinName: Q
     nextModuleName: ''
-    nextPinName: '-Q'
+    nextPinName: 'Q_'

@@ -36,16 +36,16 @@ outputPins:
 
 logicModules:
   - packageName: sample_logic_package_by_mix
-    moduleClassName: full-adder
+    moduleClassName: full_adder
     name: fa0
   - packageName: sample_logic_package_by_mix
-    moduleClassName: full-adder
+    moduleClassName: full_adder
     name: fa1
   - packageName: sample_logic_package_by_mix
-    moduleClassName: full-adder
+    moduleClassName: full_adder
     name: fa2
   - packageName: sample_logic_package_by_mix
-    moduleClassName: full-adder
+    moduleClassName: full_adder
     name: fa3
 
 connections:

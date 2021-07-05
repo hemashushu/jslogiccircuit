@@ -4,6 +4,6 @@ iconFilename: icon.png
 dependencies:
   - "sample_logic_package_by_code"
 modules:
-  - "half-adder"
+  - "half_adder"
   - "rs"
-mainModule: "half-adder"
+mainModule: "half_adder"

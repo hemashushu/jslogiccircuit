@@ -17,8 +17,8 @@ describe('Test sample_logic_package_by_config', () => {
             name: 'sample_logic_package_by_config',
             title: 'Sample Logic Package (Config)',
             dependencies: ['sample_logic_package_by_code'],
-            modules: ['half-adder', 'rs'],
-            mainModule: 'half-adder',
+            modules: ['half_adder', 'rs'],
+            mainModule: 'half_adder',
             version: '1.0.0',
             author: 'Hippo Spark',
             homepage: 'https://github.com/hemashushu/jslogiccircuit',
@@ -43,7 +43,7 @@ describe('Test sample_logic_package_by_config', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['half-adder', 'rs']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['half_adder', 'rs']));
 
         let checkPropNames = [
             'packageName',
@@ -60,7 +60,7 @@ describe('Test sample_logic_package_by_config', () => {
 
         let expectHalfAdderLogicModuleItem = {
             packageName: 'sample_logic_package_by_config',
-            moduleClassName: 'half-adder',
+            moduleClassName: 'half_adder',
             defaultParameters: {},
             title: 'Half Adder',
             group: 'Combinatorial',
@@ -100,14 +100,14 @@ describe('Test sample_logic_package_by_config', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half-adder', 'half-adder1');
+        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half-adder1');
 
         assert.equal(halfAdder1.name, 'half-adder1');
         assert(ObjectUtils.isEmpty(halfAdder1.instanceParameters));
         assert(ObjectUtils.isEmpty(halfAdder1.defaultParameters));
         assert(ObjectUtils.isEmpty(halfAdder1.parameters));
         assert.equal(halfAdder1.getPackageName(), packageName);
-        assert.equal(halfAdder1.getModuleClassName(), 'half-adder');
+        assert.equal(halfAdder1.getModuleClassName(), 'half_adder');
         assert(!halfAdder1.isInputDataChanged);
         assert(!halfAdder1.isOutputDataChanged);
 
@@ -141,11 +141,11 @@ describe('Test sample_logic_package_by_config', () => {
 
         let and1 = halfAdder1.getLogicModule('and1');
         assert.equal(and1.name, 'and1');
-        assert.equal(and1.getModuleClassName(), 'and-gate');
+        assert.equal(and1.getModuleClassName(), 'and_gate');
 
         let xor1 = halfAdder1.getLogicModule('xor1');
         assert.equal(xor1.name, 'xor1');
-        assert.equal(xor1.getModuleClassName(), 'xor-gate');
+        assert.equal(xor1.getModuleClassName(), 'xor_gate');
 
         let connectionItems = halfAdder1.getConnectionItems().slice().sort((a, b) => {
             return a.name < b.name;
@@ -175,7 +175,7 @@ describe('Test sample_logic_package_by_config', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half-adder', 'half-adder1');
+        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half-adder1');
         assert(!halfAdder1.isInputDataChanged);
         assert(!halfAdder1.isOutputDataChanged);
         let moduleController1 = new ModuleController(halfAdder1);
@@ -261,10 +261,10 @@ describe('Test sample_logic_package_by_config', () => {
         let R = rs1.getInputPin('R');
         let S = rs1.getInputPin('S');
         let Q = rs1.getOutputPin('Q');
-        let Qneg = rs1.getOutputPin('-Q');
+        let Qneg = rs1.getOutputPin('Q_');
 
         // RS
-        // R S Q -Q
+        // R S Q Q_
         // 1 0 0  1
         // 0 0 0  1
         // 0 1 1  0

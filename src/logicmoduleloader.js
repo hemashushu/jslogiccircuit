@@ -75,8 +75,8 @@ class LogicModuleLoader {
      * @returns 返回 LogicModuleItem
      */
     static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
-        // 逻辑模块名称只可以包含 [0-9a-zA-Z_\.-] 字符
-        if (!/^[\w\.-]+$/.test(moduleClassName)) {
+        // 逻辑模块名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        if (!/^[a-zA-Z_][\w\$]*$/.test(moduleClassName)) {
             throw new LogicCircuitException(
                 `Invalid logic module class name "${moduleClassName}".`);
         }

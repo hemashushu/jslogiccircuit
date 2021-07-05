@@ -5,6 +5,6 @@ dependencies:
   - "sample_logic_package_by_code"
   - "sample_logic_package_by_config"
 modules:
-  - "full-adder"
-  - "4-bit-adder"
-mainModule: "full-adder"
+  - "full_adder"
+  - "four_bit_adder"
+mainModule: "full_adder"

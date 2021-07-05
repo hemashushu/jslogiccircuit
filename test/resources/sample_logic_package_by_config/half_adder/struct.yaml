@@ -10,11 +10,11 @@ outputPins:
     bitWidth: 1
 logicModules:
   - packageName: sample_logic_package_by_code
-    moduleClassName: and-gate
+    moduleClassName: and_gate
     name: and1
     parameters: {}
   - packageName: sample_logic_package_by_code
-    moduleClassName: xor-gate
+    moduleClassName: xor_gate
     name: xor1
     parameters: {}
 connections:

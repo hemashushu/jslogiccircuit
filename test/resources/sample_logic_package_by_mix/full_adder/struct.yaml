@@ -12,13 +12,13 @@ outputPins:
     bitWidth: 1
 logicModules:
   - packageName: sample_logic_package_by_config
-    moduleClassName: half-adder
+    moduleClassName: half_adder
     name: ha1
   - packageName: sample_logic_package_by_config
-    moduleClassName: half-adder
+    moduleClassName: half_adder
     name: ha2
   - packageName: sample_logic_package_by_code
-    moduleClassName: or-gate
+    moduleClassName: or_gate
     name: or1
 
 connections:

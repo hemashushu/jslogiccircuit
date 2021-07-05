@@ -33,7 +33,7 @@ class AndGate extends AbstractLogicModule {
     }
 
     getModuleClassName() {
-        return 'and-gate-ext'; // 同目录名
+        return 'and_gate_ext'; // 同目录名
     }
 
     // override

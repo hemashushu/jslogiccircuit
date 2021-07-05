@@ -2,15 +2,15 @@ const { AbstractLogicModule } = require('../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
- * 逻辑或门
+ * 逻辑或非门
  */
-class OrGate extends AbstractLogicModule {
+class NorGate extends AbstractLogicModule {
 
     constructor(name) {
         super(name);
 
-        this.addInputPinByDetail('A', 1)
-        this.addInputPinByDetail('B', 1)
+        this.addInputPinByDetail('A', 1);
+        this.addInputPinByDetail('B', 1);
         this.addOutputPinByDetail('Q', 1);
     }
 
@@ -19,17 +19,17 @@ class OrGate extends AbstractLogicModule {
     }
 
     getModuleClassName() {
-        return 'or-gate'; // 同目录名
+        return 'nor_gate'; // 同目录名
     }
 
     // override
     updateModuleDataAndOutputPinsData() {
         let data1 = this.inputPins[0].getData();
         let data2 = this.inputPins[1].getData();
-        let resultData = Binary.or(data1, data2);
+        let resultData = Binary.nor(data1, data2);
         this.outputPins[0].setData(resultData);
     }
 }
 
 
-module.exports = OrGate;
+module.exports = NorGate;
