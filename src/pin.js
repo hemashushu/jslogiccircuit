@@ -12,13 +12,13 @@ const ObservableSignal = require('./observablesignal');
  *   重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
  *
  */
-class Pin extends ObservableSignal { // implements InterfacePin {
+class Pin extends ObservableSignal {
 
     /**
      * 构造 Pin 对象实例
      *
      * @param {*} name 端口名称，相当于 Verilog 里的 wire/reg/logic 变量的名称。
-     *     端口名称只可以包含 [0-9a-zA-Z_\.-] 字符
+     *     端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} bitWidth 数据的位宽度，比如：
      *     一个端口可以只传输 1 bit 数据，也可以同时传输 8 bit。
      *     相当于 Verilog 诸如 wire/reg/logic [7:0] 里面的 [7:0]。

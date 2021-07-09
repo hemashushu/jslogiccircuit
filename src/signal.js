@@ -1,11 +1,15 @@
 const { Binary } = require('jsbinary');
 const { IllegalArgumentException } = require('jsexception');
 
+const AbstractWire = require('./abstractwire');
+
 /**
  * 表示一个端口或者一根线的信号值
  */
-class Signal {
+class Signal extends AbstractWire {
     constructor(bitWidth) {
+        super();
+
         if (bitWidth < 1 || bitWidth > 32) {
             throw new IllegalArgumentException('Bit width range should be from 1 to 32.');
         }

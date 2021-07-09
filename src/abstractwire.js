@@ -1,7 +1,5 @@
-class InterfacePin {
-    constructor(name, bitWidth) {
-        this.name = name;
-        this.bitWidth = bitWidth;
+class AbstractWire {
+    constructor() {
     }
 
     /**
@@ -21,4 +19,4 @@ class InterfacePin {
     }
 }
 
-module.exports = InterfacePin;
+module.exports = AbstractWire;

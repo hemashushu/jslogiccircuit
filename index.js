@@ -1,12 +1,12 @@
-const OscillatingException = require('./src/exception/oscillatingexception');
 const LogicCircuitException = require('./src/exception/logiccircuitexception');
+const OscillatingException = require('./src/exception/oscillatingexception');
 
 const AbstractLogicModule = require('./src/abstractlogicmodule');
+const AbstractWire = require('./src/abstractwire');
 const BitRange = require('./src/bitrange');
 const ConfigurableLogicModule = require('./src/configurablelogicmodule');
 const ConnectionItem = require('./src/connectionitem');
 const ConnectionUtils = require('./src/connectionutils');
-const InterfacePin = require('./src/interfacepin');
 const LogicModuleFactory = require('./src/logicmodulefactory');
 const LogicModuleItem = require('./src/logicmoduleitem');
 const LogicModuleLoader = require('./src/logicmoduleloader');
@@ -18,15 +18,15 @@ const Pin = require('./src/pin');
 const Signal = require('./src/signal');
 
 module.exports = {
-    OscillatingException: OscillatingException,
     LogicCircuitException: LogicCircuitException,
+    OscillatingException: OscillatingException,
 
     AbstractLogicModule: AbstractLogicModule,
+    AbstractWire: AbstractWire,
     BitRange: BitRange,
     ConfigurableLogicModule: ConfigurableLogicModule,
     ConnectionItem: ConnectionItem,
     ConnectionUtils: ConnectionUtils,
-    InterfacePin: InterfacePin,
     LogicModuleFactory: LogicModuleFactory,
     LogicModuleItem: LogicModuleItem,
     LogicModuleLoader: LogicModuleLoader,
