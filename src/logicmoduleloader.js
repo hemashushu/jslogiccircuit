@@ -27,9 +27,11 @@ let logicModuleItemMap = global._logicModuleItemMap;
  * - title：逻辑模块的标题，支持 locale；
  * - group: 逻辑模块的分组，支持 locale；
  * - description：逻辑模块的描述，Markdown 格式的文本，支持 locale；
+ * - document：逻辑模块的详细说明文档，Markdown 格式，支持 locale；
  * - iconFilename：图标文件名称，图标文件存放在逻辑模块的根目录里，建议
  *   使用 512x512 的 png/webp 格式；
  * - defaultParameters：逻辑模块的默认参数，为一个 {key: value, ...} 对象。
+ * - pins: [{name, description}, ...]: 对输入输出端口的描述，name 支持正则表达式，description 支持 locale；
  *
  * 另外逻辑模块根目录还必须包含一个 index.js 或者 struct.yaml 文件。
  *
@@ -97,6 +99,17 @@ class LogicModuleLoader {
         let group = LocaleProperty.getValue(moduleConfig, 'group', localeCode);
         let description = LocaleProperty.getValue(moduleConfig, 'description', localeCode);
         let document = LocaleProperty.getValue(moduleConfig, 'document', localeCode);
+        let pins = [];
+
+        if (moduleConfig.pins !== undefined) {
+            pins = moduleConfig.pins.map(item => {
+                return {
+                    name: item.name,
+                    description: LocaleProperty.getValue(item, 'description', localeCode)
+                };
+            });
+        }
+
 
         // TODO:: 模块的配置文件可能还包括：图文框、测试用例、演示数据、布局等等信息。
         let iconFilename = moduleConfig.iconFilename;
@@ -116,7 +129,7 @@ class LogicModuleLoader {
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
-            title, group, iconFilename, description, document);
+            title, group, iconFilename, description, pins, document);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
 

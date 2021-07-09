@@ -174,12 +174,11 @@ class AbstractLogicModule {
      *
      * @param {*} name
      * @param {*} bitWidth
-     * @param {*} description
      * @param {*} pinNumber
      * @returns
      */
-    addInputPinByDetail(name, bitWidth, description, pinNumber) {
-        let inputPin = new Pin(name, bitWidth, description, pinNumber);
+    addInputPinByDetail(name, bitWidth, pinNumber) {
+        let inputPin = new Pin(name, bitWidth, pinNumber);
         this.addInputPin(inputPin);
         return inputPin;
     }
@@ -192,8 +191,8 @@ class AbstractLogicModule {
         });
     }
 
-    addOutputPinByDetail(name, bitWidth, description, pinNumber) {
-        let outputPin = new Pin(name, bitWidth, description, pinNumber);
+    addOutputPinByDetail(name, bitWidth, pinNumber) {
+        let outputPin = new Pin(name, bitWidth, pinNumber);
         this.addOutputPin(outputPin);
         return outputPin;
     }

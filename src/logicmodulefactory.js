@@ -106,9 +106,8 @@ class LogicModuleFactory {
         for (let configInputPin of configInputPins) {
             let name = configInputPin.name;
             let bitWidth = configInputPin.bitWidth;
-            let description = configInputPin.description;
             let pinNumber = configInputPin.pinNumber;
-            moduleInstance.addInputPinByDetail(name, bitWidth, description, pinNumber);
+            moduleInstance.addInputPinByDetail(name, bitWidth, pinNumber);
         }
 
         // add output pins
@@ -116,9 +115,8 @@ class LogicModuleFactory {
         for (let configOutputPin of configOutputPins) {
             let name = configOutputPin.name;
             let bitWidth = configOutputPin.bitWidth;
-            let description = configOutputPin.description;
             let pinNumber = configOutputPin.pinNumber;
-            moduleInstance.addOutputPinByDetail(name, bitWidth, description, pinNumber);
+            moduleInstance.addOutputPinByDetail(name, bitWidth, pinNumber);
         }
 
         // add sub-module instances

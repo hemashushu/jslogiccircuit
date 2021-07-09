@@ -54,6 +54,7 @@ describe('Test sample_logic_package_by_code', () => {
             'title',
             'iconFilename',
             'description',
+            'pins',
             'document'
         ];
 
@@ -67,6 +68,11 @@ describe('Test sample_logic_package_by_code', () => {
             group: 'Logic',
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate',
+            pins: [
+                {name: 'A', description: 'Input pin A'},
+                {name: 'B', description: 'Input pin B'},
+                {name: 'Q', description: 'Output pin Q. The value of Q is `A & B`'}
+            ],
             document: 'Document about AND gate'
         };
 
@@ -85,6 +91,7 @@ describe('Test sample_logic_package_by_code', () => {
             group: 'Logic',
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate Extension',
+            pins: [],
             document: 'Document about AND gate extension'
         };
 
@@ -103,6 +110,7 @@ describe('Test sample_logic_package_by_code', () => {
             group: 'Logic',
             iconFilename: 'icon.png',
             description: 'Logic "NOR" Gate',
+            pins: [],
             document: 'Document about NOR gate'
         };
 
