@@ -17,19 +17,21 @@ class Pin extends ObservableSignal {
     /**
      * 构造 Pin 对象实例
      *
-     * Pin 还能添加描述文本，支持本地化，文本内容在模块的 logic-module.yaml 里配置。
+     * - Pin 还能添加描述文本，支持本地化，文本内容在模块的 logic-module.yaml 里配置。
+     * - 顶层模块的 Pin 在烧录到诸如 FPGA 硬件时，还需要指定端口编号（pin number），
+     *   指定（assign）端口所连接的硬件引脚编号（常见的如：A1, A2, D1, D2, E1 等等）。
+     *   因为引脚编号在模拟器里没有实际用途，所以仅在项目的配置文件里提供设置的地方
+     *   即可，当显示模块时，可以把引脚编号显示在端口名称后面，比如：
+     *   "LED (A1)", "Clock (D2)"。
      *
      * @param {*} name 端口名称，相当于 Verilog 里的 wire/reg/logic 变量的名称。
      *     端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} bitWidth 数据的位宽度，比如：
      *     一个端口可以只传输 1 bit 数据，也可以同时传输 8 bit。
      *     相当于 Verilog 诸如 wire/reg/logic [7:0] 里面的 [7:0]。
-     * @param {*} pinNumber 端口编号，一个字符串，用于烧录到硬件（比如 FPGA）时，
-     *     指定（assign）端口所连接的硬件引脚编号（常见的如：A1, A2, D1, D2, E1 等等）。
-     *     在模拟器里没有实际用途，仅起显示作用，如果设置了此值，一般显示在名称后面，
-     *     用括号包围起来，比如："LED (A1)", "Clock (D2)"。
+     * @param {*}
      */
-    constructor(name, bitWidth, pinNumber) {
+    constructor(name, bitWidth) {
         super(bitWidth);
 
         // 端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
@@ -39,7 +41,6 @@ class Pin extends ObservableSignal {
         }
 
         this.name = name;
-        this.pinNumber = pinNumber;
 
         // 下游端口的集合。
         this.nextPins = [];

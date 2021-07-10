@@ -10,11 +10,10 @@ describe('Pin Test', () => {
         assert.equal(pin1.name, 'pin1');
         assert.equal(pin1.bitWidth, 4);
 
-        let pin2 = new Pin('pin2', 8, 'pinNumber1');
+        let pin2 = new Pin('pin2', 8);
         assert.equal(pin2.name, 'pin2');
         assert.equal(pin2.bitWidth, 8);
         assert.equal(pin2.getData().toBinaryString(), '0');
-        assert.equal(pin2.pinNumber, 'pinNumber1');
     });
 
     it('Test setData()', () => {

@@ -9,8 +9,8 @@ const LogicModuleLoader = require('./logicmoduleloader');
  * - 当使用代码创建逻辑模块时，模块是一个 class，它必须继承 AbstractLogicModule；
  * - 当使用配置文件创建模块时，配置文件名称必须是 struct.yaml，
  *   配置信息里有如下列表需要传入 ConfigurableLogicModule：
- *   - inputPins: [{name, bitWidth, description, pinNumber}, ...] 输入端口；
- *   - outputPins: [{name, bitWidth, description, pinNumber}, ...] 输出端口；
+ *   - inputPins: [{name, bitWidth}, ...] 输入端口；
+ *   - outputPins: [{name, bitWidth}, ...] 输出端口；
  *   - logicModules: [{packageName, moduleClassName, name, parameters}, ...]
  *     此模块所需的所有子模块，一个逻辑模块可视为由：“一个或多个其他逻辑” + “一个或多个输入输出端口” 组合而成；
  *     这里的 'parameters' 是实例该逻辑模块是所用的实例参数（instanceParameters）。
@@ -106,8 +106,7 @@ class LogicModuleFactory {
         for (let configInputPin of configInputPins) {
             let name = configInputPin.name;
             let bitWidth = configInputPin.bitWidth;
-            let pinNumber = configInputPin.pinNumber;
-            moduleInstance.addInputPinByDetail(name, bitWidth, pinNumber);
+            moduleInstance.addInputPinByDetail(name, bitWidth);
         }
 
         // add output pins
@@ -115,8 +114,7 @@ class LogicModuleFactory {
         for (let configOutputPin of configOutputPins) {
             let name = configOutputPin.name;
             let bitWidth = configOutputPin.bitWidth;
-            let pinNumber = configOutputPin.pinNumber;
-            moduleInstance.addOutputPinByDetail(name, bitWidth, pinNumber);
+            moduleInstance.addOutputPinByDetail(name, bitWidth);
         }
 
         // add sub-module instances
