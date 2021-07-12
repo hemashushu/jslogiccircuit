@@ -1,0 +1,100 @@
+inputPins:
+  - name: In
+    bitWidth: 1
+outputPins:
+  - name: Out
+    bitWidth: 1
+logicModules:
+  - packageName: sample_logic_package_by_code
+    moduleClassName: or_gate
+    name: or1
+  - packageName: sample_logic_package_by_code
+    moduleClassName: or_gate
+    name: or2
+
+# 在 or2 和 nor1 之前插入一个 or0 模块用于额外测试
+  - packageName: sample_logic_package_by_code
+    moduleClassName: or_gate
+    name: or0
+
+  - packageName: sample_logic_package_by_code
+    moduleClassName: nor_gate
+    name: nor1
+  - packageName: sample_logic_package_by_code
+    moduleClassName: or_gate
+    name: or3
+
+connections:
+  - name: In-or1-A
+    previousModuleName: ''
+    previousPinName: In
+    nextModuleName: or1
+    nextPinName: A
+  - name: In-or1-B
+    previousModuleName: ''
+    previousPinName: In
+    nextModuleName: or1
+    nextPinName: B
+
+  - name: or1-Q-or2-A
+    previousModuleName: or1
+    previousPinName: Q
+    nextModuleName: or2
+    nextPinName: A
+
+# 在 or2 和 nor1 之前插入一个 or0 模块用于额外测试
+
+  - name: or2-Q-or0-A
+    previousModuleName: or2
+    previousPinName: Q
+    nextModuleName: or0
+    nextPinName: A
+  - name: or2-Q-or0-B
+    previousModuleName: or2
+    previousPinName: Q
+    nextModuleName: or0
+    nextPinName: B
+
+  - name: or0-Q-nor1-A
+    previousModuleName: or0
+    previousPinName: Q
+    nextModuleName: nor1
+    nextPinName: A
+  - name: or0-Q-nor1-B
+    previousModuleName: or0
+    previousPinName: Q
+    nextModuleName: nor1
+    nextPinName: B
+
+  # - name: or2-Q-nor1-A
+  #   previousModuleName: or2
+  #   previousPinName: Q
+  #   nextModuleName: nor1
+  #   nextPinName: A
+  # - name: or2-Q-nor1-B
+  #   previousModuleName: or2
+  #   previousPinName: Q
+  #   nextModuleName: nor1
+  #   nextPinName: B
+
+  - name: nor1-Q-or3-A
+    previousModuleName: nor1
+    previousPinName: Q
+    nextModuleName: or3
+    nextPinName: A
+  - name: nor1-Q-or3-B
+    previousModuleName: nor1
+    previousPinName: Q
+    nextModuleName: or3
+    nextPinName: B
+  - name: nor1-Q-or2-B
+    previousModuleName: nor1
+    previousPinName: Q
+    nextModuleName: or2
+    nextPinName: B
+
+  - name: or3-Q-out
+    previousModuleName: or3
+    previousPinName: Q
+    nextModuleName: ''
+    nextPinName: Out

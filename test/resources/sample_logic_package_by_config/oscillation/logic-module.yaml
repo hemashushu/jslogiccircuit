@@ -1,0 +1,5 @@
+title: Oscillation Module
+description: A module that causes the circuit to oscillate
+iconFilename: icon.png
+group: "Combinatorial"
+document: "Document about Half Oscillation Module"

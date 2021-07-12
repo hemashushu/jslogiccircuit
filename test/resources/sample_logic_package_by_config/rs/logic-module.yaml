@@ -4,4 +4,3 @@ description: RS NOR latch
 iconFilename: icon.png
 group: "Sequential"
 document: "Document about RS NOR latch"
-defaultParameters: {}

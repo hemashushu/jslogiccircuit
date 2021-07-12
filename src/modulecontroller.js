@@ -36,20 +36,21 @@ class ModuleController {
      */
     step() {
         let cycle = 0;
-        for (; cycle <= this.logicModuleCount; cycle++) {
+        let maxCycle = this.logicModuleCount + 1;
+        for (; cycle < maxCycle; cycle++) {
 
             // 表示模块是否处于稳定状态
             let isStable = true;
 
-            // 一个更新周期共有 7 步，
-            // 4 步为确保（输入）信号（是最新的值）、计算信号
-            // 3 步为写信号
+            // 一个更新周期共有 7 步
+            //
+            // 以下是前半周期
 
-            // 读取信号
+            // 写信号到内部模块
             for (let logicModule of this.allLogicModulesForRead) {
                 if (logicModule.isInputDataChanged) {
                     isStable = false;
-                    logicModule.ensureInputData();                   // A1
+                    logicModule.writeChildModuleInputPins();         // A1
                 }
             }
 
@@ -58,26 +59,29 @@ class ModuleController {
                 break;
             }
 
-            // 清除 output pin 的 dataChanged 和模块本身的 dataChanged 标记
+            // 清除 output pin 的 dataChanged 和模块本身的 output dataChanged 标记
             for (let logicModule of this.allLogicModulesForRead) {
                 logicModule.clearOutputPinsDataChangedFlag();        // A2
                 logicModule.clearOutputDataChangedFlag();            // A3
             }
 
-            // 计算信号
+            // 计算新信号
             for (let logicModule of this.allLogicModulesForRead) {
                 if (logicModule.isInputDataChanged) {
                     logicModule.updateModuleDataAndOutputPinsData(); // A4
                 }
             }
 
-            // 后半周期，写信号，受到新信号影响的模块的 isInputDataChanged 的
-            // 标记会被设置为 true。
+            // 以下是后半周期
+
+            // 清除 input pin 的 dataChanged 和模块本身的 input dataChanged 标记
             for (let logicModule of this.allLogicModulesForWrite) {
                 logicModule.clearInputPinDataChangedFlags();         // B1
                 logicModule.clearInputDataChangedFlag();             // B2
             }
 
+            // 写信号到下一个模块，受到新信号影响的模块的 isInputDataChanged 的
+            // 标记会被设置为 true。
             for (let logicModule of this.allLogicModulesForWrite) {
                 if (logicModule.isOutputDataChanged) {
                     logicModule.writeOutputPins();                   // B3
@@ -85,13 +89,17 @@ class ModuleController {
             }
         }
 
-        if (cycle > this.logicModuleCount) {
-            // 可能是振荡电路
-            let issuedLogicModules = this.allLogicModulesForRead.filter(item => {
-                return item.isInputDataChanged === true;
+        if (cycle >= maxCycle) {
+            // 振荡电路一般是由多个模块组成的回路引起的，这里只能获取
+            // 回路其中的一个。
+
+            // 寻找第一个 input data changed 的模块
+            // 这个模块会因为 maxCycle 的不同而不同。
+            let firstInputDataChangedLogicModule = this.allLogicModulesForRead.find((item)=>{
+                return item.isInputDataChanged;
             });
 
-            throw new OscillatingException(undefined, issuedLogicModules);
+            throw new OscillatingException('Oscillation circuit detected.', firstInputDataChangedLogicModule);
         }
 
         return cycle;

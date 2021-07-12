@@ -3,4 +3,3 @@ description: Full Adder by 2 Half Adder and 1 or gate
 iconFilename: icon.png
 group: "Combinatorial"
 document: "Document about Full Adder"
-defaultParameters: {}

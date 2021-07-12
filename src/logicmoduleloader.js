@@ -6,6 +6,7 @@ const {
     LocaleProperty
 } = require('jsfileconfig');
 
+const { ObjectUtils } = require('jsobjectutils');
 const { PromiseFileUtils } = require('jsfileutils');
 
 const LogicCircuitException = require('./exception/logiccircuitexception');
@@ -30,7 +31,8 @@ let logicModuleItemMap = global._logicModuleItemMap;
  * - document：逻辑模块的详细说明文档，Markdown 格式，支持 locale；
  * - iconFilename：图标文件名称，图标文件存放在逻辑模块的根目录里，建议
  *   使用 512x512 的 png/webp 格式；
- * - defaultParameters：逻辑模块的默认参数，为一个 {key: value, ...} 对象。
+ * - defaultParameters：逻辑模块的默认参数，为一个 [{key, value, description, valueType, ...},] 对象数组。
+ *       其中 description 支持 locale；
  * - pins: [{name, description}, ...]: 对输入输出端口的描述，name 支持正则表达式，description 支持 locale；
  *
  * 另外逻辑模块根目录还必须包含一个 index.js 或者 struct.yaml 文件。
@@ -110,10 +112,38 @@ class LogicModuleLoader {
             });
         }
 
-
         // TODO:: 模块的配置文件可能还包括：图文框、测试用例、演示数据、布局等等信息。
+
         let iconFilename = moduleConfig.iconFilename;
-        let defaultParameters = moduleConfig.defaultParameters;
+
+        let defaultParameters = {};
+
+        // 配置文件的 defaultParameters 是一个对象数组，示例：
+        // - name: inputPinCount
+        //   description: The count of input pins
+        //   value: 2
+        //   valueType: range
+        //   valueRange:
+        //     from: 1
+        //     to: 32
+        // - name: bitWidth
+        //   description: The bit width of each pins
+        //   value: 1
+        //   valueType: option
+        //   valueOptions:
+        //     - 1
+        //     - 2
+        //     - 4
+        //     - 8
+
+        // 其中只有 name 和 value 属性是加载模块所需要的，其他属性是供
+        // 用户在编辑模块时所（作界面操作提示）使用。
+
+        let configDefaultParameterItems = moduleConfig.defaultParameters;
+        if (configDefaultParameterItems !== undefined) {
+            defaultParameters = ObjectUtils.collapseKeyValueArray(configDefaultParameterItems,
+                'name', 'value');
+        }
 
         let moduleClass;
 

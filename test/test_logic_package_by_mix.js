@@ -16,7 +16,7 @@ describe('Test sample_logic_package_by_mix', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let fullAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'full_adder', 'full-adder1');
+        let fullAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'full_adder', 'full_adder1');
         let moduleController1 = new ModuleController(fullAdder1);
 
         // 2 个 Half Adder (3 modules each half adder) + 1 个 OR gate + Full Adder 本模块 = 8
@@ -68,7 +68,7 @@ describe('Test sample_logic_package_by_mix', () => {
         check(1, 1, 1, 1, 1, 1);
     });
 
-    it('Test module controller - Full Adder', async () => {
+    it('Test module controller - 4-bit Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
 
@@ -77,7 +77,7 @@ describe('Test sample_logic_package_by_mix', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let fourBitAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'four_bit_adder', '4-bit-adder1');
+        let fourBitAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'four_bit_adder', 'four_bit_adder1');
         let moduleController1 = new ModuleController(fourBitAdder1);
 
         // 4 * (full adder 8 modules) + 1 module self

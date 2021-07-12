@@ -1,4 +1,5 @@
-const LogicCircuitException = require('./exception/logiccircuitexception');
+const { IllegalArgumentException } = require('jsexception');
+
 const ObservableSignal = require('./observablesignal');
 
 /**
@@ -36,7 +37,7 @@ class Pin extends ObservableSignal {
 
         // 端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
         if (!/^[a-zA-Z_][\w\$]*$/.test(name)) {
-            throw new LogicCircuitException(
+            throw new IllegalArgumentException(
                 `Invalid logic module class name "${name}".`);
         }
 

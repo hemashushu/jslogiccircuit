@@ -185,12 +185,11 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     }
 
     // override
-    ensureInputData() {
+    writeChildModuleInputPins() {
         // 配置型逻辑模块（ConfigurableLogicModule）没有自己的业务逻辑代码，
         // input pins 的状态需要传递到下游/内部的子模块
         for (let inputPin of this.inputPins) {
             if (inputPin.isDataChanged) {
-                // inputPin.writeToNextLogicModulePins();
                 inputPin.writeToNextPins();
             }
         }
@@ -200,11 +199,11 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         let allLogicModules = [];
 
         // 对于一个含有子模块的逻辑模块，其状态更新过程大致经历如下三个过程：
-        // 1. ensureInputData
+        // 1. writeChildModuleInputPins
         // 2. 重新计算内部信号/数据
         // 3. writeOutputPins
         //
-        // 其中第一步 ensureInputData 时，需要先让最外围的模块确保（ensure）
+        // 其中第一步 writeChildModuleInputPins 时，需要先让最外围的模块确保（ensure）
         // 输入端口的信号，然后让内部模块确保输入端口信号，最后让内部模块的
         // 内部模块确保输入信号，因为信号是由外部“传入”内部的。
         //
@@ -212,7 +211,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         // 写输出信号，然后让中间模块写输出信号，最后让最外围的本模块
         // 写输出信号（到模块的 output pins）。
         //
-        // 下面的列表是按照 ensureInputData 所需的顺序组织模块的顺序，只需把这个
+        // 下面的列表是按照 writeChildModuleInputPins 所需的顺序组织模块的顺序，只需把这个
         // 列表倒转，就能得到 writeOutputPins 所需的顺序。
 
         allLogicModules.push(this);

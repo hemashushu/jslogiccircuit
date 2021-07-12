@@ -1,5 +1,5 @@
 const { ObjectUtils } = require('jsobjectutils');
-const { NotImplementedException } = require('jsexception');
+const { IllegalArgumentException, NotImplementedException } = require('jsexception');
 
 const Pin = require('./pin');
 
@@ -17,13 +17,23 @@ class AbstractLogicModule {
     /**
      * 实例化逻辑模块（类）
      *
-     * @param {*} name 模块实例的名称
+     * 使用代码方式继承此类以实现逻辑模块功能的模块，需要保持
+     * 构造函数的签名不变。
+     *
+     * @param {*} instanceName 模块实例的名称，只可以
+     *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
-    constructor(name, instanceParameters = {}, defaultParameters = {}) {
+    constructor(instanceName, instanceParameters = {}, defaultParameters = {}) {
+        // 模块实例名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        if (!/^[a-zA-Z_][\w\$]*$/.test(instanceName)) {
+            throw new IllegalArgumentException(
+                `Invalid module instance name "${instanceName}"`);
+        }
+
         // 模块实例的名称
-        this.name = name;
+        this.name = instanceName;
 
         // 一个 {name:value, ...} 对象，只有实例化一个模块内部的
         // 子模块时才有这个参数。实例一个逻辑包的顶层模块时，不存在这个参数。
@@ -93,21 +103,31 @@ class AbstractLogicModule {
     }
 
     /**
-     * 确保模块输入的信号是最新的值。
+     * 确保子模块输入的信号是最新的值。
      *
      * 更新周期的第 A1 步。
      */
-    ensureInputData() {
+    writeChildModuleInputPins() {
         // 当部分 input pin 数据发生改变时（input pin 的 setData 方法被调用），会
         // 引起本模块的 isInputDataChanged 标记设置为 true。
         //
         // 对于简单的逻辑模块，比如 AND，XOR 等逻辑门模块，并不需要额外
         // 读取 input pins 的数据，因为外界已经通过 input pin 的 setData
-        // 方法更新了 input pin 的数据，在 updateModuleDataAndOutputPinsData
+        // 方法更新了 input pin 的数据，在 updateModuleDataAndOutputPinsData()
         // 方法内部只需直接读取 input pin 的数据即可。
         //
-        // 但对于复杂的、多层次的逻辑模块，可能需要将信号/数据发生改变的 input pin
-        // 的数据读取并传播到内部模块。
+        // 但对于多层次的逻辑模块（即模块里又包含其他模块），本模块的 input pins 可能
+        // 直接连接到内部的子模块，则需要将信号/数据
+        // 发生改变的 input pin 的数据读取并传播到内部模块，否则内部模块不知道外界
+        // 的数据变化。此方法用于确保内部的子模块得到最新的输入数据。
+        //
+        // 模块和模块之间的信号传递，即：
+        // - 上一个模块的 output pin 传到下一个模块的 input pin
+        // - 子模块的 output pin 传到父模块的 output pin
+        // 都是通过 writeOutputPins() 方法实现的，但该方法
+        // 未能覆盖模块的 input pin 传递到内部模块的 input pin 的情况。
+        // 所以方法 writeChildModuleInputPins() 也可以视作 writeOutputPins() 方法的
+        // 补充，以实现所有信号的正确传递。
     }
 
     /**
@@ -161,10 +181,17 @@ class AbstractLogicModule {
      * 更新周期的第 B3 步。
      */
     writeOutputPins() {
+
+        // 实现模块之间的信号传递，即：
+        // - 上一个模块的 output pin 传到下一个模块的 input pin
+        // - 子模块的 output pin 传到父模块的 output pin
+        //
+        // 对于父模块的 input pin 传到 子模块的 input pin，则使用
+        // writeChildModuleInputPins() 方法实现。
+
         for (let outputPin of this.outputPins) {
             if (outputPin.isDataChanged) {
                 // 只有数据发生改变了的 output pin 才传递数据。
-                // outputPin.writeToNextLogicModulePins();
                 outputPin.writeToNextPins();
             }
         }

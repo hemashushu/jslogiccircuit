@@ -27,13 +27,14 @@ class LogicModuleFactory {
      *
      * @param {*} packageName
      * @param {*} moduleClassName
-     * @param {*} name 实例名称
+     * @param {*} instanceName 模块实例名称，只可以
+     *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 实例参数，一个 {name:value, ...} 对象，注意这个
      *     是实例的参数，它将会跟模块的默认参数（即定义模块是所定义的参数进行合并）
      * @returns 如果找不到指定的逻辑模块类，则抛出 IllegalArgumentException 异常。
      */
     static createModuleInstance(packageName, moduleClassName,
-        name, instanceParameters = {}) {
+        instanceName, instanceParameters = {}) {
 
         let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 
@@ -44,20 +45,22 @@ class LogicModuleFactory {
 
         // 关于 defaultParameters 和 instanceParameters
         //
-        // - defaultParameters 是定义模块是所定义的参数，一般是一个常数字典。defaultParameters
+        // - defaultParameters 是定义模块时所定义的参数，一般是一个常数字典。defaultParameters
         //   写在配置文件 “logic-module.yaml” 里，键名是 “defaultParameters”。
         // - instanceParameters 是当一个模块作为子模块被引入到另一个更大的模块时，可能会
         //   希望某些参数使用跟默认参数不一样的值，这些需要修改参数的集合就是实例参数。
         //   instanceParameters 写在配置文件 “struct.yaml” 的子模块列表里，子模块列表如下：
         //   logicModules: [{packageName, moduleClassName, name, parameters}, ...]
         //   其中的 “parameters” 即表示 instanceParameters。
-        // - 当实例一个逻辑包的 **顶层逻辑模块** 时，显然是没有 instanceParameters 的，
+        // - 当实例作为一个逻辑包的 **顶层逻辑模块** 运行时，显然是没有 instanceParameters 的，
         //   但作单元测试时，可以允许指定 instanceParameters 一些不同的值以便于测试完整。
+        // - 简而言之，模块在单独运行时，只有 defaultParameters；模块作为子模块给其他模块所
+        //   引用时，其他模块可以传参数给它，这些参数就是 instanceParameters。
         //
-        // - 实例参数有可能包含占位符，比如希望子模块使用父模块的某个参数值（相当于 Verilog
-        //   工程里的常量，但不完全一样，后面会阐述），则可以将父模块的参数名称放进一个固定的
-        //   格式的字符串里：${placeholder}，实例化子模块时会将此属性值转换为父对象
-        //   参数中对应的值。
+        // - instanceParameters 有可能包含占位符，比如希望子模块使用父模块的某个参数值（
+        //   相当于 Verilog 工程里的常量，但不完全一样，后面会阐述），则可以将父模块的参
+        //   数名称放进一个固定的格式的字符串里：${placeholder}，实例化子模块时会将此
+        //   属性值转换为父对象参数中对应的值。
         // - 跟 Verilog 工程里的常量不同，父模块的参数只能传入直接的子模块，而无法传入子模块
         //   的子模块，即做不到全局一个常量，然后所有模块使用。之所以有这样的限制，是因为每一个
         //   模块都有可能被其他（他人的）更大的模块作为子模块使用，所以在构建一个模块时，
@@ -66,7 +69,7 @@ class LogicModuleFactory {
         // - 可以通过层层传递的方式大致上实现类似 Verilog 的工程常量的效果。
         //
         // - 无论何时，defaultParameters 不允许存在占位符；
-        // - 当前方法（LogicModuleFactory.createModuleInstance）的参数 instanceParameters
+        // - 当前方法（即 LogicModuleFactory.createModuleInstance）的参数 instanceParameters
         //   必须是已经解析过占位符的，即在该方法里，该参数不允许存在占位符。
 
         let defaultParameters = logicModuleItem.defaultParameters;
@@ -76,20 +79,27 @@ class LogicModuleFactory {
 
         if (typeof moduleClass === 'function') {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
-            return Reflect.construct(moduleClass, [
-                name,
-                instanceParameters,
-                defaultParameters]);
+            return LogicModuleFactory.constructAbstractLogicModuleInstance(
+                moduleClass,
+                instanceName, instanceParameters, defaultParameters);
 
         } else {
-            return LogicModuleFactory.createModuleInstanceByConfig(
+            return LogicModuleFactory.constructConfigurableLogicModuleInstance(
                 packageName, moduleClassName,
                 moduleClass,
-                name, instanceParameters, defaultParameters);
+                instanceName, instanceParameters, defaultParameters);
         }
     }
 
-    static createModuleInstanceByConfig(
+    static constructAbstractLogicModuleInstance(moduleClass,
+        moduleInstanceName, instanceParameters, defaultParameters) {
+        return Reflect.construct(moduleClass, [
+            moduleInstanceName,
+            instanceParameters,
+            defaultParameters]);
+    }
+
+    static constructConfigurableLogicModuleInstance(
         packageName, moduleClassName,
         moduleConfig,
         moduleInstanceName, instanceParameters, defaultParameters) {
@@ -176,7 +186,7 @@ class LogicModuleFactory {
 
     static resolveConfigParameters(configParameters, parentParameters) {
         let resolvedConfigParameters = {};
-        for(let key in configParameters) {
+        for (let key in configParameters) {
             let value = LogicModuleFactory.resolveConfigValue(
                 configParameters[key], parentParameters);
             resolvedConfigParameters[key] = value;

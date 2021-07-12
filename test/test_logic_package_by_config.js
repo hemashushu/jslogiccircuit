@@ -4,7 +4,7 @@ const assert = require('assert/strict');
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
 const { LogicPackageLoader, LogicModuleLoader,
-    LogicModuleFactory, ModuleController } = require('../index');
+    LogicModuleFactory, ModuleController, OscillatingException } = require('../index');
 
 describe('Test sample_logic_package_by_config', () => {
     it('Test load packages', async () => {
@@ -17,7 +17,7 @@ describe('Test sample_logic_package_by_config', () => {
             name: 'sample_logic_package_by_config',
             title: 'Sample Logic Package (Config)',
             dependencies: ['sample_logic_package_by_code'],
-            modules: ['half_adder', 'rs'],
+            modules: ['half_adder', 'oscillation', 'rs'],
             mainModule: 'half_adder',
             version: '1.0.0',
             author: 'Hippo Spark',
@@ -43,7 +43,7 @@ describe('Test sample_logic_package_by_config', () => {
         // sort module names
         moduleClassNames.sort();
 
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['half_adder', 'rs']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames, ['half_adder', 'oscillation', 'rs']));
 
         let checkPropNames = [
             'packageName',
@@ -56,7 +56,7 @@ describe('Test sample_logic_package_by_config', () => {
             'document'
         ];
 
-        let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[0]);
+        let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'half_adder');
 
         let expectHalfAdderLogicModuleItem = {
             packageName: 'sample_logic_package_by_config',
@@ -74,7 +74,7 @@ describe('Test sample_logic_package_by_config', () => {
             expectHalfAdderLogicModuleItem
         ));
 
-        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[1]);
+        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'rs');
 
         let expectRSLatchLogicModuleItem = {
             packageName: 'sample_logic_package_by_config',
@@ -100,9 +100,9 @@ describe('Test sample_logic_package_by_config', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half-adder1');
+        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
 
-        assert.equal(halfAdder1.name, 'half-adder1');
+        assert.equal(halfAdder1.name, 'half_adder1');
         assert(ObjectUtils.isEmpty(halfAdder1.instanceParameters));
         assert(ObjectUtils.isEmpty(halfAdder1.defaultParameters));
         assert(ObjectUtils.isEmpty(halfAdder1.parameters));
@@ -175,7 +175,7 @@ describe('Test sample_logic_package_by_config', () => {
         let testResourcePath = path.join(testPath, 'resources');
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half-adder1');
+        let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
         assert(!halfAdder1.isInputDataChanged);
         assert(!halfAdder1.isOutputDataChanged);
         let moduleController1 = new ModuleController(halfAdder1);
@@ -261,10 +261,10 @@ describe('Test sample_logic_package_by_config', () => {
         let R = rs1.getInputPin('R');
         let S = rs1.getInputPin('S');
         let Q = rs1.getOutputPin('Q');
-        let Qneg = rs1.getOutputPin('Q_');
+        let Qneg = rs1.getOutputPin('_Q');
 
         // RS
-        // R S Q Q_
+        // R S Q _Q
         // 1 0 0  1
         // 0 0 0  1
         // 0 1 1  0
@@ -315,5 +315,26 @@ describe('Test sample_logic_package_by_config', () => {
         assert(Binary.equal(Qneg.getData(), binary0));
     });
 
+    it('Test module controller - Oscillation', async () => {
 
+        let packageName = 'sample_logic_package_by_config';
+        let testPath = __dirname;
+        let testResourcePath = path.join(testPath, 'resources');
+        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+
+        let oscillation1 = LogicModuleFactory.createModuleInstance(packageName, 'oscillation', 'oscillation1');
+        let moduleController1 = new ModuleController(oscillation1);
+        assert.equal(moduleController1.logicModuleCount, 6);
+
+        try{
+            moduleController1.step();
+            assert.fail();
+        }catch(e) {
+            assert(e instanceof OscillatingException);
+            // 引起振荡的是 or2 -> or0 -> nor1 回路，但目前 moduleController 只能
+            // 获取整条回路当中的一个。并且会因为 step() 方法的周期数而不同。
+            console.log(e.logicModule.name);
+            assert(['or2', 'or0'].includes(e.logicModule.name));
+        }
+    });
 });

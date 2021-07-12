@@ -6,7 +6,7 @@ inputPins:
 outputPins:
   - name: Q
     bitWidth: 1
-  - name: "Q_"
+  - name: "_Q"
     bitWidth: 1
 logicModules:
   - packageName: sample_logic_package_by_code
@@ -43,8 +43,8 @@ connections:
     previousPinName: Q
     nextModuleName: ''
     nextPinName: Q
-  - name: 'nor2-q--q'
+  - name: 'nor2-q-_q'
     previousModuleName: nor2
     previousPinName: Q
     nextModuleName: ''
-    nextPinName: 'Q_'
+    nextPinName: '_Q'
