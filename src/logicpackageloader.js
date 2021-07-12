@@ -118,6 +118,7 @@ class LogicPackageLoader {
      * @param {*} packageRepositoryDirectory 目标逻辑包所在的目录，即逻辑包完整路径
      *     的父目录，其值一般为目标逻辑包的 '__dirname' 值的父目录。
      * @param {*} packageName 目标逻辑包的名称，这个名称同时也是目录名称。
+     * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
      * @returns LogicPackageItem
      */
     static async loadLogicPackage(packageRepositoryDirectory, packageName, localeCode = 'en') {
@@ -215,6 +216,7 @@ class LogicPackageLoader {
         let logicPackageItem = new LogicPackageItem(
             name, title,
             dependencyPackageNames, moduleClassNames, mainModule,
+            logicPackagePath,
             version, author, homepage,
             iconFilename, description);
 

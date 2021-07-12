@@ -13,6 +13,19 @@ describe('Test sample_logic_package_by_config', () => {
         let testResourcePath = path.join(testPath, 'resources');
         let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
+        let checkPropNames = [
+            'name',
+            'title',
+            'dependencies',
+            'modules',
+            'mainModule',
+            'version',
+            'author',
+            'homepage',
+            'iconFilename',
+            'description'
+        ];
+
         let expectLogicPackageItem = {
             name: 'sample_logic_package_by_config',
             title: 'Sample Logic Package (Config)',
@@ -26,7 +39,9 @@ describe('Test sample_logic_package_by_config', () => {
             description: 'A logic package for unit testing.'
         };
 
-        assert(ObjectUtils.equals(logicPackageItem, expectLogicPackageItem));
+        assert(ObjectUtils.equals(
+            ObjectComposer.compose(logicPackageItem, checkPropNames),
+            expectLogicPackageItem));
 
         let logicModuleItems = LogicPackageLoader.getLogicPackageItems();
         assert.equal(logicModuleItems.length, 2);

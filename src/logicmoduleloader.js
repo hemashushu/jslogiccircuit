@@ -20,7 +20,7 @@ global._logicModuleItemMap = new Map();
 let logicModuleItemMap = global._logicModuleItemMap;
 
 /**
- * 每个逻辑模块必须存放于逻辑包根目录的单独一个目录里。
+ * 每个逻辑模块必须存放于逻辑包根目录的 “src” 目录里的单独一个目录里。
  *
  * 逻辑模块根目录必须包含一个名字叫 logic-module.yaml 的文件，该文件
  * 储存了逻辑模块的基本信息，有如下必要属性：
@@ -75,7 +75,9 @@ class LogicModuleLoader {
      * 加载逻辑模块。
      *
      * @param {*} logicPackagePath
-     * @param {*} logicModuleClassName
+     * @param {*} packageName
+     * @param {*} moduleClassName 模块的名称
+     * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
      * @returns 返回 LogicModuleItem
      */
     static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
@@ -85,7 +87,7 @@ class LogicModuleLoader {
                 `Invalid logic module class name "${moduleClassName}".`);
         }
 
-        let moduleFilePath = path.join(logicPackagePath, moduleClassName);
+        let moduleFilePath = path.join(logicPackagePath, 'src', moduleClassName);
         let moduleConfigFilePath = path.join(moduleFilePath, 'logic-module.yaml');
 
         if (!await PromiseFileUtils.exists(moduleConfigFilePath)) {

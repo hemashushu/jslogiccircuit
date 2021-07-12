@@ -1,4 +1,4 @@
-const { AbstractLogicModule } = require('../../../../index');
+const { AbstractLogicModule } = require('../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**

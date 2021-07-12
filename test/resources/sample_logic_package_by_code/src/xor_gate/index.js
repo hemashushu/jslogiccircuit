@@ -1,16 +1,16 @@
-const { AbstractLogicModule } = require('../../../../index');
+const { AbstractLogicModule } = require('../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
- * 逻辑或门
+ * 逻辑异或门
  */
-class OrGate extends AbstractLogicModule {
+class XorGate extends AbstractLogicModule {
 
     constructor(name) {
         super(name);
 
-        this.addInputPinByDetail('A', 1)
-        this.addInputPinByDetail('B', 1)
+        this.addInputPinByDetail('A', 1);
+        this.addInputPinByDetail('B', 1);
         this.addOutputPinByDetail('Q', 1);
     }
 
@@ -19,17 +19,17 @@ class OrGate extends AbstractLogicModule {
     }
 
     getModuleClassName() {
-        return 'or_gate'; // 同目录名
+        return 'xor_gate'; // 同目录名
     }
 
     // override
     updateModuleDataAndOutputPinsData() {
         let data1 = this.inputPins[0].getData();
         let data2 = this.inputPins[1].getData();
-        let resultData = Binary.or(data1, data2);
+        let resultData = Binary.xor(data1, data2);
         this.outputPins[0].setData(resultData);
     }
 }
 
 
-module.exports = OrGate;
+module.exports = XorGate;

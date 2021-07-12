@@ -1,10 +1,10 @@
-const { AbstractLogicModule } = require('../../../../index');
+const { AbstractLogicModule } = require('../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
- * 逻辑与门
+ * 逻辑或门
  */
-class AndGate extends AbstractLogicModule {
+class OrGate extends AbstractLogicModule {
 
     constructor(name) {
         super(name);
@@ -19,17 +19,17 @@ class AndGate extends AbstractLogicModule {
     }
 
     getModuleClassName() {
-        return 'and_gate'; // 同目录名
+        return 'or_gate'; // 同目录名
     }
 
     // override
     updateModuleDataAndOutputPinsData() {
         let data1 = this.inputPins[0].getData();
         let data2 = this.inputPins[1].getData();
-        let resultData = Binary.and(data1, data2);
+        let resultData = Binary.or(data1, data2);
         this.outputPins[0].setData(resultData);
     }
 }
 
 
-module.exports = AndGate;
+module.exports = OrGate;
