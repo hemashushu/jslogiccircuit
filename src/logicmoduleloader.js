@@ -161,7 +161,9 @@ class LogicModuleLoader {
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
-            title, group, iconFilename, description, pins, document);
+            title, group,
+            moduleFilePath,
+            iconFilename, description, pins, document);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
 

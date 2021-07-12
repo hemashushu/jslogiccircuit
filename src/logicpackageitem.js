@@ -11,7 +11,7 @@ class LogicPackageItem {
      * @param {*} modules 模块（Class）名称列表
      * @param {*} mainModule 主模块的名称，一个逻辑包可以有一个主模块，当用户“运行”
      *     一个模块包时，主模块则是运行的入口。
-     * @param {*} packagePath 逻辑包的本地文件路径。
+     * @param {*} packageDirectory 逻辑包的本地文件路径。
      * @param {*} version 版本
      *     package title 跟 package name 不同，package title 主要
      *     是给人阅读，而 package name 主要用作标识（id）作用。
@@ -25,7 +25,7 @@ class LogicPackageItem {
         dependencies = [],
         modules = [],
         mainModule,
-        packagePath,
+        packageDirectory,
         version,
         author,
         homepage,
@@ -39,7 +39,7 @@ class LogicPackageItem {
         this.modules = modules;
         this.mainModule = mainModule;
 
-        this.packagePath = packagePath;
+        this.packageDirectory = packageDirectory;
         this.version = version;
         this.author = author;
         this.homepage = homepage;

@@ -13,7 +13,7 @@ describe('Test sample_logic_package_by_code', () => {
         let testResourcePath = path.join(testPath, 'resources');
         let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
-        assert.equal(logicPackageItem.packagePath, path.join(testResourcePath, packageName));
+        assert.equal(logicPackageItem.packageDirectory, path.join(testResourcePath, packageName));
 
         let checkPropNames = [
             'name',
@@ -76,6 +76,10 @@ describe('Test sample_logic_package_by_code', () => {
         ];
 
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[0]);
+
+        assert.equal(
+            logicModuleItem1.moduleDirectory,
+            path.join(logicPackageItem.packageDirectory, 'src', 'and_gate'));
 
         let expectAndGateLogicModuleItem = {
             packageName: 'sample_logic_package_by_code',
