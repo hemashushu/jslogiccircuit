@@ -46,24 +46,24 @@ let logicModuleItemMap = global._logicModuleItemMap;
  */
 class LogicModuleLoader {
 
-    static addLogicModuleItem(packageName, logicModuleClassName, logicModuleItem) {
-        let key = `${packageName}:${logicModuleClassName}`;
+    static addLogicModuleItem(packageName, moduleClassName, logicModuleItem) {
+        let key = `${packageName}:${moduleClassName}`;
         logicModuleItemMap.set(key, logicModuleItem);
     }
 
-    static removeLogicModuleItemByName(packageName, logicModuleClassName) {
-        let key = `${packageName}:${logicModuleClassName}`;
+    static removeLogicModuleItemByName(packageName, moduleClassName) {
+        let key = `${packageName}:${moduleClassName}`;
         logicModuleItemMap.delete(key);
     }
 
     /**
      *
      * @param {*} packageName
-     * @param {*} logicModuleClassName
-     * @returns 返回逻辑模块项（类），如果找不到指定的模块，则返回 undefined.
+     * @param {*} moduleClassName
+     * @returns LogicModuleItem，如果找不到指定的模块，则返回 undefined.
      */
-    static getLogicModuleItemByName(packageName, logicModuleClassName) {
-        let key = `${packageName}:${logicModuleClassName}`;
+    static getLogicModuleItemByName(packageName, moduleClassName) {
+        let key = `${packageName}:${moduleClassName}`;
         return logicModuleItemMap.get(key);
     }
 
@@ -85,6 +85,11 @@ class LogicModuleLoader {
         if (!/^[a-zA-Z_][\w\$]*$/.test(moduleClassName)) {
             throw new LogicCircuitException(
                 `Invalid logic module class name "${moduleClassName}".`);
+        }
+
+        let lastLogicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
+        if (lastLogicModuleItem !== undefined) {
+            return lastLogicModuleItem;
         }
 
         let moduleFilePath = path.join(logicPackagePath, 'src', moduleClassName);

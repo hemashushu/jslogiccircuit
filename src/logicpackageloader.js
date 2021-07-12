@@ -55,6 +55,24 @@ class LogicPackageLoader {
         logicPackageReferenceCountMap.set(logicPackageItem.name, 1);
     }
 
+    /**
+     * 获取指定名称的逻辑包
+     *
+     * @param {*} packageName
+     * @returns LogicPackageItem，如果找不到指定名称的逻辑包，则返回 undefined.
+     */
+    static getLogicPackageItemByName(packageName) {
+        return logicPackageItemMap.get(packageName);
+    }
+
+    static existPackageItem(packageName) {
+        return logicPackageItemMap.has(packageName);
+    }
+
+    static getLogicPackageItems() {
+        return Array.from(logicPackageItemMap.values());
+    }
+
     static removeLogicPackageItemByName(packageName) {
         let logicPackageItem = logicPackageItemMap.get(packageName);
 
@@ -87,24 +105,6 @@ class LogicPackageLoader {
     }
 
     /**
-     * 获取指定名称的逻辑包
-     *
-     * @param {*} packageName
-     * @returns 返回 LogicPackageItem，如果找不到指定名称的逻辑包，则返回 undefined.
-     */
-    static getLogicPackageItemByName(packageName) {
-        return logicPackageItemMap.get(packageName);
-    }
-
-    static existPackageItem(packageName) {
-        return logicPackageItemMap.has(packageName);
-    }
-
-    static getLogicPackageItems() {
-        return Array.from(logicPackageItemMap.values());
-    }
-
-    /**
      * 加载逻辑包。
      *
      * 加载过程大致如下：
@@ -126,6 +126,11 @@ class LogicPackageLoader {
         if (!/^[a-zA-Z_][\w\$]*$/.test(packageName)) {
             throw new LogicCircuitException(
                 `Invalid logic package name "${packageName}".`);
+        }
+
+        let lastPackageItem = LogicPackageLoader.getLogicPackageItemByName(packageName);
+        if (lastPackageItem !== undefined) {
+            return lastPackageItem;
         }
 
         // 逻辑包的基本信息分布在目录的 package.json 以及 logic-package.yaml 这
@@ -203,7 +208,8 @@ class LogicPackageLoader {
         // 加载依赖项信息
         let dependencyPackageNames = detailConfig.dependencies;
         for (let dependencyPackageName of dependencyPackageNames) {
-            await LogicPackageLoader.loadDependencyLogicPackage(packageRepositoryDirectory, dependencyPackageName, localeCode);
+            await LogicPackageLoader.loadDependencyLogicPackage(
+                packageRepositoryDirectory, dependencyPackageName, localeCode);
         }
 
         // 加载逻辑模块项信息
