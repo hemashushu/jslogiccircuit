@@ -90,16 +90,10 @@ class ModuleController {
         }
 
         if (cycle >= maxCycle) {
-            // 振荡电路一般是由多个模块组成的回路引起的，这里只能获取
-            // 回路其中的一个。
-
-            // 寻找第一个 input data changed 的模块
-            // 这个模块会因为 maxCycle 的不同而不同。
-            let firstInputDataChangedLogicModule = this.allLogicModulesForRead.find((item)=>{
-                return item.isInputDataChanged;
-            });
-
-            throw new OscillatingException('Oscillation circuit detected.', firstInputDataChangedLogicModule);
+            // 振荡电路一般是由多个模块组成的回路引起的，目前 ModuleController 只能获取
+            // 整个回路当中输入信号不稳定的部分模块，而且会因 maxCycle 的不同而不同。
+            let issuedLogicModule = this.allLogicModulesForRead.filter(item=>item.isInputDataChanged);
+            throw new OscillatingException('Oscillation circuit detected.', issuedLogicModule);
         }
 
         return cycle;

@@ -332,9 +332,10 @@ describe('Test sample_logic_package_by_config', () => {
         }catch(e) {
             assert(e instanceof OscillatingException);
             // 引起振荡的是 or2 -> or0 -> nor1 回路，但目前 moduleController 只能
-            // 获取整条回路当中的一个。并且会因为 step() 方法的周期数而不同。
-            console.log(e.logicModule.name);
-            assert(['or2', 'or0'].includes(e.logicModule.name));
+            // 获取整条回路当中的部分输入信号不稳定的模块。并且会因为 step() 方法的周期数而不同。
+            let issuedLogicModuleNames = e.logicModules.map(item=>item.name);
+            issuedLogicModuleNames.sort();
+            assert(ObjectUtils.arrayEquals(issuedLogicModuleNames, ['or2', 'or3']));
         }
     });
 });
