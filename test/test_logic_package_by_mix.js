@@ -2,9 +2,10 @@ const path = require('path');
 const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
-const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
-const { LogicPackageLoader, LogicModuleLoader,
-    LogicModuleFactory, ModuleController } = require('../index');
+
+const { LogicPackageLoader,
+    LogicModuleFactory,
+    ModuleController } = require('../index');
 
 describe('Test sample_logic_package_by_mix', () => {
     it('Test module controller - Full Adder', async () => {
@@ -143,5 +144,4 @@ describe('Test sample_logic_package_by_mix', () => {
         }
 
     });
-
 });

@@ -3,8 +3,11 @@ const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
-const { LogicPackageLoader, LogicModuleLoader,
-    LogicModuleFactory, ModuleController } = require('../index');
+
+const { LogicPackageLoader,
+    LogicModuleLoader,
+    LogicModuleFactory,
+    ModuleController } = require('../index');
 
 describe('Test sample_logic_package_by_code', () => {
     it('Test load packages', async () => {
@@ -90,9 +93,9 @@ describe('Test sample_logic_package_by_code', () => {
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate',
             pins: [
-                {name: 'A', description: 'Input pin A'},
-                {name: 'B', description: 'Input pin B'},
-                {name: 'Q', description: 'Output pin Q. The value of Q is `A & B`'}
+                { name: 'A', description: 'Input pin A' },
+                { name: 'B', description: 'Input pin B' },
+                { name: 'Q', description: 'Output pin Q. The value of Q is `A & B`' }
             ],
             document: 'Document about AND gate'
         };

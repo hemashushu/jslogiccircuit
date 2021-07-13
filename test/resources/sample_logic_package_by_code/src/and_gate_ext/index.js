@@ -1,5 +1,6 @@
-const { AbstractLogicModule } = require('../../../../../index');
 const { Binary } = require('jsbinary');
+
+const { AbstractLogicModule } = require('../../../../../index');
 
 /**
  * 逻辑与门
@@ -38,7 +39,7 @@ class AndGate extends AbstractLogicModule {
 
     // override
     updateModuleDataAndOutputPinsData() {
-        let datas = this.inputPins.map(pin=>{
+        let datas = this.inputPins.map(pin => {
             return pin.getData();
         });
 
@@ -46,7 +47,7 @@ class AndGate extends AbstractLogicModule {
         for (let idx = 1; idx < datas.length; idx++) {
             resultData = Binary.and(resultData, datas[idx]);
 
-            if (Binary.equal(resultData, this.dataZero)){
+            if (Binary.equal(resultData, this.dataZero)) {
                 break;
             }
         }

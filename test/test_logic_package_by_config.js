@@ -3,8 +3,12 @@ const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
-const { LogicPackageLoader, LogicModuleLoader,
-    LogicModuleFactory, ModuleController, OscillatingException } = require('../index');
+
+const { LogicPackageLoader,
+    LogicModuleLoader,
+    LogicModuleFactory,
+    ModuleController,
+    OscillatingException } = require('../index');
 
 describe('Test sample_logic_package_by_config', () => {
     it('Test load packages', async () => {
@@ -341,14 +345,14 @@ describe('Test sample_logic_package_by_config', () => {
         let moduleController1 = new ModuleController(oscillation1);
         assert.equal(moduleController1.logicModuleCount, 6);
 
-        try{
+        try {
             moduleController1.step();
             assert.fail();
-        }catch(e) {
+        } catch (e) {
             assert(e instanceof OscillatingException);
             // 引起振荡的是 or2 -> or0 -> nor1 回路，但目前 moduleController 只能
             // 获取整条回路当中的部分输入信号不稳定的模块。并且会因为 step() 方法的周期数而不同。
-            let issuedLogicModuleNames = e.logicModules.map(item=>item.name);
+            let issuedLogicModuleNames = e.logicModules.map(item => item.name);
             issuedLogicModuleNames.sort();
             assert(ObjectUtils.arrayEquals(issuedLogicModuleNames, ['or2', 'or3']));
         }
