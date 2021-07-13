@@ -1,21 +1,27 @@
-class AbstractWire {
-    constructor() {
-    }
+const { NotImplementedException } = require('jsexception');
 
+/**
+ * 导线接口
+ *
+ * - JavaScript 没有接口，暂时使用（抽象）类代替
+ * - 为简化起见，当前的 AbstractWire 忽略信号的高阻抗状态，只支持
+ *   高电平和低电平。
+ */
+class AbstractWire {
     /**
      * 设置信号值
-     * @param {*} data Binary 对象。
+     * @param {*} signal Signal 对象。
      */
-    setData(data) {
-        //
+    setSignal(signal) {
+        throw new NotImplementedException();
     }
 
     /**
      * 读取信号值
-     * @returns Binary 对象。
+     * @returns Signal 对象。
      */
-    getData() {
-        //
+    getSignal() {
+        throw new NotImplementedException();
     }
 }
 

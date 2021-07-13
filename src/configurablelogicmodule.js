@@ -189,7 +189,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         // 配置型逻辑模块（ConfigurableLogicModule）没有自己的业务逻辑代码，
         // input pins 的状态需要传递到下游/内部的子模块
         for (let inputPin of this.inputPins) {
-            if (inputPin.isDataChanged) {
+            if (inputPin.isSignalChanged) {
                 inputPin.writeToNextPins();
             }
         }

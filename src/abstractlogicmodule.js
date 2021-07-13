@@ -136,7 +136,7 @@ class AbstractLogicModule {
      */
     clearOutputPinsDataChangedFlag() {
         for (let outputPin of this.outputPins) {
-            outputPin.clearDataChangedFlag();
+            outputPin.clearSignalChangedFlag();
         }
     }
 
@@ -164,7 +164,7 @@ class AbstractLogicModule {
      */
     clearInputPinDataChangedFlags() {
         for (let inputPin of this.inputPins) {
-            inputPin.clearDataChangedFlag();
+            inputPin.clearSignalChangedFlag();
         }
     }
 
@@ -190,7 +190,7 @@ class AbstractLogicModule {
         // writeChildModuleInputPins() 方法实现。
 
         for (let outputPin of this.outputPins) {
-            if (outputPin.isDataChanged) {
+            if (outputPin.isSignalChanged) {
                 // 只有数据发生改变了的 output pin 才传递数据。
                 outputPin.writeToNextPins();
             }
@@ -212,7 +212,7 @@ class AbstractLogicModule {
     addInputPin(inputPin) {
         this.inputPins.push(inputPin);
 
-        inputPin.addDataChangeEventListener(() => {
+        inputPin.addSignalChangeEventListener(() => {
             this.isInputDataChanged = true;
         });
     }
@@ -226,7 +226,7 @@ class AbstractLogicModule {
     addOutputPin(outputPin) {
         this.outputPins.push(outputPin);
 
-        outputPin.addDataChangeEventListener(() => {
+        outputPin.addSignalChangeEventListener(() => {
             this.isOutputDataChanged = true;
         });
     }

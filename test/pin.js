@@ -2,7 +2,7 @@ const { Binary } = require('jsbinary');
 
 const assert = require('assert/strict');
 
-const { ConnectionUtils, Pin } = require('../index');
+const { ConnectionUtils, Pin, Signal } = require('../index');
 
 describe('Pin Test', () => {
     it('Test Constructor', () => {
@@ -13,41 +13,45 @@ describe('Pin Test', () => {
         let pin2 = new Pin('pin2', 8);
         assert.equal(pin2.name, 'pin2');
         assert.equal(pin2.bitWidth, 8);
-        assert.equal(pin2.getData().toBinaryString(), '0');
+        assert.equal(pin2.getSignal().getBinary().toBinaryString(), '0');
     });
 
-    it('Test setData()', () => {
+    it('Test setSignal()', () => {
         let pin1 = new Pin('pin1', 4);
         let binary1 = Binary.fromBinaryString('0000', 4);
+        let signal1 = Signal.createWithoutHighZ(4, binary1);
 
         // https://nodejs.org/api/assert.html#assert_assert_value_message
-        assert(Binary.equal(pin1.getData(), binary1));
+        assert(Signal.equal(pin1.getSignal(), signal1));
 
         let binary2 = Binary.fromBinaryString('1010', 4);
-        pin1.setData(binary2);
-        assert(Binary.equal(pin1.getData(), binary2));
+        let signal2 = Signal.createWithoutHighZ(4, binary2);
+        pin1.setSignal(signal2);
+        assert(Signal.equal(pin1.getSignal(), signal2));
 
         let binary3 = Binary.fromBinaryString('1111', 4);
-        pin1.setData(binary3);
-        assert(Binary.equal(pin1.getData(), binary3));
+        let signal3 = Signal.createWithoutHighZ(4, binary3);
+        pin1.setSignal(signal3);
+        assert(Signal.equal(pin1.getSignal(), signal3));
     });
 
     it('Test flags and events', (done) => {
         let pin1 = new Pin('pin1', 4);
         let binary1 = Binary.fromBinaryString('1010', 4);
+        let signal1 = Signal.createWithoutHighZ(4, binary1);
 
-        pin1.addDataChangeEventListener(data => {
-            assert(Binary.equal(data, binary1));
-            assert(pin1.isDataChanged);
+        pin1.addSignalChangeEventListener(signal => {
+            assert(Signal.equal(signal, signal1));
+            assert(pin1.isSignalChanged);
 
             // 重置 dataChanged 标记
-            pin1.clearDataChangedFlag();
-            assert(!pin1.isDataChanged);
+            pin1.clearSignalChangedFlag();
+            assert(!pin1.isSignalChanged);
 
             done();
         });
 
-        pin1.setData(binary1);
+        pin1.setSignal(signal1);
     });
 
     it('Test connection', () => {
@@ -55,43 +59,39 @@ describe('Pin Test', () => {
         let pin2 = new Pin('pin2', 4);
 
         let binary1 = Binary.fromBinaryString('0000', 4);
+        let signal1 = Signal.createWithoutHighZ(4, binary1);
 
-        // ConnectionUtils.connect(undefined, pin1, undefined, pin2);
         ConnectionUtils.connect(pin1, pin2);
 
         // 改变 pin1 数据
         let binary2 = Binary.fromBinaryString('1010', 4);
-        pin1.setData(binary2);
-        assert(pin1.isDataChanged);
-        assert(Binary.equal(pin1.getData(), binary2));
+        let signal2 = Signal.createWithoutHighZ(4, binary2);
+        pin1.setSignal(signal2);
+        assert(pin1.isSignalChanged);
+        assert(Signal.equal(pin1.getSignal(), signal2));
 
         // pin2 尚未改变
-        assert(!pin2.isDataChanged);
-        assert(Binary.equal(pin2.getData(), binary1));
+        assert(!pin2.isSignalChanged);
+        assert(Signal.equal(pin2.getSignal(), signal1));
 
         // 让 pin1 写数据
-        // pin1.writeToNextLogicModulePins();
         pin1.writeToNextPins();
-        assert(pin2.isDataChanged);
-        assert(Binary.equal(pin2.getData(), binary2));
+        assert(pin2.isSignalChanged);
+        assert(Signal.equal(pin2.getSignal(), signal2));
 
         // 重置 dataChanged 标记
-        pin1.clearDataChangedFlag();
-        pin2.clearDataChangedFlag();
+        pin1.clearSignalChangedFlag();
+        pin2.clearSignalChangedFlag();
 
-        assert(!pin1.isDataChanged);
-        assert(!pin2.isDataChanged);
+        assert(!pin1.isSignalChanged);
+        assert(!pin2.isSignalChanged);
 
         // 再次改变 pin1 的数据
         let binary3 = Binary.fromBinaryString('1100', 4);
-        pin1.setData(binary3);
-        assert(pin1.isDataChanged);
-        assert(Binary.equal(pin1.getData(), binary3));
-
-        // // 让 pin2 读取数据
-        // pin2.readFromPreviousLogicModulePin();
-        // assert(pin2.isDataChanged);
-        // assert(Binary.equal(pin2.getData(), binary3));
+        let signal3 = Signal.createWithoutHighZ(4, binary3);
+        pin1.setSignal(signal3);
+        assert(pin1.isSignalChanged);
+        assert(Signal.equal(pin1.getSignal(), signal3));
     });
 
     it('Test connecting to multiple pins', () => {
@@ -113,33 +113,35 @@ describe('Pin Test', () => {
 
         let binary1 = Binary.fromBinaryString('0000', 4);
         let binary2 = Binary.fromBinaryString('1010', 4);
+        let signal1 = Signal.createWithoutHighZ(4, binary1);
+        let signal2 = Signal.createWithoutHighZ(4, binary2);
 
-        pin1.setData(binary2);
-        assert(pin1.isDataChanged);
-        assert(!pin2.isDataChanged);
-        assert(!pin3.isDataChanged);
-        assert(!pin4.isDataChanged);
+        pin1.setSignal(signal2);
+        assert(pin1.isSignalChanged);
+        assert(!pin2.isSignalChanged);
+        assert(!pin3.isSignalChanged);
+        assert(!pin4.isSignalChanged);
 
-        assert(Binary.equal(pin1.getData(), binary2));
-        assert(Binary.equal(pin2.getData(), binary1));
-        assert(Binary.equal(pin3.getData(), binary1));
-        assert(Binary.equal(pin4.getData(), binary1));
+        assert(Signal.equal(pin1.getSignal(), signal2));
+        assert(Signal.equal(pin2.getSignal(), signal1));
+        assert(Signal.equal(pin3.getSignal(), signal1));
+        assert(Signal.equal(pin4.getSignal(), signal1));
 
         // pin1.writeToNextLogicModulePins();
         pin1.writeToNextPins();
-        assert(pin1.isDataChanged);
-        assert(pin2.isDataChanged);
-        assert(pin3.isDataChanged);
-        assert(!pin4.isDataChanged);
+        assert(pin1.isSignalChanged);
+        assert(pin2.isSignalChanged);
+        assert(pin3.isSignalChanged);
+        assert(!pin4.isSignalChanged);
 
-        assert(Binary.equal(pin1.getData(), binary2));
-        assert(Binary.equal(pin2.getData(), binary2));
-        assert(Binary.equal(pin3.getData(), binary2));
-        assert(Binary.equal(pin4.getData(), binary1));
+        assert(Signal.equal(pin1.getSignal(), signal2));
+        assert(Signal.equal(pin2.getSignal(), signal2));
+        assert(Signal.equal(pin3.getSignal(), signal2));
+        assert(Signal.equal(pin4.getSignal(), signal1));
 
         // pin2.writeToNextLogicModulePins();
         pin2.writeToNextPins();
-        assert(pin4.isDataChanged);
-        assert(Binary.equal(pin4.getData(), binary2));
+        assert(pin4.isSignalChanged);
+        assert(Signal.equal(pin4.getSignal(), signal2));
     });
 });

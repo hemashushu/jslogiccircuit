@@ -13,9 +13,10 @@ const LogicModuleLoader = require('./src/logicmoduleloader');
 const LogicPackageItem = require('./src/logicpackageitem');
 const LogicPackageLoader = require('./src/logicpackageloader');
 const ModuleController = require('./src/modulecontroller');
-const ObservableSignal = require('./src/observablesignal');
+const ObservableWire = require('./src/observablewire');
 const Pin = require('./src/pin');
 const Signal = require('./src/signal');
+const Wire = require('./src/wire');
 
 module.exports = {
     LogicCircuitException: LogicCircuitException,
@@ -33,7 +34,8 @@ module.exports = {
     LogicPackageItem: LogicPackageItem,
     LogicPackageLoader: LogicPackageLoader,
     ModuleController: ModuleController,
-    ObservableSignal: ObservableSignal,
+    ObservableWire: ObservableWire,
     Pin: Pin,
-    Signal: Signal
+    Signal: Signal,
+    Wire: Wire
 };

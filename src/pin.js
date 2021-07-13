@@ -1,6 +1,6 @@
 const { IllegalArgumentException } = require('jsexception');
 
-const ObservableSignal = require('./observablesignal');
+const ObservableWire = require('./observablewire');
 
 /**
  * 逻辑模块的 I/O 端口
@@ -13,7 +13,7 @@ const ObservableSignal = require('./observablesignal');
  *   重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
  *
  */
-class Pin extends ObservableSignal {
+class Pin extends ObservableWire {
 
     /**
      * 构造 Pin 对象实例
@@ -52,10 +52,10 @@ class Pin extends ObservableSignal {
     }
 
     writeToNextPins() {
-        let data = this.getData();
+        let lastSignal = this.getSignal();
 
         for (let nextPin of this.nextPins) {
-            nextPin.setData(data);
+            nextPin.setSignal(lastSignal);
         }
     }
 
