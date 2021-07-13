@@ -5,12 +5,15 @@ const { Binary } = require('jsbinary');
 
 const { LogicPackageLoader,
     LogicModuleFactory,
-    ModuleController } = require('../index');
+    ModuleController,
+    Signal } = require('../index');
 
 describe('Test sample_logic_package_by_mix', () => {
     it('Test module controller - Full Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_mix';
         let testPath = __dirname;
@@ -41,22 +44,22 @@ describe('Test sample_logic_package_by_mix', () => {
         // 1    1    0    1    0
         // 1    1    1    1    1
 
-        let num2bin = (num) => {
-            return num === 0 ? binary0 : binary1;
+        let numberToSignal = (num) => {
+            return num === 0 ? signal0 : signal1;
         }
 
         let check = (a, b, cin, cout, s, moves) => {
             // 改变输入信号
-            A.setData(num2bin(a));
-            B.setData(num2bin(b));
-            Cin.setData(num2bin(cin));
+            A.setSignal(numberToSignal(a));
+            B.setSignal(numberToSignal(b));
+            Cin.setSignal(numberToSignal(cin));
 
             let moves1 = moduleController1.step();
             assert(moves1, moves);
 
             // 测试输出信号
-            assert(Binary.equal(Cout.getData(), num2bin(cout)));
-            assert(Binary.equal(S.getData(), num2bin(s)));
+            assert(Signal.equal(Cout.getSignal(), numberToSignal(cout)));
+            assert(Signal.equal(S.getSignal(), numberToSignal(s)));
         };
 
         check(0, 0, 0, 0, 0, 1);
@@ -72,6 +75,8 @@ describe('Test sample_logic_package_by_mix', () => {
     it('Test module controller - 4-bit Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_mix';
         let testPath = __dirname;
@@ -100,33 +105,33 @@ describe('Test sample_logic_package_by_mix', () => {
         let S3 = fourBitAdder1.getOutputPin('S3');
         let Cout = fourBitAdder1.getOutputPin('Cout');
 
-        let num2bin = (num) => {
-            return num === 0 ? binary0 : binary1;
+        let numberToSignal = (num) => {
+            return num === 0 ? signal0 : signal1;
         }
 
         let check = (a, b, c, s) => {
             let binA = Binary.fromInt32(a, 8); // 将 A 视为 4 位二进制数 {A3, A2, A1, A0}
             let binB = Binary.fromInt32(b, 8); // 将 B 视为 4 位二进制数 {B3, B2, B1, B0}
 
-            Cin.setData(num2bin(c));
-            A0.setData(num2bin(binA.getBit(0)));
-            A1.setData(num2bin(binA.getBit(1)));
-            A2.setData(num2bin(binA.getBit(2)));
-            A3.setData(num2bin(binA.getBit(3)));
+            Cin.setSignal(numberToSignal(c));
+            A0.setSignal(numberToSignal(binA.getBit(0)));
+            A1.setSignal(numberToSignal(binA.getBit(1)));
+            A2.setSignal(numberToSignal(binA.getBit(2)));
+            A3.setSignal(numberToSignal(binA.getBit(3)));
 
-            B0.setData(num2bin(binB.getBit(0)));
-            B1.setData(num2bin(binB.getBit(1)));
-            B2.setData(num2bin(binB.getBit(2)));
-            B3.setData(num2bin(binB.getBit(3)));
+            B0.setSignal(numberToSignal(binB.getBit(0)));
+            B1.setSignal(numberToSignal(binB.getBit(1)));
+            B2.setSignal(numberToSignal(binB.getBit(2)));
+            B3.setSignal(numberToSignal(binB.getBit(3)));
 
             let m = moduleController1.step();
 
             let binS = Binary.fromInt32(s, 8); // 将 S 视为 5 位二进制数 {Cout, S3, S2, S1, S0}
-            assert(Binary.equal(S0.getData(), num2bin(binS.getBit(0))));
-            assert(Binary.equal(S1.getData(), num2bin(binS.getBit(1))));
-            assert(Binary.equal(S2.getData(), num2bin(binS.getBit(2))));
-            assert(Binary.equal(S3.getData(), num2bin(binS.getBit(3))));
-            assert(Binary.equal(Cout.getData(), num2bin(binS.getBit(4))));
+            assert(Signal.equal(S0.getSignal(), numberToSignal(binS.getBit(0))));
+            assert(Signal.equal(S1.getSignal(), numberToSignal(binS.getBit(1))));
+            assert(Signal.equal(S2.getSignal(), numberToSignal(binS.getBit(2))));
+            assert(Signal.equal(S3.getSignal(), numberToSignal(binS.getBit(3))));
+            assert(Signal.equal(Cout.getSignal(), numberToSignal(binS.getBit(4))));
         };
 
         for (let a = 0; a < 15; a++) {

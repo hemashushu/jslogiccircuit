@@ -7,7 +7,8 @@ const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
 const { LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
-    ModuleController } = require('../index');
+    ModuleController,
+    Signal } = require('../index');
 
 describe('Test sample_logic_package_by_code', () => {
     it('Test load packages', async () => {
@@ -176,26 +177,27 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(andGateExt1.getModuleClassName(), 'and_gate_ext');
         assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
         assert.equal(andGateExt1.getParameter('bitWidth'), 1);
-        assert(!andGateExt1.isInputDataChanged);
-        assert(!andGateExt1.isOutputDataChanged);
+        assert(!andGateExt1.isInputSignalChanged);
+        assert(!andGateExt1.isOutputSignalChanged);
 
         let andIn0 = andGateExt1.getInputPin('in0');
         let andIn1 = andGateExt1.getInputPin('in1');
         let andOut = andGateExt1.getOutputPin('out');
 
         let binary0 = Binary.fromDecimalString(0, 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
 
         assert.equal(andIn0.name, 'in0');
         assert.equal(andIn0.bitWidth, 1);
-        assert(Binary.equal(andIn0.getData(), binary0));
+        assert(Signal.equal(andIn0.getSignal(), signal0));
 
         assert.equal(andIn1.name, 'in1');
         assert.equal(andIn1.bitWidth, 1);
-        assert(Binary.equal(andIn1.getData(), binary0));
+        assert(Signal.equal(andIn1.getSignal(), signal0));
 
         assert.equal(andOut.name, 'out');
         assert.equal(andOut.bitWidth, 1);
-        assert(Binary.equal(andOut.getData(), binary0));
+        assert(Signal.equal(andOut.getSignal(), signal0));
 
         // 加入实例化参数
         let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
@@ -231,6 +233,8 @@ describe('Test sample_logic_package_by_code', () => {
     it('Test module controller - AND gate', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_code';
         let testPath = __dirname;
@@ -238,8 +242,8 @@ describe('Test sample_logic_package_by_code', () => {
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
         let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
-        assert(!andGate1.isInputDataChanged);
-        assert(!andGate1.isOutputDataChanged);
+        assert(!andGate1.isInputSignalChanged);
+        assert(!andGate1.isOutputSignalChanged);
 
         let moduleController1 = new ModuleController(andGate1);
         assert(moduleController1.logicModule == andGate1);
@@ -248,44 +252,46 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moduleController1.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        assert(andGate1.isInputDataChanged);
-        assert(!andGate1.isOutputDataChanged);
+        assert(andGate1.isInputSignalChanged);
+        assert(!andGate1.isOutputSignalChanged);
 
         let moves1 = moduleController1.step();
         assert.equal(moves1, 1); // 只需一次更新
 
-        assert(!andGate1.isInputDataChanged);
-        assert(!andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary0));
+        assert(!andGate1.isInputSignalChanged);
+        assert(!andGate1.isOutputSignalChanged);
+        assert(Signal.equal(andGate1.getOutputPin('Q').getSignal(), signal0));
 
         // 改变输入信号为 1,1
-        andGate1.getInputPin('A').setData(binary1);
-        andGate1.getInputPin('B').setData(binary1);
-        assert(andGate1.isInputDataChanged);
-        assert(!andGate1.isOutputDataChanged);
+        andGate1.getInputPin('A').setSignal(signal1);
+        andGate1.getInputPin('B').setSignal(signal1);
+        assert(andGate1.isInputSignalChanged);
+        assert(!andGate1.isOutputSignalChanged);
 
         let moves2 = moduleController1.step();
         assert.equal(moves2, 1);
-        assert(!andGate1.isInputDataChanged);
-        assert(andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary1));
+        assert(!andGate1.isInputSignalChanged);
+        assert(andGate1.isOutputSignalChanged);
+        assert(Signal.equal(andGate1.getOutputPin('Q').getSignal(), signal1));
 
         // 改变输入信号为 1,0
-        andGate1.getInputPin('A').setData(binary1);
-        andGate1.getInputPin('B').setData(binary0);
-        assert(andGate1.isInputDataChanged);
-        assert(andGate1.isOutputDataChanged);
+        andGate1.getInputPin('A').setSignal(signal1);
+        andGate1.getInputPin('B').setSignal(signal0);
+        assert(andGate1.isInputSignalChanged);
+        assert(andGate1.isOutputSignalChanged);
 
         let moves3 = moduleController1.step();
         assert.equal(moves3, 1);
-        assert(!andGate1.isInputDataChanged);
-        assert(andGate1.isOutputDataChanged);
-        assert(Binary.equal(andGate1.getOutputPin('Q').getData(), binary0));
+        assert(!andGate1.isInputSignalChanged);
+        assert(andGate1.isOutputSignalChanged);
+        assert(Signal.equal(andGate1.getOutputPin('Q').getSignal(), signal0));
     });
 
     it('Test module controller - NOR gate', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_code';
         let testPath = __dirname;
@@ -293,8 +299,8 @@ describe('Test sample_logic_package_by_code', () => {
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
-        assert(!norGate1.isInputDataChanged);
-        assert(!norGate1.isOutputDataChanged);
+        assert(!norGate1.isInputSignalChanged);
+        assert(!norGate1.isOutputSignalChanged);
 
         let moduleController2 = new ModuleController(norGate1);
         assert(moduleController2.logicModule == norGate1);
@@ -303,38 +309,38 @@ describe('Test sample_logic_package_by_code', () => {
         assert.equal(moduleController2.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        assert(norGate1.isInputDataChanged);
-        assert(!norGate1.isOutputDataChanged);
+        assert(norGate1.isInputSignalChanged);
+        assert(!norGate1.isOutputSignalChanged);
 
         let movesb1 = moduleController2.step();
         assert.equal(movesb1, 1); // 只需一次更新
 
-        assert(!norGate1.isInputDataChanged);
-        assert(norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary1));
+        assert(!norGate1.isInputSignalChanged);
+        assert(norGate1.isOutputSignalChanged);
+        assert(Signal.equal(norGate1.getOutputPin('Q').getSignal(), signal1));
 
         // 改变输入信号为 1,1
-        norGate1.getInputPin('A').setData(binary1);
-        norGate1.getInputPin('B').setData(binary1);
-        assert(norGate1.isInputDataChanged);
-        assert(norGate1.isOutputDataChanged);
+        norGate1.getInputPin('A').setSignal(signal1);
+        norGate1.getInputPin('B').setSignal(signal1);
+        assert(norGate1.isInputSignalChanged);
+        assert(norGate1.isOutputSignalChanged);
 
         let movesb2 = moduleController2.step();
         assert.equal(movesb2, 1);
-        assert(!norGate1.isInputDataChanged);
-        assert(norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary0));
+        assert(!norGate1.isInputSignalChanged);
+        assert(norGate1.isOutputSignalChanged);
+        assert(Signal.equal(norGate1.getOutputPin('Q').getSignal(), signal0));
 
         // 改变输入信号为 1,0
-        norGate1.getInputPin('A').setData(binary1);
-        norGate1.getInputPin('B').setData(binary0);
-        assert(norGate1.isInputDataChanged);
-        assert(norGate1.isOutputDataChanged);
+        norGate1.getInputPin('A').setSignal(signal1);
+        norGate1.getInputPin('B').setSignal(signal0);
+        assert(norGate1.isInputSignalChanged);
+        assert(norGate1.isOutputSignalChanged);
 
         let movesb3 = moduleController2.step();
         assert.equal(movesb3, 1);
-        assert(!norGate1.isInputDataChanged);
-        assert(!norGate1.isOutputDataChanged);
-        assert(Binary.equal(norGate1.getOutputPin('Q').getData(), binary0));
+        assert(!norGate1.isInputSignalChanged);
+        assert(!norGate1.isOutputSignalChanged);
+        assert(Signal.equal(norGate1.getOutputPin('Q').getSignal(), signal0));
     });
 });

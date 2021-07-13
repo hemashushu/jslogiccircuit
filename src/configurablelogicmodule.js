@@ -86,9 +86,11 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     addConnectionItemByDetail(name,
         previousModuleName, previousPinName,
         nextModuleName, nextPinName) {
+
         let connectionItem = new ConnectionItem(name,
             previousModuleName, previousPinName,
             nextModuleName, nextPinName);
+
         this.addConnectionItem(connectionItem);
         return connectionItem;
     }
@@ -104,7 +106,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         if (connectionItem.previousModuleName === undefined ||
             connectionItem.previousModuleName === null ||
             connectionItem.previousModuleName === '') {
-            // 连接模块自身的 input pin 与内部子模块的 input pin
+            // 连接模块自身的 input pin 到内部子模块的 input pin
 
             let moduleInputPin = this.getInputPin(connectionItem.previousPinName);
             if (moduleInputPin === undefined) {
@@ -129,7 +131,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
         } else if (connectionItem.nextModuleName === undefined ||
             connectionItem.nextModuleName === null ||
             connectionItem.nextModuleName === '') {
-            // 连接模块自身的 output pin 与内部子模块的 output pin
+            // 连接内部子模块的 output pin 到模块自身的 output pin
 
             let moduleOutputPin = this.getOutputPin(connectionItem.nextPinName);
             if (moduleOutputPin === undefined) {
@@ -152,7 +154,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
             ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
 
         } else {
-            // 连接两个子模块的 output pin 与 input pin
+            // 连接两个子模块的 output pin 到 input pin
 
             let previousLogicModule = this.getLogicModule(connectionItem.previousModuleName);
             if (previousLogicModule === undefined) {
@@ -185,9 +187,9 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     }
 
     // override
-    writeChildModuleInputPins() {
+    transferInputPinSignal() {
         // 配置型逻辑模块（ConfigurableLogicModule）没有自己的业务逻辑代码，
-        // input pins 的状态需要传递到下游/内部的子模块
+        // input pins 的状态需要传递到内部的子模块
         for (let inputPin of this.inputPins) {
             if (inputPin.isSignalChanged) {
                 inputPin.writeToNextPins();
@@ -198,21 +200,18 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     getAllLogicModules() {
         let allLogicModules = [];
 
-        // 对于一个含有子模块的逻辑模块，其状态更新过程大致经历如下三个过程：
-        // 1. writeChildModuleInputPins
-        // 2. 重新计算内部信号/数据
-        // 3. writeOutputPins
+        // 对于一个含有子模块的逻辑模块，其信号的更新过程大致经历如下三个过程：
+        // 1. transferInputPinSignal
+        // 2. 重新计算内部状态/信号
+        // 3. transferOutputPinSignal
         //
-        // 其中第一步 writeChildModuleInputPins 时，需要先让最外围的模块确保（ensure）
-        // 输入端口的信号，然后让内部模块确保输入端口信号，最后让内部模块的
-        // 内部模块确保输入信号，因为信号是由外部“传入”内部的。
+        // 其中第一步 transferInputPinSignal，是从最外围的模块 “传入” 最内部的。
+        // 到了第三步 transferOutputPinSignal，则过程刚好相反，应该先让最内部的子模块
+        // 输出信号，然后让中间模块输出信号，最后让最外围（本模块）
+        // 输出信号（到本模块的 output pins）。
         //
-        // 到了第三步 writeOutputPins，则过程刚好相反，应该先让最内部的子模块
-        // 写输出信号，然后让中间模块写输出信号，最后让最外围的本模块
-        // 写输出信号（到模块的 output pins）。
-        //
-        // 下面的列表是按照 writeChildModuleInputPins 所需的顺序组织模块的顺序，只需把这个
-        // 列表倒转，就能得到 writeOutputPins 所需的顺序。
+        // 下面的列表是按照 transferInputPinSignal 所需的顺序组织模块的顺序，
+        // 把这个列表倒转即得到满足 transferOutputPinSignal 所需的顺序。
 
         allLogicModules.push(this);
 

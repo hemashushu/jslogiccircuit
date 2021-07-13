@@ -8,7 +8,8 @@ const { LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
     ModuleController,
-    OscillatingException } = require('../index');
+    OscillatingException,
+    Signal } = require('../index');
 
 describe('Test sample_logic_package_by_config', () => {
     it('Test load packages', async () => {
@@ -127,8 +128,8 @@ describe('Test sample_logic_package_by_config', () => {
         assert(ObjectUtils.isEmpty(halfAdder1.parameters));
         assert.equal(halfAdder1.getPackageName(), packageName);
         assert.equal(halfAdder1.getModuleClassName(), 'half_adder');
-        assert(!halfAdder1.isInputDataChanged);
-        assert(!halfAdder1.isOutputDataChanged);
+        assert(!halfAdder1.isInputSignalChanged);
+        assert(!halfAdder1.isOutputSignalChanged);
 
         assert.equal(halfAdder1.getInputPins().length, 2);
         assert.equal(halfAdder1.getOutputPins().length, 2);
@@ -141,22 +142,23 @@ describe('Test sample_logic_package_by_config', () => {
         let C = halfAdder1.getOutputPin('C');
 
         let binary0 = Binary.fromDecimalString(0, 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
 
         assert.equal(A.name, 'A');
         assert.equal(A.bitWidth, 1);
-        assert(Binary.equal(A.getData(), binary0));
+        assert(Signal.equal(A.getSignal(), signal0));
 
         assert.equal(B.name, 'B');
         assert.equal(B.bitWidth, 1);
-        assert(Binary.equal(B.getData(), binary0));
+        assert(Signal.equal(B.getSignal(), signal0));
 
         assert.equal(S.name, 'S');
         assert.equal(S.bitWidth, 1);
-        assert(Binary.equal(S.getData(), binary0));
+        assert(Signal.equal(S.getSignal(), signal0));
 
         assert.equal(C.name, 'C');
         assert.equal(C.bitWidth, 1);
-        assert(Binary.equal(C.getData(), binary0));
+        assert(Signal.equal(C.getSignal(), signal0));
 
         let and1 = halfAdder1.getLogicModule('and1');
         assert.equal(and1.name, 'and1');
@@ -188,6 +190,8 @@ describe('Test sample_logic_package_by_config', () => {
     it('Test module controller - Half Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_config';
         let testPath = __dirname;
@@ -195,8 +199,8 @@ describe('Test sample_logic_package_by_config', () => {
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
         let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
-        assert(!halfAdder1.isInputDataChanged);
-        assert(!halfAdder1.isOutputDataChanged);
+        assert(!halfAdder1.isInputSignalChanged);
+        assert(!halfAdder1.isOutputSignalChanged);
         let moduleController1 = new ModuleController(halfAdder1);
 
         assert(moduleController1.logicModule == halfAdder1);
@@ -217,50 +221,52 @@ describe('Test sample_logic_package_by_config', () => {
         // 1 1 1 0
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        assert(halfAdder1.isInputDataChanged);
-        assert(!halfAdder1.isOutputDataChanged);
+        assert(halfAdder1.isInputSignalChanged);
+        assert(!halfAdder1.isOutputSignalChanged);
 
         let moves1 = moduleController1.step();
         assert.equal(moves1, 1); // 只需一次更新
 
-        assert(!halfAdder1.isInputDataChanged);
-        assert(!halfAdder1.isOutputDataChanged);
-        assert(Binary.equal(S.getData(), binary0));
-        assert(Binary.equal(C.getData(), binary0));
+        assert(!halfAdder1.isInputSignalChanged);
+        assert(!halfAdder1.isOutputSignalChanged);
+        assert(Signal.equal(S.getSignal(), signal0));
+        assert(Signal.equal(C.getSignal(), signal0));
 
         // 改变输入信号为 0,1
-        A.setData(binary0);
-        B.setData(binary1);
-        assert(halfAdder1.isInputDataChanged);
-        assert(!halfAdder1.isOutputDataChanged);
+        A.setSignal(signal0);
+        B.setSignal(signal1);
+        assert(halfAdder1.isInputSignalChanged);
+        assert(!halfAdder1.isOutputSignalChanged);
 
         let moves2 = moduleController1.step();
         assert.equal(moves2, 1);
-        assert(!halfAdder1.isInputDataChanged);
-        assert(halfAdder1.isOutputDataChanged);
-        assert(Binary.equal(S.getData(), binary1));
-        assert(Binary.equal(C.getData(), binary0));
+        assert(!halfAdder1.isInputSignalChanged);
+        assert(halfAdder1.isOutputSignalChanged);
+        assert(Signal.equal(S.getSignal(), signal1));
+        assert(Signal.equal(C.getSignal(), signal0));
 
         // 改变输入信号为 1,0
-        A.setData(binary1);
-        B.setData(binary0);
+        A.setSignal(signal1);
+        B.setSignal(signal0);
         let moves3 = moduleController1.step();
         assert.equal(moves3, 1);
-        assert(Binary.equal(S.getData(), binary1));
-        assert(Binary.equal(C.getData(), binary0));
+        assert(Signal.equal(S.getSignal(), signal1));
+        assert(Signal.equal(C.getSignal(), signal0));
 
         // 改变输入信号为 1,1
-        A.setData(binary1);
-        B.setData(binary1);
+        A.setSignal(signal1);
+        B.setSignal(signal1);
         let moves4 = moduleController1.step();
         assert.equal(moves4, 1);
-        assert(Binary.equal(S.getData(), binary0));
-        assert(Binary.equal(C.getData(), binary1));
+        assert(Signal.equal(S.getSignal(), signal0));
+        assert(Signal.equal(C.getSignal(), signal1));
     });
 
     it('Test module controller - RS NOR latch', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
 
         let packageName = 'sample_logic_package_by_config';
         let testPath = __dirname;
@@ -268,8 +274,8 @@ describe('Test sample_logic_package_by_config', () => {
         await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
 
         let rs1 = LogicModuleFactory.createModuleInstance(packageName, 'rs', 'rs1');
-        assert(!rs1.isInputDataChanged);
-        assert(!rs1.isOutputDataChanged);
+        assert(!rs1.isInputSignalChanged);
+        assert(!rs1.isOutputSignalChanged);
         let moduleController1 = new ModuleController(rs1);
 
         assert(moduleController1.logicModule == rs1);
@@ -296,42 +302,42 @@ describe('Test sample_logic_package_by_config', () => {
         // RS 一开始就输入 0,0，输出的数据是不确定的。
 
         // 设定第一次输入数据为 1,0
-        R.setData(binary1);
-        S.setData(binary0);
-        assert(rs1.isInputDataChanged);
-        assert(!rs1.isOutputDataChanged);
+        R.setSignal(signal1);
+        S.setSignal(signal0);
+        assert(rs1.isInputSignalChanged);
+        assert(!rs1.isOutputSignalChanged);
 
         let moves1 = moduleController1.step();
         assert.equal(moves1, 2); // 需2次更新
 
-        assert(!rs1.isInputDataChanged);
-        assert(!rs1.isOutputDataChanged);
-        assert(Binary.equal(Q.getData(), binary0));
-        assert(Binary.equal(Qneg.getData(), binary1));
+        assert(!rs1.isInputSignalChanged);
+        assert(!rs1.isOutputSignalChanged);
+        assert(Signal.equal(Q.getSignal(), signal0));
+        assert(Signal.equal(Qneg.getSignal(), signal1));
 
         // 改变输入信号为 0,0
-        R.setData(binary0);
-        S.setData(binary0);
+        R.setSignal(signal0);
+        S.setSignal(signal0);
         let moves2 = moduleController1.step();
         assert.equal(moves2, 1);
-        assert(Binary.equal(Q.getData(), binary0));
-        assert(Binary.equal(Qneg.getData(), binary1));
+        assert(Signal.equal(Q.getSignal(), signal0));
+        assert(Signal.equal(Qneg.getSignal(), signal1));
 
         // 改变输入信号为 0,1
-        R.setData(binary0);
-        S.setData(binary1);
+        R.setSignal(signal0);
+        S.setSignal(signal1);
         let moves3 = moduleController1.step();
         assert.equal(moves3, 3);
-        assert(Binary.equal(Q.getData(), binary1));
-        assert(Binary.equal(Qneg.getData(), binary0));
+        assert(Signal.equal(Q.getSignal(), signal1));
+        assert(Signal.equal(Qneg.getSignal(), signal0));
 
         // 改变输入信号为 0,0
-        R.setData(binary0);
-        S.setData(binary0);
+        R.setSignal(signal0);
+        S.setSignal(signal0);
         let moves4 = moduleController1.step();
         assert.equal(moves4, 1);
-        assert(Binary.equal(Q.getData(), binary1));
-        assert(Binary.equal(Qneg.getData(), binary0));
+        assert(Signal.equal(Q.getSignal(), signal1));
+        assert(Signal.equal(Qneg.getSignal(), signal0));
     });
 
     it('Test module controller - Oscillation', async () => {

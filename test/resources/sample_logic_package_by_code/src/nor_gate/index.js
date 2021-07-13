@@ -1,4 +1,4 @@
-const { AbstractLogicModule } = require('../../../../../index');
+const { AbstractLogicModule, Signal } = require('../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
@@ -23,11 +23,12 @@ class NorGate extends AbstractLogicModule {
     }
 
     // override
-    updateModuleDataAndOutputPinsData() {
-        let data1 = this.inputPins[0].getData();
-        let data2 = this.inputPins[1].getData();
-        let resultData = Binary.nor(data1, data2);
-        this.outputPins[0].setData(resultData);
+    updateModuleStateAndOutputPinsSignal() {
+        let signal1 = this.inputPins[0].getSignal();
+        let siangl2 = this.inputPins[1].getSignal();
+        let resultBinary = Binary.nor(signal1.getBinary(), siangl2.getBinary());
+        let resultSignal = Signal.createWithoutHighZ(1, resultBinary);
+        this.outputPins[0].setSignal(resultSignal);
     }
 }
 

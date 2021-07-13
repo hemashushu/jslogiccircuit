@@ -29,7 +29,7 @@ class ObservableWire extends Wire {
     }
 
     /**
-     * 重写（override） Wire.setData() 方法。
+     * 重写（override） Wire.setSignal() 方法。
      * 当信号值发生改变时，标记 isSignalChanged 为 true，然后
      * 触发 signalChange 事件。
      *

@@ -122,7 +122,8 @@ class LogicPackageLoader {
      * @returns LogicPackageItem
      */
     static async loadLogicPackage(packageRepositoryDirectory, packageName, localeCode = 'en') {
-        // 逻辑包名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        // - 逻辑包名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        // - 名称需同时符合 npm package 命名规范
         if (!/^[a-zA-Z_][\w\$]*$/.test(packageName)) {
             throw new LogicCircuitException(
                 `Invalid logic package name "${packageName}".`);

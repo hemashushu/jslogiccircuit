@@ -44,7 +44,7 @@ describe('Pin Test', () => {
             assert(Signal.equal(signal, signal1));
             assert(pin1.isSignalChanged);
 
-            // 重置 dataChanged 标记
+            // 重置 signalChanged 标记
             pin1.clearSignalChangedFlag();
             assert(!pin1.isSignalChanged);
 
@@ -79,7 +79,7 @@ describe('Pin Test', () => {
         assert(pin2.isSignalChanged);
         assert(Signal.equal(pin2.getSignal(), signal2));
 
-        // 重置 dataChanged 标记
+        // 重置 signalChanged 标记
         pin1.clearSignalChangedFlag();
         pin2.clearSignalChangedFlag();
 

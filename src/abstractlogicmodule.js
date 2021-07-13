@@ -17,8 +17,8 @@ class AbstractLogicModule {
     /**
      * 实例化逻辑模块（类）
      *
-     * 使用代码方式继承此类以实现逻辑模块功能的模块，需要保持
-     * 构造函数的签名不变。
+     * - 继承此类时，需要保持构造函数的签名不变。除非确实不需要 instanceParameters 和
+     *   defaultParameters。
      *
      * @param {*} instanceName 模块实例的名称，只可以
      *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
@@ -66,36 +66,32 @@ class AbstractLogicModule {
         // 输出的端口集合
         this.outputPins = [];
 
-        // 表示源数据有变化，需要重新计算模块的数据。
-        //
-        // isInputDataChanged 属性对于外部并无多少意义，
-        // 都是只对 ModuleController.step 方法有意义。
-        this.isInputDataChanged = false;
+        // 表示输入信号有变化，需要重新计算模块的状态。
+        this.isInputSignalChanged = false;
 
-        // 表示重新计算后，模块的数据有变化，需要传递数据（给其他模块）。
+        // 表示重新计算后，模块的状态有变化，需要传递信号给其他模块。
         //
         // 注意，对于复杂的逻辑模块，可能会包含有子模块，每次更新状态（ModuleController.step 方法）
-        // 可能需要次循环才完成，这个 isOutputDataChanged 只记录了最后一次循环是否存在
-        // 输出变化的情况。
+        // 可能需要多次循环才完成，这个 isOutputSignalChanged 只记录了最后一次循环是否存在
+        // 输出变化的情况。所以存在输出信号在中间某次循环已经传输，而最后一次循环并不需输出
+        // 的情况（因为最后一次循环输出信号没变化），这时候 isOutputDataChanged 的值为 false，但对于
+        // 完整的一次更新周期来说，其实（中途）有输出数据变化。因此不能通过这个
+        // 标记（isOutputDataChanged）用于判断模块的输出有无变化。
         //
-        // 所以存在输出数据在中间某次循环已经输出，而最后一次循环并不需输出（因为输出信号没变化）
-        // 的情况，这时候，isOutputDataChanged 的值为 false，但对于当次更新来说，其实是（中途）有
-        // 输出数据变化。因此不能通过这个标记（isOutputDataChanged）用于判断模块的输出
-        // 有无变化。
         // 也就是说，对于 ModuleController.step 方法完成之后，isOutputDataChanged 属性对于外部
-        // 并无多少意义，跟 isInputDataChanged 属性一样，都是只对 ModuleController.step 方法有意义。
-        this.isOutputDataChanged = false;
+        // 并无多少意义，跟 isInputSignalChanged 属性一样，都是仅供 ModuleController.step 方法所使用。
+        this.isOutputSignalChanged = false;
     }
 
     /**
      * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
-     * 不应该是 0，比如 “非门”，默认输入值为 0，则正确的默认输出值应该为 1。
-     * 对于这种情况，模拟控制器采用的方法是，在模拟刚开始的时候，将所有
+     * 不应该是 0，比如 “非门” 的实现的初始输出值为 0，而正确的初始输出值应该为 1。
+     * 对于这种情况，模块控制器（ModuleController）采用的方法是，在模拟刚开始的时候，将所有
      * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
-     * 重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
+     * 重新计算自己（内部）的信号值，然后改变输出信号，最后达到稳定且正确的状态。
      */
-    markInputDataChangedFlag() {
-        this.isInputDataChanged = true;
+    markupInputSignalChangedFlag() {
+        this.isInputSignalChanged = true;
     }
 
     getAllLogicModules() {
@@ -107,34 +103,26 @@ class AbstractLogicModule {
      *
      * 更新周期的第 A1 步。
      */
-    writeChildModuleInputPins() {
-        // 当部分 input pin 数据发生改变时（input pin 的 setData 方法被调用），会
-        // 引起本模块的 isInputDataChanged 标记设置为 true。
+    transferInputPinSignal() {
+        // 当部分 input pin 数据发生改变时（input pin 的 setSignal 方法被调用），会
+        // 引起本模块的 isInputSignalChanged 标记设置为 true。
         //
         // 对于简单的逻辑模块，比如 AND，XOR 等逻辑门模块，并不需要额外
-        // 读取 input pins 的数据，因为外界已经通过 input pin 的 setData
-        // 方法更新了 input pin 的数据，在 updateModuleDataAndOutputPinsData()
+        // 读取 input pins 的数据，因为外界已经通过 transferOutputPinSignal()
+        // 方法更新了当前 input pin 的数据，在 updateModuleStateAndOutputPinsSignal()
         // 方法内部只需直接读取 input pin 的数据即可。
         //
-        // 但对于多层次的逻辑模块（即模块里又包含其他模块），本模块的 input pins 可能
-        // 直接连接到内部的子模块，则需要将信号/数据
-        // 发生改变的 input pin 的数据读取并传播到内部模块，否则内部模块不知道外界
-        // 的数据变化。此方法用于确保内部的子模块得到最新的输入数据。
-        //
-        // 模块和模块之间的信号传递，即：
-        // - 上一个模块的 output pin 传到下一个模块的 input pin
-        // - 子模块的 output pin 传到父模块的 output pin
-        // 都是通过 writeOutputPins() 方法实现的，但该方法
-        // 未能覆盖模块的 input pin 传递到内部模块的 input pin 的情况。
-        // 所以方法 writeChildModuleInputPins() 也可以视作 writeOutputPins() 方法的
-        // 补充，以实现所有信号的正确传递。
+        // 但对于多层次的逻辑模块（即模块里包含子模块），本模块的 input pins 可能
+        // 直接连接到内部的子模块的 input pins，则需要将信号
+        // 发生改变的 input pin 的信号传播到内部模块，否则内部模块不知道外界
+        // 的信号变化。此方法用于确保内部的子模块得到最新的输入信号。
     }
 
     /**
      *
      * 更新周期的第 A2 步。
      */
-    clearOutputPinsDataChangedFlag() {
+    clearOutputPinsSignalChangedFlag() {
         for (let outputPin of this.outputPins) {
             outputPin.clearSignalChangedFlag();
         }
@@ -144,25 +132,27 @@ class AbstractLogicModule {
      *
      * 更新周期的第 A3 步。
      */
-    clearOutputDataChangedFlag() {
-        this.isOutputDataChanged = false;
+    clearOutputSignalChangedFlag() {
+        this.isOutputSignalChanged = false;
     }
 
     /**
      *
      * 更新周期的第 A4 步。
      */
-    updateModuleDataAndOutputPinsData() {
-        // 1. get data from input pins
-        // 2. calculate/generate new data
-        // 3. update output pins data
+    updateModuleStateAndOutputPinsSignal() {
+        // 这里是模块的 “业务逻辑” 代码的主要所在地，需要
+        // 完成以下任务：
+        // 1. get latest signal from input pins
+        // 2. calculate/generate new signal/state
+        // 3. update output pins signal
     }
 
     /**
      *
      * 更新周期的第 B1 步。
      */
-    clearInputPinDataChangedFlags() {
+    clearInputPinsSignalChangedFlag() {
         for (let inputPin of this.inputPins) {
             inputPin.clearSignalChangedFlag();
         }
@@ -172,22 +162,22 @@ class AbstractLogicModule {
      *
      * 更新周期的第 B2 步。
      */
-    clearInputDataChangedFlag() {
-        this.isInputDataChanged = false;
+    clearInputSignalChangedFlag() {
+        this.isInputSignalChanged = false;
     }
 
     /**
      *
      * 更新周期的第 B3 步。
      */
-    writeOutputPins() {
+    transferOutputPinSignal() {
 
         // 实现模块之间的信号传递，即：
         // - 上一个模块的 output pin 传到下一个模块的 input pin
         // - 子模块的 output pin 传到父模块的 output pin
         //
         // 对于父模块的 input pin 传到 子模块的 input pin，则使用
-        // writeChildModuleInputPins() 方法实现。
+        // transferInputPinSignal() 方法实现。
 
         for (let outputPin of this.outputPins) {
             if (outputPin.isSignalChanged) {
@@ -213,7 +203,7 @@ class AbstractLogicModule {
         this.inputPins.push(inputPin);
 
         inputPin.addSignalChangeEventListener(() => {
-            this.isInputDataChanged = true;
+            this.isInputSignalChanged = true;
         });
     }
 
@@ -227,13 +217,13 @@ class AbstractLogicModule {
         this.outputPins.push(outputPin);
 
         outputPin.addSignalChangeEventListener(() => {
-            this.isOutputDataChanged = true;
+            this.isOutputSignalChanged = true;
         });
     }
 
     /**
      * LogicModule 实现所在的包的名称
-     * 名称需符合 npm package 命名规范
+     * 名称需同时符合 npm package 命名规范
      *
      * @returns 返回名称字符串
      */
@@ -244,7 +234,6 @@ class AbstractLogicModule {
 
     /**
      * LogicModule 实现的名称
-     * 名称需符合 npm package 命名规范
      *
      * @returns 返回名称字符串
      */
