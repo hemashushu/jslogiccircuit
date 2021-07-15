@@ -4,4 +4,3 @@ description: Logic "NOR" Gate
 description[zh_CN]: 逻辑 “或非门”
 iconFilename: icon.png
 group: "Logic"
-document: "Document about NOR gate"

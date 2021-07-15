@@ -3,4 +3,3 @@ description: Half Adder by XOR and AND Gates
 # https://en.wikipedia.org/wiki/Adder_(electronics)
 iconFilename: icon.png
 group: "Combinatorial"
-document: "Document about Half Adder"

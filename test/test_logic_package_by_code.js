@@ -76,7 +76,7 @@ describe('Test sample_logic_package_by_code', () => {
             'iconFilename',
             'description',
             'pins',
-            'document'
+            'documentIds'
         ];
 
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[0]);
@@ -98,7 +98,7 @@ describe('Test sample_logic_package_by_code', () => {
                 { name: 'B', description: 'Input pin B' },
                 { name: 'Q', description: 'Output pin Q. The value of Q is `A & B`' }
             ],
-            document: 'Document about AND gate'
+            documentIds: ['and_gate']
         };
 
         assert(ObjectUtils.equals(
@@ -117,7 +117,7 @@ describe('Test sample_logic_package_by_code', () => {
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate Extension',
             pins: [],
-            document: 'Document about AND gate extension'
+            documentIds: []
         };
 
         assert(ObjectUtils.equals(
@@ -136,7 +136,7 @@ describe('Test sample_logic_package_by_code', () => {
             iconFilename: 'icon.png',
             description: 'Logic "NOR" Gate',
             pins: [],
-            document: 'Document about NOR gate'
+            documentIds: []
         };
 
         assert(ObjectUtils.equals(

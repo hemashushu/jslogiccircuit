@@ -3,7 +3,8 @@ description: Logic "AND" Gate
 # https://en.wikipedia.org/wiki/Logic_gate
 iconFilename: icon.png
 group: "Logic"
-document: "Document about AND gate"
+documentIds:
+  - and_gate
 pins:
   - name: A
     description: Input pin A

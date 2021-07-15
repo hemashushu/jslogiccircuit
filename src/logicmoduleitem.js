@@ -16,7 +16,8 @@ class LogicModuleItem {
      * @param {*} iconFilename 模块的图标文件名称，图标一般为 512x512 的 PNG 格式图片。
      * @param {*} description 模块的描述及说明文本。可本地化。
      * @param {*} pins 对输入输出端口的描述，name 支持正则表达式，description 可本地化。
-     * @param {*} document 模块的详细说明文档，Markdown 格式。可本地化。
+     * @param {*} documentIds 模块的详细说明文档，指向 doc 的里面的文档的 id 的列表，用于生成
+     *     类似 MDN 文档的 'see also' 列表。
      *
      */
     constructor(
@@ -30,7 +31,7 @@ class LogicModuleItem {
         iconFilename,
         description,
         pins,
-        document) {
+        documentIds = []) {
 
         this.packageName = packageName;
         this.moduleClassName = moduleClassName;
@@ -43,7 +44,7 @@ class LogicModuleItem {
         this.iconFilename = iconFilename;
         this.description = description;
         this.pins = pins;
-        this.document = document;
+        this.documentIds = documentIds;
     }
 }
 

@@ -24,4 +24,3 @@ defaultParameters:
     #   - 4
     #   - 8
 group: "Logic"
-document: "Document about AND gate extension"

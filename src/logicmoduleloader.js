@@ -107,7 +107,7 @@ class LogicModuleLoader {
         let title = LocaleProperty.getValue(moduleConfig, 'title', localeCode);
         let group = LocaleProperty.getValue(moduleConfig, 'group', localeCode);
         let description = LocaleProperty.getValue(moduleConfig, 'description', localeCode);
-        let document = LocaleProperty.getValue(moduleConfig, 'document', localeCode);
+
         let pins = [];
 
         if (moduleConfig.pins !== undefined) {
@@ -121,6 +121,7 @@ class LogicModuleLoader {
 
         // TODO:: 模块的配置文件可能还包括：图文框、测试用例、演示数据、布局等等信息。
 
+        let documentIds = moduleConfig.documentIds;
         let iconFilename = moduleConfig.iconFilename;
 
         let defaultParameters = {};
@@ -168,7 +169,7 @@ class LogicModuleLoader {
             packageName, moduleClassName, moduleClass, defaultParameters,
             title, group,
             moduleFilePath,
-            iconFilename, description, pins, document);
+            iconFilename, description, pins, documentIds);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
 

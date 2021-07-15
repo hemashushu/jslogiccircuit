@@ -224,6 +224,7 @@ class LogicPackageLoader {
             name, title,
             dependencyPackageNames, moduleClassNames, mainModule,
             logicPackagePath,
+            false,
             version, author, homepage,
             iconFilename, description);
 

@@ -73,7 +73,7 @@ describe('Test sample_logic_package_by_config', () => {
             'title',
             'iconFilename',
             'description',
-            'document'
+            'documentIds'
         ];
 
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'half_adder');
@@ -86,7 +86,7 @@ describe('Test sample_logic_package_by_config', () => {
             group: 'Combinatorial',
             iconFilename: 'icon.png',
             description: 'Half Adder by XOR and AND Gates',
-            document: 'Document about Half Adder'
+            documentIds: []
         };
 
         assert(ObjectUtils.equals(
@@ -104,7 +104,7 @@ describe('Test sample_logic_package_by_config', () => {
             group: 'Sequential',
             iconFilename: 'icon.png',
             description: 'RS NOR latch',
-            document: 'Document about RS NOR latch'
+            documentIds: []
         };
 
         assert(ObjectUtils.equals(
