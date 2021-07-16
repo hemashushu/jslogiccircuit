@@ -1,8 +1,10 @@
-const { LogicModuleNotFoundException } = require('./exception/logicmodulenotfoundexception');
+const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
+const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
 
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
 const PinDirection = require('./pindirection');
+const LogicPackageLoader = require('./logicpackageloader');
 
 /**
  * 通过代码或者配置文件创建逻辑模块
@@ -37,6 +39,12 @@ class LogicModuleFactory {
      */
     static createModuleInstance(packageName, moduleClassName,
         instanceName, instanceParameters = {}) {
+
+        if (!LogicPackageLoader.existPackageItem(packageName)){
+            throw new LogicPackageNotFoundException(
+                `Can not find the specified package "${packageName}".`,
+                packageName);
+        }
 
         let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 

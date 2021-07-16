@@ -1,6 +1,6 @@
-const { Binary, Signal } = require('jsbinary');
+const { Binary } = require('jsbinary');
 
-const { AbstractLogicModule, PinDirection } = require('../../../../../../index');
+const { Signal, AbstractLogicModule, PinDirection } = require('../../../../../../index');
 
 /**
  * 逻辑与门

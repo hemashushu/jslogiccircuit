@@ -6,18 +6,18 @@ const { PackageResourceLocator } = require('../index');
 const BASE_CONFIG_FILE_NAME = 'package.json';
 const DETAIL_CONFIG_FILE_NAME = 'logic-package.yaml';
 const MODULE_DIRECTORY_NAME = 'module';
-const VALIDATE_DIRECTORY_NAME = 'validate'
+const TEST_DIRECTORY_NAME = 'test';
 const DATA_DIRECTORY_NAME = 'data';
 const DOCUMENT_DIRECTORY_NAME = 'doc';
 const SIMULATION_DIRECTORY_NAME = 'simulation';
 const SOURCE_DIRECTORY_NAME = 'src';
-const MODULE_TEST_DIRECTORY_NAME ='test';
+const VALIDATE_DIRECTORY_NAME = 'validate'
 
 const MODULE_CONFIG_FILE_NAME = 'logic-module.yaml';
 const MODULE_STRUCT_FILE_NAME = 'struct.yaml'
 
-describe('Test package and module resource locator', ()=>{
-    it('Test PackageResourceLocator', ()=>{
+describe('Test package and module resource locator', () => {
+    it('Test PackageResourceLocator', () => {
         let testDirectory = __dirname;
         let testResourceDirectory = path.join(testDirectory, 'resources');
         let repositoryPath1 = path.join(testResourceDirectory, 'package-repository-1');
@@ -38,7 +38,7 @@ describe('Test package and module resource locator', ()=>{
             path.join(packagePath1, MODULE_DIRECTORY_NAME));
 
         assert.equal(packageResourceLocator1.getTestDirectory(),
-            path.join(packagePath1, VALIDATE_DIRECTORY_NAME));
+            path.join(packagePath1, TEST_DIRECTORY_NAME));
 
         assert.equal(packageResourceLocator1.getDataDirectory(),
             path.join(packagePath1, DATA_DIRECTORY_NAME));
@@ -52,11 +52,11 @@ describe('Test package and module resource locator', ()=>{
         assert.equal(packageResourceLocator1.getSourceDirectory(),
             path.join(packagePath1, SOURCE_DIRECTORY_NAME));
 
-        assert.equal(packageResourceLocator1.getModuleTestDirectory(),
-            path.join(packagePath1, MODULE_TEST_DIRECTORY_NAME    ));
+        assert.equal(packageResourceLocator1.getValidateDirectory(),
+            path.join(packagePath1, VALIDATE_DIRECTORY_NAME));
     });
 
-    it('Test ModuleResourceLocator',()=>{
+    it('Test ModuleResourceLocator', () => {
         let testDirectory = __dirname;
         let testResourceDirectory = path.join(testDirectory, 'resources');
         let repositoryPath1 = path.join(testResourceDirectory, 'package-repository-1');
@@ -69,7 +69,7 @@ describe('Test package and module resource locator', ()=>{
         assert.equal(moduleDirectory,
             path.join(packageResourceLocator1.getModuleDirectory(), 'my-module'));
 
-        assert.equal(moduleResourceLocator1.getTestDirectory(),
+        assert.equal(moduleResourceLocator1.getModuleTestDirectory(),
             path.join(packageResourceLocator1.getTestDirectory(), 'my-module'));
 
         assert.equal(moduleResourceLocator1.getConfigFilePath(),

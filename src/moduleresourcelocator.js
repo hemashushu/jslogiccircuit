@@ -28,7 +28,7 @@ class ModuleResourceLocator {
         return this.moduleDirectory;
     }
 
-    getTestDirectory() {
+    getModuleTestDirectory() {
         return this.moduleTestDirectory;
     }
 

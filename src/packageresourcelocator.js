@@ -5,7 +5,7 @@ const ModuleResourceLocator = require('./moduleresourcelocator');
 const BASE_CONFIG_FILE_NAME = 'package.json';
 const DETAIL_CONFIG_FILE_NAME = 'logic-package.yaml';
 const MODULE_DIRECTORY_NAME = 'module';
-const MODULE_TEST_DIRECTORY_NAME ='test';
+const TEST_DIRECTORY_NAME ='test';
 const DATA_DIRECTORY_NAME = 'data';
 const DOCUMENT_DIRECTORY_NAME = 'doc';
 const SIMULATION_DIRECTORY_NAME = 'simulation';
@@ -86,8 +86,8 @@ class PackageResourceLocator {
         return path.join(this.packageDirectory, MODULE_DIRECTORY_NAME);
     }
 
-    getModuleTestDirectory() {
-        return path.join(this.packageDirectory, MODULE_TEST_DIRECTORY_NAME);
+    getTestDirectory() {
+        return path.join(this.packageDirectory, TEST_DIRECTORY_NAME);
     }
 
     getDataDirectory() {
@@ -106,7 +106,7 @@ class PackageResourceLocator {
         return path.join(this.packageDirectory, SOURCE_DIRECTORY_NAME);
     }
 
-    getTestDirectory() {
+    getValidateDirectory() {
         return path.join(this.packageDirectory, VALIDATE_DIRECTORY_NAME);
     }
 }
