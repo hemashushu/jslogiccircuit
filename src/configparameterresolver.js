@@ -3,7 +3,7 @@ const fsPromise = require('fs/promises');
 
 const { Buffer } = require('buffer');
 
-const { ParseException, IOException } = require('jsexception');
+const { ParseException, IOException, FileNotFoundException } = require('jsexception');
 const { PromiseFileConfig, YAMLFileConfig } = require('jsfileconfig');
 
 const ConfigParameterValueType = require('./configparametervaluetype');
@@ -42,10 +42,12 @@ const ConfigParameterValueType = require('./configparametervaluetype');
  *   详细信息会有
  *   valueRange: {from, to}
  *   表示数值可选取的范围
+ *
  * - option
  *   详细信息会有
  *   valueOptions: [item1, item2, ...]
  *   表示可选取的候选值，一般为数字类型的数组
+ *
  * - object
  *   详细信息会有：
  *   - objectSourceType: config|file
@@ -54,6 +56,9 @@ const ConfigParameterValueType = require('./configparametervaluetype');
  *   一个外部文件。
  *   objectSourceFilePath 是一个相对路径，表示位于项目的 data 文件夹之内的
  *   一个文件，文件格式必须是 YAML。
+ *   object 类型的参数值是单纯一个数字无法表示的值，比如一个 LUT（查找表）的
+ *   内容，是一个数据表格（Data table），它需要使用 object 类型来表示。
+ *
  * - binary
  *   详细信息会有：
  *   - binarySourceType: config|file
@@ -63,9 +68,10 @@ const ConfigParameterValueType = require('./configparametervaluetype');
  *   一个外部文件。
  *   binarySourceFilePath 是一个相对路径，表示位于项目的 data 文件夹之内的
  *   一个文件，文件可以是任何格式，参数加载器会读入文件并且以
- *   字节数组（Nodejs 的 Buffer 对象，Uint8Array 的派生对象）的形式作为属性值。
+ *   字节数组（Nodejs 的 Buffer 对象，Uint8Array 的派生对象）的形式储存。
  *   https://nodejs.org/api/buffer.html
  *   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array
+ *   binary 类型的参数一般用于诸如 ROM 的原始数据。
  */
 class ConfigParameterResolver {
 
@@ -73,7 +79,10 @@ class ConfigParameterResolver {
      * 将配置文件里的 parameters 转换成逻辑模块所使用的 parameters 对象。
      *
      * - 如果配置值超出 range 范围，则抛出 ParseException 异常。
-     * - 如果指定的文件找不到，则抛出 FileNotFoundException 异常。
+     * - 如果指定对象文件解析错误，则抛出 ParseException 异常。
+     * - 如果指定的二进制文件不存在，则抛出 FileNotFoundException 异常。
+     * - 如果指定的二进制文件读取错误，则抛出 IOException 异常。
+     *
      * @param {*} configParameters
      * @param {*} packageResourceLocator
      * @returns
@@ -88,15 +97,32 @@ class ConfigParameterResolver {
             switch (detail.valueType) {
                 case ConfigParameterValueType.number:
                     {
+                        // 示例：
+                        // {
+                        //     valueType: 'number',
+                        //     value: Number
+                        // }
+
                         value = detail.value;
                         break;
                     }
 
                 case ConfigParameterValueType.range:
                     {
+                        // 示例：
+                        // {
+                        //     valueType: 'range',
+                        //     value: Number,
+                        //     valueRange: {
+                        //         from: Number,
+                        //         to: Number
+                        //     }
+                        // }
+
                         value = detail.value;
-                        let from = detail.from;
-                        let to = detail.to;
+                        let valueRange = detail.valueRange;
+                        let from = valueRange.from;
+                        let to = valueRange.to;
 
                         if (value < from || value > to) {
                             throw new ParseException(
@@ -107,6 +133,13 @@ class ConfigParameterResolver {
 
                 case ConfigParameterValueType.option:
                     {
+                        // 示例：
+                        // {
+                        //     valueType: 'option',
+                        //     value: Number,
+                        //     valueOptions: [Number, Number, ...]
+                        // }
+
                         value = detail.value;
                         let valueOptions = detail.valueOptions;
 
@@ -119,6 +152,24 @@ class ConfigParameterResolver {
 
                 case ConfigParameterValueType.object:
                     {
+                        // 示例：
+                        // {
+                        //     valueType: 'object',
+                        //     objectSourceType: 'config',
+                        //     value: {
+                        //         someKey: 'someValue',
+                        //         ...
+                        //     }
+                        // }
+                        //
+                        // 或者
+                        //
+                        // {
+                        //     valueType: 'object',
+                        //     objectSourceType: 'file',
+                        //     objectSourceFilePath: 'file_name.yaml'
+                        // }
+
                         let objectSourceType = detail.objectSourceType;
                         if (objectSourceType === 'config') {
                             value = detail.value;
@@ -127,7 +178,10 @@ class ConfigParameterResolver {
                             let objectFilePath = path.join(dataDirectory, detail.objectSourceFilePath);
                             let fileConfig = new YAMLFileConfig();
                             let promiseFileConfig = new PromiseFileConfig(fileConfig);
+
+                            // 如果文件不存在或者文件内容为空，value 的值为 undefined
                             value = await promiseFileConfig.load(objectFilePath);
+
                         } else {
                             throw new ParseException(
                                 `Unknown parameter object source type: ${objectSourceType}.`);
@@ -137,10 +191,26 @@ class ConfigParameterResolver {
 
                 case ConfigParameterValueType.binary:
                     {
+                        // 示例：
+                        // {
+                        //     valueType: 'binary',
+                        //     binarySourceType: 'config',
+                        //     value: '68656c6c6f'
+                        // }
+                        //
+                        // 或者
+                        //
+                        // {
+                        //     valueType: 'binary',
+                        //     binarySourceType: 'file',
+                        //     binarySourceFilePath: 'file_name.bin'
+                        // }
+
+                        let buffer;
                         let binarySourceType = detail.binarySourceType;
                         if (binarySourceType === 'config') {
                             // https://nodejs.org/api/buffer.html#buffer_static_method_buffer_from_string_encoding
-                            value = Buffer.from(detail.value, 'hex');
+                            buffer = Buffer.from(detail.value, 'hex');
 
                         } else if (binarySourceType === 'file') {
                             let dataDirectory = packageResourceLocator.getDataDirectory();
@@ -148,16 +218,25 @@ class ConfigParameterResolver {
 
                             // https://nodejs.org/api/fs.html#fs_fspromises_readfile_path_options
                             try {
-                                value = await fsPromise.readFile(binaryFilePath);
+                                buffer = await fsPromise.readFile(binaryFilePath);
                             } catch (err) {
-                                throw new IOException(
-                                    `Can not read file: "${detail.binarySourceFilePath}".`, err);
+                                if (err.code === 'ENOENT') {
+                                    throw new FileNotFoundException(
+                                        `Can not find the specified file: "${detail.binarySourceFilePath}"`, err);
+
+                                }else {
+                                    throw new IOException(
+                                        `Can not read file: "${detail.binarySourceFilePath}".`, err);
+                                }
+
                             }
 
                         } else {
                             throw new ParseException(
                                 `Unknown parameter binary source type: ${binarySourceType}.`);
                         }
+
+                        value = buffer;
                         break;
                     }
             }

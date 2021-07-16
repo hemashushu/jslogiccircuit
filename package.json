@@ -30,6 +30,7 @@
         "jsexception": "github:hemashushu/jsexception",
         "jsfileconfig": "github:hemashushu/jsfileconfig",
         "jsfileutils": "github:hemashushu/jsfileutils",
-        "jsobjectutils": "github:hemashushu/jsobjectutils"
+        "jsobjectutils": "github:hemashushu/jsobjectutils",
+        "validate-npm-package-name": "^3.0.0"
     }
 }

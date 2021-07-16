@@ -1,7 +1,7 @@
 const path = require('path');
 
-const CONFIG_FILE_NAME = 'logic-module.yaml';
-const STRUCT_FILE_NAME = 'struct.yaml'
+const MODULE_CONFIG_FILE_NAME = 'logic-module.yaml';
+const MODULE_STRUCT_FILE_NAME = 'struct.yaml'
 
 /**
  * 一个模块包含两部分：
@@ -33,11 +33,11 @@ class ModuleResourceLocator {
     }
 
     getConfigFilePath() {
-        return path.join(this.packagePath, CONFIG_FILE_NAME);
+        return path.join(this.modulePath, MODULE_CONFIG_FILE_NAME);
     }
 
     getStructFilePath() {
-        return path.join(this.packagePath, STRUCT_FILE_NAME);
+        return path.join(this.modulePath, MODULE_STRUCT_FILE_NAME);
     }
 }
 

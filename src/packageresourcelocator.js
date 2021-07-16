@@ -60,6 +60,12 @@ class PackageResourceLocator {
         return new PackageResourceLocator(packagePath);
     }
 
+    createModuleResourceLocator(moduleClassName) {
+        let modulePath = path.join(this.getModuleDirectory(), moduleClassName);
+        let moduleValidatePath = path.join(this.getModuleValidateDirectory(), moduleClassName);
+        return new ModuleResourceLocator(this.packagePath, modulePath, moduleValidatePath);
+    }
+
     getPackagePath() {
         return this.packagePath;
     }
@@ -70,12 +76,6 @@ class PackageResourceLocator {
 
     getDetailConfigFilePath() {
         return path.join(this.packagePath, DETAIL_CONFIG_FILE_NAME);
-    }
-
-    getModuleResourceLocator(moduleClassName) {
-        let modulePath = path.join(this.getModuleDirectory(), moduleClassName);
-        let moduleValidatePath = path.join(this.getModuleValidateDirectory(), moduleClassName);
-        return new ModuleResourceLocator(this.packagePath, modulePath, moduleValidatePath);
     }
 
     getModuleDirectory() {
