@@ -8,6 +8,7 @@ const MODULE_DIRECTORY_NAME = 'module';
 const MODULE_TEST_DIRECTORY_NAME ='test';
 const DATA_DIRECTORY_NAME = 'data';
 const DOCUMENT_DIRECTORY_NAME = 'doc';
+const SIMULATION_DIRECTORY_NAME = 'simulation';
 const SOURCE_DIRECTORY_NAME = 'src';
 const VALIDATE_DIRECTORY_NAME = 'validate'
 
@@ -95,6 +96,10 @@ class PackageResourceLocator {
 
     getDocumentDirectory() {
         return path.join(this.packageDirectory, DOCUMENT_DIRECTORY_NAME);
+    }
+
+    getSimulationDirectory() {
+        return path.join(this.packageDirectory, SIMULATION_DIRECTORY_NAME);
     }
 
     getSourceDirectory() {

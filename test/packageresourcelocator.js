@@ -9,6 +9,7 @@ const MODULE_DIRECTORY_NAME = 'module';
 const VALIDATE_DIRECTORY_NAME = 'validate'
 const DATA_DIRECTORY_NAME = 'data';
 const DOCUMENT_DIRECTORY_NAME = 'doc';
+const SIMULATION_DIRECTORY_NAME = 'simulation';
 const SOURCE_DIRECTORY_NAME = 'src';
 const MODULE_TEST_DIRECTORY_NAME ='test';
 
@@ -44,6 +45,9 @@ describe('Test package and module resource locator', ()=>{
 
         assert.equal(packageResourceLocator1.getDocumentDirectory(),
             path.join(packagePath1, DOCUMENT_DIRECTORY_NAME));
+
+        assert.equal(packageResourceLocator1.getSimulationDirectory(),
+            path.join(packagePath1, SIMULATION_DIRECTORY_NAME));
 
         assert.equal(packageResourceLocator1.getSourceDirectory(),
             path.join(packagePath1, SOURCE_DIRECTORY_NAME));
