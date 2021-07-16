@@ -72,8 +72,8 @@ class AbstractLogicModule {
 
 
         // 表示输入信号有变化，需要重新计算模块的状态。
-        // this.inputSignalChangedFlag = false;
-        this.inputSignalChangedFlag = 0 | 0;
+        this.inputSignalChangedFlag = false;
+        // this.inputSignalChangedFlag = 0 | 0;
 
         // 表示重新计算后，模块的状态有变化，需要传递信号给其他模块。
         //
@@ -86,17 +86,17 @@ class AbstractLogicModule {
         //
         // 也就是说，对于 ModuleController.step 方法完成之后，isOutputDataChanged 属性对于外部
         // 并无多少意义，跟 inputSignalChangedFlag 属性一样，都是仅供 ModuleController.step 方法所使用。
-        // this.outputSignalChangedFlag = false;
-        this.outputSignalChangedFlag = 0 | 0;
+        this.outputSignalChangedFlag = false;
+        // this.outputSignalChangedFlag = 0 | 0;
     }
 
-    get isInputSignalChanged() {
-        return this.inputSignalChangedFlag !== 0;
-    }
-
-    get isOutputSignalChanged() {
-        return this.outputSignalChangedFlag !== 0;
-    }
+//     get isInputSignalChanged() {
+//         return this.inputSignalChangedFlag; // !== 0;
+//     }
+//
+//     get isOutputSignalChanged() {
+//         return this.outputSignalChangedFlag; // !== 0;
+//     }
 
     /**
      * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
@@ -105,22 +105,22 @@ class AbstractLogicModule {
      * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
      * 重新计算自己（内部）的信号值，然后改变输出信号，最后达到稳定且正确的状态。
      */
-     markInputSignalChangedFlag() {
-        // this.inputSignalChangedFlag = true;
-        this.inputSignalChangedFlag = 1 | 0;
+     setInputSignalChangedFlag() {
+        this.inputSignalChangedFlag = true;
+        // this.inputSignalChangedFlag = 1 | 0;
     }
 
     getAllLogicModules() {
         return [this];
     }
 
-    computeInputSignalChanged() {
-        let changed = this.inputSignalChangedFlag;
-        for (let inputPin of this.inputPins) {
-            changed = changed | inputPin.signalChangedFlag;
-        }
-        this.inputSignalChangedFlag = changed;
-    }
+    // computeInputSignalChanged() {
+    //     let changed = this.inputSignalChangedFlag;
+    //     for (let inputPin of this.inputPins) {
+    //         changed = changed | inputPin.signalChangedFlag;
+    //     }
+    //     this.inputSignalChangedFlag = changed;
+    // }
 
     /**
      * 确保子模块输入的信号是最新的值。
@@ -146,9 +146,9 @@ class AbstractLogicModule {
      *
      * 更新周期的第 A2 步。
      */
-    clearOutputPinsSignalChangedFlag() {
+    resetOutputPinsSignalChangedFlag() {
         for (let outputPin of this.outputPins) {
-            outputPin.clearSignalChangedFlag();
+            outputPin.resetSignalChangedFlag();
         }
     }
 
@@ -156,9 +156,9 @@ class AbstractLogicModule {
      *
      * 更新周期的第 A3 步。
      */
-    clearOutputSignalChangedFlag() {
-        // this.outputSignalChangedFlag = false;
-        this.outputSignalChangedFlag = 0 | 0;
+    resetOutputSignalChangedFlag() {
+        this.outputSignalChangedFlag = false;
+        // this.outputSignalChangedFlag = 0 | 0;
     }
 
     /**
@@ -170,21 +170,21 @@ class AbstractLogicModule {
         // 需要获取输入端口的数值然后计算模块的数值。
     }
 
-    computeOutputSignalChanged() {
-        let changed = this.outputSignalChangedFlag;
-        for (let outputPin of this.outputPins) {
-            changed = changed | outputPin.signalChangedFlag;
-        }
-        this.outputSignalChangedFlag = changed;
-    }
+    // computeOutputSignalChanged() {
+    //     let changed = this.outputSignalChangedFlag;
+    //     for (let outputPin of this.outputPins) {
+    //         changed = changed | outputPin.signalChangedFlag;
+    //     }
+    //     this.outputSignalChangedFlag = changed;
+    // }
 
     /**
      *
      * 更新周期的第 B1 步。
      */
-    clearInputPinsSignalChangedFlag() {
+    resetInputPinsSignalChangedFlag() {
         for (let inputPin of this.inputPins) {
-            inputPin.clearSignalChangedFlag();
+            inputPin.resetSignalChangedFlag();
         }
     }
 
@@ -192,9 +192,9 @@ class AbstractLogicModule {
      *
      * 更新周期的第 B2 步。
      */
-    clearInputSignalChangedFlag() {
-        // this.inputSignalChangedFlag = false;
-        this.inputSignalChangedFlag = 0 | 0;
+    resetInputSignalChangedFlag() {
+        this.inputSignalChangedFlag = false;
+        // this.inputSignalChangedFlag = 0 | 0;
     }
 
     /**
@@ -219,17 +219,45 @@ class AbstractLogicModule {
     }
 
     addPin(name, bitWidth, pinDirection) {
-        let pin = new Pin(name, bitWidth, pinDirection);
-        this.pins.push(pin);
+        let signalChangeEventListener;
 
-        if (pinDirection === PinDirection.input ||
-            pinDirection === PinDirection.bidirectional) {
-            this.inputPins.push(pin);
+        switch(pinDirection) {
+            case PinDirection.input:
+                signalChangeEventListener = (flag) => {
+                    this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
+                };
+                break;
+
+            case PinDirection.output:
+                signalChangeEventListener = (flag) => {
+                    this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
+                };
+                break;
+
+            // case PinDirection.bidirectional:
+            //     signalChangeEventListener = (flag) => {
+            //         this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
+            //         this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
+            //     };
+            //     break;
         }
 
-        if (pinDirection === PinDirection.output ||
-            pinDirection === PinDirection.bidirectional) {
-            this.outputPins.push(pin);
+        let pin = new Pin(name, bitWidth, pinDirection, signalChangeEventListener);
+        this.pins.push(pin);
+
+        switch(pinDirection) {
+            case PinDirection.input:
+                this.inputPins.push(pin);
+                break;
+
+            case PinDirection.output:
+                this.outputPins.push(pin);
+                break;
+
+            // case PinDirection.bidirectional:
+            //     this.inputPins.push(pin);
+            //     this.outputPins.push(pin);
+            //     break;
         }
 
         return pin;

@@ -44,11 +44,11 @@ describe('Pin Test', () => {
 //
 //         pin1.addSignalChangeEventListener(signal => {
 //             assert(Signal.equal(signal, signal1));
-//             assert(pin1.isSignalChanged);
+//             assert(pin1.signalChangedFlag);
 //
 //             // 重置 signalChanged 标记
-//             pin1.clearSignalChangedFlag();
-//             assert(!pin1.isSignalChanged);
+//             pin1.resetSignalChangedFlag();
+//             assert(!pin1.signalChangedFlag);
 //
 //             done();
 //         });
@@ -56,45 +56,45 @@ describe('Pin Test', () => {
 //         pin1.setSignal(signal1);
 //     });
 
-    it('Test isSignalChanged flags', () => {
+    it('Test signalChangedFlag flags', () => {
         let pin1 = new Pin('pin1', 4);
 
 //         pin1.addSignalChangeEventListener(signal => {
 //             assert(Signal.equal(signal, signal1));
-//             assert(pin1.isSignalChanged);
+//             assert(pin1.signalChangedFlag);
 //
 //             // 重置 signalChanged 标记
-//             pin1.clearSignalChangedFlag();
-//             assert(!pin1.isSignalChanged);
+//             pin1.resetSignalChangedFlag();
+//             assert(!pin1.signalChangedFlag);
 //
 //             done();
 //         });
 
-        assert(!pin1.isSignalChanged);
+        assert(!pin1.signalChangedFlag);
 
         // 第 1 次改变数据
         let binary1 = Binary.fromBinaryString('1010', 4);
         let signal1 = Signal.createWithoutHighZ(4, binary1);
         pin1.setSignal(signal1);
-        assert(pin1.isSignalChanged);
+        assert(pin1.signalChangedFlag);
 
-        pin1.clearSignalChangedFlag();
-        assert(!pin1.isSignalChanged);
+        pin1.resetSignalChangedFlag();
+        assert(!pin1.signalChangedFlag);
 
         // 第 2 次改变数据
         let binary2 = Binary.fromBinaryString('1011', 4);
         let signal2 = Signal.createWithoutHighZ(4, binary2);
         pin1.setSignal(signal2);
-        assert(pin1.isSignalChanged);
+        assert(pin1.signalChangedFlag);
 
-        pin1.clearSignalChangedFlag();
-        assert(!pin1.isSignalChanged);
+        pin1.resetSignalChangedFlag();
+        assert(!pin1.signalChangedFlag);
 
         // 第 3 次改变数据 - 数值跟第 2 次相同
         let binary3 = Binary.fromBinaryString('1011', 4);
         let signal3 = Signal.createWithoutHighZ(4, binary3);
         pin1.setSignal(signal3);
-        assert(!pin1.isSignalChanged);
+        assert(!pin1.signalChangedFlag);
     });
 
     it('Test connection', () => {
@@ -110,30 +110,30 @@ describe('Pin Test', () => {
         let binary2 = Binary.fromBinaryString('1010', 4);
         let signal2 = Signal.createWithoutHighZ(4, binary2);
         pin1.setSignal(signal2);
-        assert(pin1.isSignalChanged);
+        assert(pin1.signalChangedFlag);
         assert(Signal.equal(pin1.getSignal(), signal2));
 
         // pin2 尚未改变
-        assert(!pin2.isSignalChanged);
+        assert(!pin2.signalChangedFlag);
         assert(Signal.equal(pin2.getSignal(), signal1));
 
         // 让 pin1 写数据
         pin1.writeToNextPins();
-        assert(pin2.isSignalChanged);
+        assert(pin2.signalChangedFlag);
         assert(Signal.equal(pin2.getSignal(), signal2));
 
         // 重置 signalChanged 标记
-        pin1.clearSignalChangedFlag();
-        pin2.clearSignalChangedFlag();
+        pin1.resetSignalChangedFlag();
+        pin2.resetSignalChangedFlag();
 
-        assert(!pin1.isSignalChanged);
-        assert(!pin2.isSignalChanged);
+        assert(!pin1.signalChangedFlag);
+        assert(!pin2.signalChangedFlag);
 
         // // 再次改变 pin1 的数据
         // let binary3 = Binary.fromBinaryString('1100', 4);
         // let signal3 = Signal.createWithoutHighZ(4, binary3);
         // pin1.setSignal(signal3);
-        // assert(pin1.isSignalChanged !== 0);
+        // assert(pin1.signalChangedFlag !== 0);
         // assert(Signal.equal(pin1.getSignal(), signal3));
     });
 
@@ -156,10 +156,10 @@ describe('Pin Test', () => {
         let signal2 = Signal.createWithoutHighZ(4, binary2);
 
         pin1.setSignal(signal2);
-        assert(pin1.isSignalChanged);
-        assert(!pin2.isSignalChanged);
-        assert(!pin3.isSignalChanged);
-        assert(!pin4.isSignalChanged);
+        assert(pin1.signalChangedFlag);
+        assert(!pin2.signalChangedFlag);
+        assert(!pin3.signalChangedFlag);
+        assert(!pin4.signalChangedFlag);
 
         assert(Signal.equal(pin1.getSignal(), signal2));
         assert(Signal.equal(pin2.getSignal(), signal1));
@@ -168,10 +168,10 @@ describe('Pin Test', () => {
 
         // pin1.writeToNextLogicModulePins();
         pin1.writeToNextPins();
-        assert(pin1.isSignalChanged);
-        assert(pin2.isSignalChanged);
-        assert(pin3.isSignalChanged);
-        assert(!pin4.isSignalChanged);
+        assert(pin1.signalChangedFlag);
+        assert(pin2.signalChangedFlag);
+        assert(pin3.signalChangedFlag);
+        assert(!pin4.signalChangedFlag);
 
         assert(Signal.equal(pin1.getSignal(), signal2));
         assert(Signal.equal(pin2.getSignal(), signal2));
@@ -180,7 +180,7 @@ describe('Pin Test', () => {
 
         // pin2.writeToNextLogicModulePins();
         pin2.writeToNextPins();
-        assert(pin4.isSignalChanged);
+        assert(pin4.signalChangedFlag);
         assert(Signal.equal(pin4.getSignal(), signal2));
     });
 });

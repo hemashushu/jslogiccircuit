@@ -47,15 +47,13 @@ class Signal {
     }
 
     static createLow(bitWidth) {
-        let noHighZ = Binary.fromInt32(0, bitWidth);
         let lowBinary = Binary.fromInt32(0, bitWidth);
-        return Signal.create(bitWidth, lowBinary, noHighZ);
+        return Signal.createWithoutHighZ(bitWidth, lowBinary);
     }
 
     static createHigh(bitWidth) {
-        let noHighZ = Binary.fromInt32(0, bitWidth);
         let highBinary = Binary.fromInt32(~0, bitWidth);
-        return Signal.create(bitWidth, highBinary, noHighZ);
+        return Signal.createWithoutHighZ(bitWidth, highBinary);
     }
 
     /**
@@ -66,31 +64,9 @@ class Signal {
      * @returns
      */
     static equal(leftSingal, rightSignal) {
-        return Signal.compare(leftSingal, rightSignal) === 0
-    }
-
-    /**
-     * 比较两个信号，相同则返回 0，不相同返回非 0。
-     *
-     * @param {*} leftSingal
-     * @param {*} rightSignal
-     * @returns
-     */
-    static compare(leftSingal, rightSignal) {
-        return Binary.or(
-                    Binary.xor(
-                        leftSingal.getBinary(), rightSignal.getBinary()),
-                    Binary.xor(
-                        leftSingal.getHighZ(), rightSignal.getHighZ()))
-                .toInt32();
-
-        // 因为大部分场合都只需计算高低电平，所以为了提高速度，如果确定
-        // 电路没有高阻抗的情况，这里可以只比较信号的 signal 的部分，
-        // 而 highZ 部分直接忽略。
-        // return Binary
-        //     .xor(
-        //         leftSingal.getBinary(), rightSignal.getBinary())
-        //     .toInt32();
+        return (Binary.equal(leftSingal.getBinary(), rightSignal.getBinary()) &&
+                Binary.equal(leftSingal.getHighZ(), rightSignal.getHighZ()));
+        // return Binary.equal(leftSingal.getBinary(), rightSignal.getBinary());
     }
 
     /**

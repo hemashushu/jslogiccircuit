@@ -130,13 +130,13 @@ class LogicModuleFactory {
             moduleInstance.addPin(name, bitWidth, PinDirection.output);
         }
 
-        // add in/out pins
-        let configInoutPins = moduleConfig.inoutPins ?? [];
-        for (let configInoutPin of configInoutPins) {
-            let name = configInoutPin.name;
-            let bitWidth = configInoutPin.bitWidth;
-            moduleInstance.addPin(name, bitWidth, PinDirection.bidirectional);
-        }
+        // // add in/out pins
+        // let configInoutPins = moduleConfig.inoutPins ?? [];
+        // for (let configInoutPin of configInoutPins) {
+        //     let name = configInoutPin.name;
+        //     let bitWidth = configInoutPin.bitWidth;
+        //     moduleInstance.addPin(name, bitWidth, PinDirection.bidirectional);
+        // }
 
         // add sub-module instances
         let configLogicModules = moduleConfig.logicModules;

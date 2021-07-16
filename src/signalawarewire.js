@@ -5,7 +5,7 @@ const Wire = require('./wire');
  * 会检测信号变动的导线
  */
 class SignalAwareWire extends Wire {
-    constructor(bitWidth) { //}, awareListener) {
+    constructor(bitWidth, signalChangeEventListener) {
         super(bitWidth);
 
         // this.signalChangedFlag = false;
@@ -15,9 +15,9 @@ class SignalAwareWire extends Wire {
         // this.signalChangeEventListeners = [];
 
         // 一个 int32 数字，非 0 时表示导线的信号有变化。
-        this.signalChangedFlag = 0 | 0;
+        this.signalChangedFlag = false; // 0 | 0;
 
-        // this.awareListener = awareListener;
+        this.signalChangeEventListener = signalChangeEventListener;
     }
 
     // /**
@@ -52,14 +52,16 @@ class SignalAwareWire extends Wire {
 //         this.dispatchSignalChangeEvent();
 
         // 计算信号是否有发生改变。
-        this.signalChangedFlag =
-            this.signalChangedFlag |
-            Signal.compare(lastSignal, signal);
+        // this.signalChangedFlag =
+        //     this.signalChangedFlag |
+        //     Signal.compare(lastSignal, signal);
+
+        this.signalChangedFlag = this.signalChangedFlag || !Signal.equal(lastSignal, signal);
 
         // 必须先计算 signalChangedFlag 再调用 setSignal
         super.setSignal(signal)
 
-        // awareListener(this.signalChangedFlag);
+        this.signalChangeEventListener(this.signalChangedFlag);
     }
 
     // // private
@@ -70,14 +72,14 @@ class SignalAwareWire extends Wire {
     //     }
     // }
 
-    clearSignalChangedFlag() {
-        // this.signalChangedFlag = false;
-        this.signalChangedFlag = 0 | 0;
+    resetSignalChangedFlag() {
+        this.signalChangedFlag = false;
+        // this.signalChangedFlag = 0 | 0;
     }
 
-    get isSignalChanged() {
-        return this.signalChangedFlag !== 0;
-    }
+    // get isSignalChanged() {
+    //     return this.signalChangedFlag; // !== 0;
+    // }
 }
 
 module.exports = SignalAwareWire;
