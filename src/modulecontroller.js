@@ -16,7 +16,7 @@ class ModuleController {
 
     markAllLogicModulesStateToUnstable() {
         for (let logicModule of this.allLogicModulesForRead) {
-            logicModule.markupInputSignalChangedFlag();
+            logicModule.markInputSignalChangedFlag();
         }
     }
 
@@ -46,11 +46,37 @@ class ModuleController {
             //
             // 以下是前半周期
 
-            // 写信号到内部模块
+            // 写 input pin 信号到内部模块
+            for (let logicModule of this.allLogicModulesForRead) {
+                // if (logicModule.inputSignalChangedFlag !== 0) {
+                // isStable = false;
+                logicModule.transferInputPinSignal();                // A1
+                // }
+            }
+
+            for (let logicModule of this.allLogicModulesForRead) {
+                logicModule.computeInputSignalChanged();                 // A0
+            }
+
+            // 清除 output pin 的 signalChanged 和模块本身的 output signalChanged 标记
+            // for (let logicModule of this.allLogicModulesForRead) {
+            //     logicModule.clearOutputPinsSignalChangedFlag();          // A2
+            //     logicModule.clearOutputSignalChangedFlag();              // A3
+            // }
+
+            // 计算新信号
             for (let logicModule of this.allLogicModulesForRead) {
                 if (logicModule.isInputSignalChanged) {
                     isStable = false;
-                    logicModule.transferInputPinSignal();                // A1
+
+                    logicModule.updateModuleState(); //AndOutputPinsSignal();  // A4
+                    // logicModule.computeOutputSignalChanged();
+
+                    // 清除 input pin 的 signalChanged 和模块本身的 input signalChanged 标记
+                    // for (let logicModule of this.allLogicModulesForWrite) {
+                    logicModule.clearInputPinsSignalChangedFlag();           // B1
+                    logicModule.clearInputSignalChangedFlag();               // B2
+                    // }
                 }
             }
 
@@ -59,40 +85,31 @@ class ModuleController {
                 break;
             }
 
-            // 清除 output pin 的 signalChanged 和模块本身的 output signalChanged 标记
-            for (let logicModule of this.allLogicModulesForRead) {
-                logicModule.clearOutputPinsSignalChangedFlag();          // A2
-                logicModule.clearOutputSignalChangedFlag();              // A3
-            }
-
-            // 计算新信号
-            for (let logicModule of this.allLogicModulesForRead) {
-                if (logicModule.isInputSignalChanged) {
-                    logicModule.updateModuleStateAndOutputPinsSignal();  // A4
-                }
-            }
-
             // 以下是后半周期
 
-            // 清除 input pin 的 signalChanged 和模块本身的 input signalChanged 标记
-            for (let logicModule of this.allLogicModulesForWrite) {
-                logicModule.clearInputPinsSignalChangedFlag();           // B1
-                logicModule.clearInputSignalChangedFlag();               // B2
-            }
-
-            // 写信号到下一个模块，受到新信号影响的模块的 isInputSignalChanged 的
+            // 写信号到下一个模块，受到新信号影响的模块的 inputSignalChangedFlag 的
             // 标记会自动被设置为 true。然后再循环一次以检测是否所有模块达到稳定状态。
             for (let logicModule of this.allLogicModulesForWrite) {
-                if (logicModule.isOutputSignalChanged) {
-                    logicModule.transferOutputPinSignal();               // B3
-                }
+                // if (logicModule.outputSignalChangedFlag) {
+                logicModule.transferOutputPinSignal();               // B3
+                // }
             }
         }
 
         if (cycle >= maxCycle) {
             // 振荡电路一般是由多个模块组成的回路引起的，目前 ModuleController 只能获取
             // 整个回路当中输入信号不稳定的部分模块，而且会因 maxCycle 的不同而不同。
-            let issuedLogicModule = this.allLogicModulesForRead.filter(item=>item.isInputSignalChanged);
+
+            // 计算尚未稳定的模块
+            for (let logicModule of this.allLogicModulesForRead) {
+                logicModule.transferInputPinSignal();
+            }
+
+            for (let logicModule of this.allLogicModulesForRead) {
+                logicModule.computeInputSignalChanged();
+            }
+
+            let issuedLogicModule = this.allLogicModulesForRead.filter(item => (item.isInputSignalChanged));
             throw new OscillatingException('Oscillation circuit detected.', issuedLogicModule);
         }
 

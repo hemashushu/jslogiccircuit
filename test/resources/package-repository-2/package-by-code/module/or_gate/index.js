@@ -1,4 +1,4 @@
-const { AbstractLogicModule, Signal } = require('../../../../../../index');
+const { AbstractLogicModule, Signal, PinDirection } = require('../../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
@@ -9,9 +9,9 @@ class OrGate extends AbstractLogicModule {
     constructor(name) {
         super(name);
 
-        this.addInputPinByDetail('A', 1)
-        this.addInputPinByDetail('B', 1)
-        this.addOutputPinByDetail('Q', 1);
+        this.pinA = this.addPin('A', 1, PinDirection.input);
+        this.pinB = this.addPin('B', 1, PinDirection.input)
+        this.pinQ = this.addPin('Q', 1, PinDirection.output);
     }
 
     getPackageName() {
@@ -23,12 +23,12 @@ class OrGate extends AbstractLogicModule {
     }
 
     // override
-    updateModuleStateAndOutputPinsSignal() {
-        let signal1 = this.inputPins[0].getSignal();
-        let siangl2 = this.inputPins[1].getSignal();
+    updateModuleState() {
+        let signal1 = this.pinA.getSignal();
+        let siangl2 = this.pinB.getSignal();
         let resultBinary = Binary.or(signal1.getBinary(), siangl2.getBinary());
         let resultSignal = Signal.createWithoutHighZ(1, resultBinary);
-        this.outputPins[0].setSignal(resultSignal);
+        this.pinQ.setSignal(resultSignal);
     }
 }
 

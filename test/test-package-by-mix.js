@@ -32,11 +32,11 @@ describe('Test package-by-mix', () => {
         // 2 个 Half Adder (3 modules each half adder) + 1 个 OR gate + Full Adder 本模块 = 8
         assert.equal(moduleController1.logicModuleCount, 8);
 
-        let A = fullAdder1.getInputPin('A');
-        let B = fullAdder1.getInputPin('B');
-        let Cin = fullAdder1.getInputPin('Cin');
-        let S = fullAdder1.getOutputPin('S');
-        let Cout = fullAdder1.getOutputPin('Cout');
+        let A = fullAdder1.getPin('A');
+        let B = fullAdder1.getPin('B');
+        let Cin = fullAdder1.getPin('Cin');
+        let S = fullAdder1.getPin('S');
+        let Cout = fullAdder1.getPin('Cout');
 
         // Full Adder
         // Inputs    Outputs
@@ -99,21 +99,21 @@ describe('Test package-by-mix', () => {
         // 4 * (full adder 8 modules) + 1 module self
         assert.equal(moduleController1.logicModuleCount, 33);
 
-        let Cin = fourBitAdder1.getInputPin('Cin');
-        let A0 = fourBitAdder1.getInputPin('A0');
-        let B0 = fourBitAdder1.getInputPin('B0');
-        let A1 = fourBitAdder1.getInputPin('A1');
-        let B1 = fourBitAdder1.getInputPin('B1');
-        let A2 = fourBitAdder1.getInputPin('A2');
-        let B2 = fourBitAdder1.getInputPin('B2');
-        let A3 = fourBitAdder1.getInputPin('A3');
-        let B3 = fourBitAdder1.getInputPin('B3');
+        let Cin = fourBitAdder1.getPin('Cin');
+        let A0 = fourBitAdder1.getPin('A0');
+        let B0 = fourBitAdder1.getPin('B0');
+        let A1 = fourBitAdder1.getPin('A1');
+        let B1 = fourBitAdder1.getPin('B1');
+        let A2 = fourBitAdder1.getPin('A2');
+        let B2 = fourBitAdder1.getPin('B2');
+        let A3 = fourBitAdder1.getPin('A3');
+        let B3 = fourBitAdder1.getPin('B3');
 
-        let S0 = fourBitAdder1.getOutputPin('S0');
-        let S1 = fourBitAdder1.getOutputPin('S1');
-        let S2 = fourBitAdder1.getOutputPin('S2');
-        let S3 = fourBitAdder1.getOutputPin('S3');
-        let Cout = fourBitAdder1.getOutputPin('Cout');
+        let S0 = fourBitAdder1.getPin('S0');
+        let S1 = fourBitAdder1.getPin('S1');
+        let S2 = fourBitAdder1.getPin('S2');
+        let S3 = fourBitAdder1.getPin('S3');
+        let Cout = fourBitAdder1.getPin('Cout');
 
         let numberToSignal = (num) => {
             return num === 0 ? signal0 : signal1;
@@ -134,7 +134,7 @@ describe('Test package-by-mix', () => {
             B2.setSignal(numberToSignal(binB.getBit(2)));
             B3.setSignal(numberToSignal(binB.getBit(3)));
 
-            let m = moduleController1.step();
+            moduleController1.step();
 
             let binS = Binary.fromInt32(s, 8); // 将 S 视为 5 位二进制数 {Cout, S3, S2, S1, S0}
             assert(Signal.equal(S0.getSignal(), numberToSignal(binS.getBit(0))));
@@ -144,19 +144,27 @@ describe('Test package-by-mix', () => {
             assert(Signal.equal(Cout.getSignal(), numberToSignal(binS.getBit(4))));
         };
 
-        for (let a = 0; a < 15; a++) {
-            for (let b = 0; b < 15; b++) {
-                let s = a + b;
-                check(a, b, 0, s);
+        let start = new Date();
+
+        for(let repeat = 0; repeat<100; repeat++) {
+            for (let a = 0; a < 15; a++) {
+                for (let b = 0; b < 15; b++) {
+                    let s = a + b;
+                    check(a, b, 0, s);
+                }
+            }
+
+            for (let a = 0; a < 15; a++) {
+                for (let b = 0; b < 15; b++) {
+                    let s = a + b + 1;
+                    check(a, b, 1, s);
+                }
             }
         }
 
-        for (let a = 0; a < 15; a++) {
-            for (let b = 0; b < 15; b++) {
-                let s = a + b + 1;
-                check(a, b, 1, s);
-            }
-        }
+        let end = new Date();
 
+        let span = end - start;
+        console.log('Repeat 100 times: ' + span + ' ms');
     });
 });

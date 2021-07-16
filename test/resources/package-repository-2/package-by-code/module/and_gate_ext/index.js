@@ -1,6 +1,6 @@
 const { Binary, Signal } = require('jsbinary');
 
-const { AbstractLogicModule } = require('../../../../../../index');
+const { AbstractLogicModule, PinDirection } = require('../../../../../../index');
 
 /**
  * 逻辑与门
@@ -14,11 +14,11 @@ class AndGate extends AbstractLogicModule {
         let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
         let bitWidth = this.getParameter('bitWidth'); // 数据宽度
 
-        this.addOutputPinByDetail('out', bitWidth);
+        this.pinOut = this.addPin('out', bitWidth, PinDirection.output);
 
         // 输入端口的名称分别为 in0, in1, ... inN
         let createInputPin = (idx) => {
-            this.addInputPinByDetail('in' + idx, bitWidth);
+            this.addPin('in' + idx, bitWidth, PinDirection.input);
         };
 
         // 输入端口
@@ -36,7 +36,7 @@ class AndGate extends AbstractLogicModule {
     }
 
     // override
-    updateModuleStateAndOutputPinsSignal() {
+    updateModuleState() {
         let binaries = this.inputPins.map(pin => {
             return pin.getSignal().getBinary();
         });
@@ -46,8 +46,8 @@ class AndGate extends AbstractLogicModule {
             resultBinary = Binary.and(resultBinary, binaries[idx]);
         }
 
-        let resultSignal = Signal.createWithoutHighZ(this.outputPins[0].bitWidth, resultBinary);
-        this.outputPins[0].setSignal(resultSignal);
+        let resultSignal = Signal.createWithoutHighZ(this.pinOut.bitWidth, resultBinary);
+        this.pinOut.setSignal(resultSignal);
     }
 }
 

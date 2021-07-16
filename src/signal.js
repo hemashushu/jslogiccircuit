@@ -83,6 +83,14 @@ class Signal {
                     Binary.xor(
                         leftSingal.getHighZ(), rightSignal.getHighZ()))
                 .toInt32();
+
+        // 因为大部分场合都只需计算高低电平，所以为了提高速度，如果确定
+        // 电路没有高阻抗的情况，这里可以只比较信号的 signal 的部分，
+        // 而 highZ 部分直接忽略。
+        // return Binary
+        //     .xor(
+        //         leftSingal.getBinary(), rightSignal.getBinary())
+        //     .toInt32();
     }
 
     /**

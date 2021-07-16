@@ -2,6 +2,7 @@ const { LogicModuleNotFoundException } = require('./exception/logicmodulenotfoun
 
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
+const PinDirection = require('./pindirection');
 
 /**
  * 通过代码或者配置文件创建逻辑模块
@@ -114,19 +115,27 @@ class LogicModuleFactory {
         let parameters = moduleInstance.getParameters();
 
         // add input pins
-        let configInputPins = moduleConfig.inputPins;
+        let configInputPins = moduleConfig.inputPins ?? [];
         for (let configInputPin of configInputPins) {
             let name = configInputPin.name;
             let bitWidth = configInputPin.bitWidth;
-            moduleInstance.addInputPinByDetail(name, bitWidth);
+            moduleInstance.addPin(name, bitWidth, PinDirection.input);
         }
 
         // add output pins
-        let configOutputPins = moduleConfig.outputPins;
+        let configOutputPins = moduleConfig.outputPins ?? [];
         for (let configOutputPin of configOutputPins) {
             let name = configOutputPin.name;
             let bitWidth = configOutputPin.bitWidth;
-            moduleInstance.addOutputPinByDetail(name, bitWidth);
+            moduleInstance.addPin(name, bitWidth, PinDirection.output);
+        }
+
+        // add in/out pins
+        let configInoutPins = moduleConfig.inoutPins ?? [];
+        for (let configInoutPin of configInoutPins) {
+            let name = configInoutPin.name;
+            let bitWidth = configInoutPin.bitWidth;
+            moduleInstance.addPin(name, bitWidth, PinDirection.bidirectional);
         }
 
         // add sub-module instances
@@ -151,7 +160,7 @@ class LogicModuleFactory {
         // add connection item
         let configConnections = moduleConfig.connections;
         for (let configConnection of configConnections) {
-            moduleInstance.addConnectionItemByDetail(
+            moduleInstance.addConnection(
                 configConnection.name,
                 configConnection.previousModuleName,
                 configConnection.previousPinName,

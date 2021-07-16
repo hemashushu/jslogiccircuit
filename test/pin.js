@@ -2,17 +2,19 @@ const { Binary } = require('jsbinary');
 
 const assert = require('assert/strict');
 
-const { ConnectionUtils, Pin, Signal } = require('../index');
+const { ConnectionUtils, Pin, PinDirection, Signal } = require('../index');
 
 describe('Pin Test', () => {
     it('Test Constructor', () => {
-        let pin1 = new Pin('pin1', 4);
+        let pin1 = new Pin('pin1', 4, PinDirection.input);
         assert.equal(pin1.name, 'pin1');
         assert.equal(pin1.bitWidth, 4);
+        assert.equal(pin1.pinDirection, PinDirection.input);
 
-        let pin2 = new Pin('pin2', 8);
+        let pin2 = new Pin('pin2', 8, PinDirection.output);
         assert.equal(pin2.name, 'pin2');
         assert.equal(pin2.bitWidth, 8);
+        assert.equal(pin2.pinDirection, PinDirection.output);
         assert.equal(pin2.getSignal().getBinary().toBinaryString(), '0');
     });
 
@@ -35,23 +37,64 @@ describe('Pin Test', () => {
         assert(Signal.equal(pin1.getSignal(), signal3));
     });
 
-    it('Test flags and events', (done) => {
+//     it('Test flags and events', (done) => {
+//         let pin1 = new Pin('pin1', 4);
+//         let binary1 = Binary.fromBinaryString('1010', 4);
+//         let signal1 = Signal.createWithoutHighZ(4, binary1);
+//
+//         pin1.addSignalChangeEventListener(signal => {
+//             assert(Signal.equal(signal, signal1));
+//             assert(pin1.isSignalChanged);
+//
+//             // 重置 signalChanged 标记
+//             pin1.clearSignalChangedFlag();
+//             assert(!pin1.isSignalChanged);
+//
+//             done();
+//         });
+//
+//         pin1.setSignal(signal1);
+//     });
+
+    it('Test isSignalChanged flags', () => {
         let pin1 = new Pin('pin1', 4);
+
+//         pin1.addSignalChangeEventListener(signal => {
+//             assert(Signal.equal(signal, signal1));
+//             assert(pin1.isSignalChanged);
+//
+//             // 重置 signalChanged 标记
+//             pin1.clearSignalChangedFlag();
+//             assert(!pin1.isSignalChanged);
+//
+//             done();
+//         });
+
+        assert(!pin1.isSignalChanged);
+
+        // 第 1 次改变数据
         let binary1 = Binary.fromBinaryString('1010', 4);
         let signal1 = Signal.createWithoutHighZ(4, binary1);
-
-        pin1.addSignalChangeEventListener(signal => {
-            assert(Signal.equal(signal, signal1));
-            assert(pin1.isSignalChanged);
-
-            // 重置 signalChanged 标记
-            pin1.clearSignalChangedFlag();
-            assert(!pin1.isSignalChanged);
-
-            done();
-        });
-
         pin1.setSignal(signal1);
+        assert(pin1.isSignalChanged);
+
+        pin1.clearSignalChangedFlag();
+        assert(!pin1.isSignalChanged);
+
+        // 第 2 次改变数据
+        let binary2 = Binary.fromBinaryString('1011', 4);
+        let signal2 = Signal.createWithoutHighZ(4, binary2);
+        pin1.setSignal(signal2);
+        assert(pin1.isSignalChanged);
+
+        pin1.clearSignalChangedFlag();
+        assert(!pin1.isSignalChanged);
+
+        // 第 3 次改变数据 - 数值跟第 2 次相同
+        let binary3 = Binary.fromBinaryString('1011', 4);
+        let signal3 = Signal.createWithoutHighZ(4, binary3);
+        pin1.setSignal(signal3);
+        assert(!pin1.isSignalChanged);
     });
 
     it('Test connection', () => {
@@ -86,12 +129,12 @@ describe('Pin Test', () => {
         assert(!pin1.isSignalChanged);
         assert(!pin2.isSignalChanged);
 
-        // 再次改变 pin1 的数据
-        let binary3 = Binary.fromBinaryString('1100', 4);
-        let signal3 = Signal.createWithoutHighZ(4, binary3);
-        pin1.setSignal(signal3);
-        assert(pin1.isSignalChanged);
-        assert(Signal.equal(pin1.getSignal(), signal3));
+        // // 再次改变 pin1 的数据
+        // let binary3 = Binary.fromBinaryString('1100', 4);
+        // let signal3 = Signal.createWithoutHighZ(4, binary3);
+        // pin1.setSignal(signal3);
+        // assert(pin1.isSignalChanged !== 0);
+        // assert(Signal.equal(pin1.getSignal(), signal3));
     });
 
     it('Test connecting to multiple pins', () => {
@@ -102,10 +145,6 @@ describe('Pin Test', () => {
 
         // pin1 -|-- pin2 --- pin4
         //       |-- pin3
-
-        // ConnectionUtils.connect(undefined, pin1, undefined, pin2);
-        // ConnectionUtils.connect(undefined, pin1, undefined, pin3);
-        // ConnectionUtils.connect(undefined, pin2, undefined, pin4);
 
         ConnectionUtils.connect(pin1, pin2);
         ConnectionUtils.connect(pin1, pin3);

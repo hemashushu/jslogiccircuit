@@ -17,10 +17,11 @@ const LogicModuleLoader = require('./src/logicmoduleloader');
 const LogicPackageItem = require('./src/logicpackageitem');
 const LogicPackageLoader = require('./src/logicpackageloader');
 const ModuleController = require('./src/modulecontroller');
-const ObservableWire = require('./src/observablewire');
+const SignalAwareWire = require('./src/signalawarewire');
 const PackageRepositoryManager = require('./src/packagerepositorymanager');
 const PackageResourceLocator = require('./src/packageresourcelocator');
 const Pin = require('./src/pin');
+const PinDirection = require('./src/pindirection');
 const Signal = require('./src/signal');
 const Wire = require('./src/wire');
 
@@ -45,10 +46,11 @@ module.exports = {
     LogicPackageItem: LogicPackageItem,
     LogicPackageLoader: LogicPackageLoader,
     ModuleController: ModuleController,
-    ObservableWire: ObservableWire,
+    SignalAwareWire: SignalAwareWire,
     PackageRepositoryManager: PackageRepositoryManager,
     PackageResourceLocator: PackageResourceLocator,
     Pin: Pin,
+    PinDirection: PinDirection,
     Signal: Signal,
     Wire: Wire
 };

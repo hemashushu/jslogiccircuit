@@ -1,6 +1,6 @@
 const { IllegalArgumentException } = require('jsexception');
 
-const ObservableWire = require('./observablewire');
+const SignalAwareWire = require('./signalawarewire');
 
 /**
  * 逻辑模块的 I/O 端口
@@ -13,7 +13,7 @@ const ObservableWire = require('./observablewire');
  *   重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
  *
  */
-class Pin extends ObservableWire {
+class Pin extends SignalAwareWire {
 
     /**
      * 构造 Pin 对象实例
@@ -25,15 +25,14 @@ class Pin extends ObservableWire {
      *   即可，当显示模块时，可以把引脚编号显示在端口名称后面，比如：
      *   "LED (A1)", "Clock (D2)"。
      *
-     * @param {*} name 端口名称，相当于 Verilog 里的 wire/reg/logic 变量的名称。
+     * @param {*} name 端口名称
      *     端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
-     * @param {*} bitWidth 数据的位宽度，比如：
-     *     一个端口可以只传输 1 bit 数据，也可以同时传输 8 bit。
-     *     相当于 Verilog 诸如 wire/reg/logic [7:0] 里面的 [7:0]。
-     * @param {*}
+     * @param {*} bitWidth 数据的位宽度。
+     *     一个数据宽度为 N 的端口相当于 N 个（现实当中的）端口
+     * @param {*} pinDirection 端口的数据传输方向。
      */
-    constructor(name, bitWidth) {
-        super(bitWidth);
+    constructor(name, bitWidth, pinDirection) { //}, awareListener) {
+        super(bitWidth); //, awareListener);
 
         // 端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
         if (!/^[a-zA-Z_][\w\$]*$/.test(name)) {
@@ -42,6 +41,7 @@ class Pin extends ObservableWire {
         }
 
         this.name = name;
+        this.pinDirection = pinDirection;
 
         // 下游端口的集合。
         this.nextPins = [];
