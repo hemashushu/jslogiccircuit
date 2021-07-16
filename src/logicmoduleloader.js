@@ -1,5 +1,3 @@
-const path = require('path');
-
 const {
     YAMLFileConfig,
     PromiseFileConfig,
@@ -8,9 +6,14 @@ const {
 
 const { ObjectUtils } = require('jsobjectutils');
 const { PromiseFileUtils } = require('jsfileutils');
+const { FileNotFoundException } = require('jsexception');
 
 const LogicCircuitException = require('./exception/logiccircuitexception');
+const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
+
 const LogicModuleItem = require('./logicmoduleitem');
+const PackageResourceLocator = require('./packageresourcelocator');
+const ConfigParameterResolver = require('./configparameterresolver');
 
 // 全局模块（类）对象
 // 模块工厂将使用从这里获得的模块（类）然后实例化为对象。
@@ -78,7 +81,10 @@ class LogicModuleLoader {
      * @param {*} packageName
      * @param {*} moduleClassName 模块的名称
      * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
-     * @returns 返回 LogicModuleItem
+     * @returns LogicModuleItem
+     *     - 如果配置文件不存在，则抛出 FileNotFoundException 异常。
+     *     - 如果指定的逻辑模块找不到，则抛出 LogicModuleNotFoundException 异常。
+     *     - 如果逻辑模块名不符合规范，则抛出 LogicCircuitException 异常。
      */
     static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
         // 逻辑模块名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
@@ -92,11 +98,21 @@ class LogicModuleLoader {
             return lastLogicModuleItem;
         }
 
-        let moduleFilePath = path.join(logicPackagePath, 'src', moduleClassName);
-        let moduleConfigFilePath = path.join(moduleFilePath, 'logic-module.yaml');
+        let packageResourceLocator = PackageResourceLocator.create(logicPackagePath);
+        let moduleResourceLocator = packageResourceLocator.createModuleResourceLocator(moduleClassName);
+
+        let moduleDirectory = moduleResourceLocator.getModuleDirectory();
+
+        if (!await PromiseFileUtils.exists(moduleDirectory)) {
+            throw new LogicModuleNotFoundException(
+                `Can not find the specified module: "${moduleClassName}"`,
+                packageName, moduleClassName);
+        }
+
+        let moduleConfigFilePath = moduleResourceLocator.getConfigFilePath();
 
         if (!await PromiseFileUtils.exists(moduleConfigFilePath)) {
-            throw new LogicCircuitException(
+            throw new FileNotFoundException(
                 `Can not find the logic module config file: "${moduleConfigFilePath}"`);
         }
 
@@ -118,8 +134,6 @@ class LogicModuleLoader {
                 };
             });
         }
-
-        // TODO:: 模块的配置文件可能还包括：图文框、测试用例、演示数据、布局等等信息。
 
         let documentIds = moduleConfig.documentIds;
         let iconFilename = moduleConfig.iconFilename;
@@ -149,26 +163,26 @@ class LogicModuleLoader {
 
         let configDefaultParameterItems = moduleConfig.defaultParameters;
         if (configDefaultParameterItems !== undefined) {
-            defaultParameters = ObjectUtils.collapseKeyValueArray(configDefaultParameterItems,
-                'name', 'value');
+            defaultParameters = await ConfigParameterResolver.resolve(
+                configDefaultParameterItems, packageResourceLocator);
         }
 
         let moduleClass;
 
-        let structConfigFilePath = path.join(moduleFilePath, 'struct.yaml');
+        let structConfigFilePath = moduleResourceLocator.getStructFilePath();
 
         if (await PromiseFileUtils.exists(structConfigFilePath)) {
             // 优先从 struct.yaml 加载逻辑模块
             moduleClass = await promiseFileConfig.load(structConfigFilePath);
         } else {
             // 加载单一 JavaScript Class 文件
-            moduleClass = require(moduleFilePath);
+            moduleClass = require(moduleDirectory);
         }
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
             title, group,
-            moduleFilePath,
+            moduleDirectory,
             iconFilename, description, pins, documentIds);
 
         LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);

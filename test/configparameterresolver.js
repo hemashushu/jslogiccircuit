@@ -5,7 +5,6 @@ const { ParseException, IOException, FileNotFoundException } = require('jsexcept
 const { ObjectUtils } = require('jsobjectutils');
 
 const {
-    PackageRepositoryManager,
     PackageResourceLocator,
     ConfigParameterResolver,
     ConfigParameterValueType

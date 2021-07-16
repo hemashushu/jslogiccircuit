@@ -5,11 +5,11 @@ const ModuleResourceLocator = require('./moduleresourcelocator');
 const BASE_CONFIG_FILE_NAME = 'package.json';
 const DETAIL_CONFIG_FILE_NAME = 'logic-package.yaml';
 const MODULE_DIRECTORY_NAME = 'module';
-const MODULE_VALIDATE_DIRECTORY_NAME = 'validate'
+const MODULE_TEST_DIRECTORY_NAME ='test';
 const DATA_DIRECTORY_NAME = 'data';
 const DOCUMENT_DIRECTORY_NAME = 'doc';
 const SOURCE_DIRECTORY_NAME = 'src';
-const TEST_DIRECTORY_NAME ='test';
+const VALIDATE_DIRECTORY_NAME = 'validate'
 
 /**
  * 逻辑包资源定位器
@@ -23,10 +23,10 @@ const TEST_DIRECTORY_NAME ='test';
  *   |    |
  *   |    |-- module_name_2              // 另一个模块，结构同上
  *   |
- *   |-- validate                        // 存放模块验证（模块的单元测试）脚本的目录
+ *   |-- test                            // 存放模块单元测试脚本的目录
  *   |    |-- module_name_1              // 某一个模块
- *   |    |    |-- base.validate.txt     // 单元测试脚本
- *   |    |    |-- other.validate.txt
+ *   |    |    |-- base.test.txt         // 单元测试脚本
+ *   |    |    |-- other.test.txt
  *   |    |
  *   |    |-- module_name_2              // 另一个模块，结构同上
  *   |
@@ -39,67 +39,70 @@ const TEST_DIRECTORY_NAME ='test';
  *   |    |-- assert                     // 供文档所使用的资源目录
  *   |    |    |-- diagram.png           //
  *   |
+ *   |-- simulation                      // 用户仿真模块的目录，结构跟 module 一样
+ *   |    |-- module_name_1              // 跟普通模块一样，但一般会添加输入输出模块，用于直观的仿真
+ *   |
  *   |-- src                             // 存放跟模拟相关的代码的目录
  *   |    |-- assembly.S                 // 比如某些汇编代码
  *   |    |-- process.c                  // 又或者是某些需要编译的代码
  *   |    |-- memory.c                   //
  *   |    |-- demo.c                     // 还可以是用于生成 ROM 内容的程序代码
  *   |
- *   |-- test                            // 综合了模块的测试的代码目录
- *   |    |-- memory_test.c              // 某些单元测试
+ *   |-- validate                        // 结合了模块的测试的代码目录
+ *   |    |-- memory_validate.c          // 用于验证软硬件结合后的功能
  *   |
  *   |-- logic-package.yaml              // 逻辑包的详细配置文件
  *   |-- package.json                    // 逻辑包的基本配置文件
  */
 class PackageResourceLocator {
-    constructor(packagePath) {
-        this.packagePath = packagePath;
+    constructor(packageDirectory) {
+        this.packageDirectory = packageDirectory;
     }
 
-    static create(packagePath) {
-        return new PackageResourceLocator(packagePath);
+    static create(packageDirectory) {
+        return new PackageResourceLocator(packageDirectory);
     }
 
     createModuleResourceLocator(moduleClassName) {
-        let modulePath = path.join(this.getModuleDirectory(), moduleClassName);
-        let moduleValidatePath = path.join(this.getModuleValidateDirectory(), moduleClassName);
-        return new ModuleResourceLocator(this.packagePath, modulePath, moduleValidatePath);
+        let moduleDirectory = path.join(this.getModuleDirectory(), moduleClassName);
+        let moduleTestDirectory = path.join(this.getTestDirectory(), moduleClassName);
+        return new ModuleResourceLocator(this.packageDirectory, moduleDirectory, moduleTestDirectory);
     }
 
-    getPackagePath() {
-        return this.packagePath;
+    getPackageDirectory() {
+        return this.packageDirectory;
     }
 
     getBaseConfigFilePath() {
-        return path.join(this.packagePath, BASE_CONFIG_FILE_NAME);
+        return path.join(this.packageDirectory, BASE_CONFIG_FILE_NAME);
     }
 
     getDetailConfigFilePath() {
-        return path.join(this.packagePath, DETAIL_CONFIG_FILE_NAME);
+        return path.join(this.packageDirectory, DETAIL_CONFIG_FILE_NAME);
     }
 
     getModuleDirectory() {
-        return path.join(this.packagePath, MODULE_DIRECTORY_NAME);
+        return path.join(this.packageDirectory, MODULE_DIRECTORY_NAME);
     }
 
-    getModuleValidateDirectory() {
-        return path.join(this.packagePath, MODULE_VALIDATE_DIRECTORY_NAME);
+    getModuleTestDirectory() {
+        return path.join(this.packageDirectory, MODULE_TEST_DIRECTORY_NAME);
     }
 
     getDataDirectory() {
-        return path.join(this.packagePath, DATA_DIRECTORY_NAME);
+        return path.join(this.packageDirectory, DATA_DIRECTORY_NAME);
     }
 
     getDocumentDirectory() {
-        return path.join(this.packagePath, DOCUMENT_DIRECTORY_NAME);
+        return path.join(this.packageDirectory, DOCUMENT_DIRECTORY_NAME);
     }
 
     getSourceDirectory() {
-        return path.join(this.packagePath, SOURCE_DIRECTORY_NAME);
+        return path.join(this.packageDirectory, SOURCE_DIRECTORY_NAME);
     }
 
     getTestDirectory() {
-        return path.join(this.packagePath, TEST_DIRECTORY_NAME);
+        return path.join(this.packageDirectory, VALIDATE_DIRECTORY_NAME);
     }
 }
 

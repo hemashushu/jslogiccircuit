@@ -1,5 +1,6 @@
 const path = require('path');
 
+const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
 const { PromiseFileUtils } = require('jsfileutils');
 
 /**
@@ -14,11 +15,16 @@ class PackageRepositoryManager {
         // 逻辑包路径列表，排在前面的路径会被先搜索
         // 所以一般先压入基本模块仓库，再压入扩展包仓库，最后
         // 压入用户工作仓库
-        this.repositoryDirectories = [];
+        //
+        // 集合里的元素： {repositoryDirectory: String, isReadOnly: Boolean}
+        this.repositoryDirectoryInfos = [];
     }
 
-    addRepositoryDirectory(repositoryDirectory) {
-        this.repositoryDirectories.push(repositoryDirectory);
+    addRepositoryDirectory(repositoryDirectory, isReadOnly) {
+        this.repositoryDirectoryInfos.push({
+            repositoryDirectory: repositoryDirectory,
+            isReadOnly: isReadOnly
+        });
     }
 
     /**
@@ -28,15 +34,23 @@ class PackageRepositoryManager {
      * 得到包的路径。
      *
      * @param {*} packageName
-     * @returns 逻辑包的路径。如果没找到指定的包名，则返回 undefined.
+     * @returns {packageDirectory: String, isReadOnly: Boolean}
+     *     如果没找到指定的包名，则抛出 LogicPackageNotFoundException 异常。
      */
-    async findPackagePath(packageName) {
-        for(let repositoryDirectory of this.repositoryDirectories) {
-            let packagePath = path.join(repositoryDirectory, packageName);
-            if (await PromiseFileUtils.exists(packagePath)) {
-                return packagePath;
+    async findPackageDirectoryInfo(packageName) {
+        for(let repositoryDirectoryInfo of this.repositoryDirectoryInfos) {
+            let repositoryDirectory = repositoryDirectoryInfo.repositoryDirectory;
+            let packageDirectory = path.join(repositoryDirectory, packageName);
+            if (await PromiseFileUtils.exists(packageDirectory)) {
+                return {
+                    packageDirectory: packageDirectory,
+                    isReadOnly: repositoryDirectoryInfo.isReadOnly
+                };
             }
         }
+
+        throw new LogicPackageNotFoundException(
+            `Logic package "${packageName}" not found.`, packageName);
     }
 }
 

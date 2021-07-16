@@ -1,4 +1,4 @@
-const { IllegalArgumentException } = require('jsexception');
+const { LogicModuleNotFoundException } = require('./exception/logicmodulenotfoundexception');
 
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
@@ -31,7 +31,8 @@ class LogicModuleFactory {
      *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 实例参数，一个 {name:value, ...} 对象，注意这个
      *     是实例的参数，它将会跟模块的默认参数（即定义模块是所定义的参数进行合并）
-     * @returns 如果找不到指定的逻辑模块类，则抛出 IllegalArgumentException 异常。
+     * @returns AbstractLogicModule 实例。
+     *     - 如果找不到指定的逻辑模块类，则抛出 LogicModuleNotFoundException 异常。
      */
     static createModuleInstance(packageName, moduleClassName,
         instanceName, instanceParameters = {}) {
@@ -39,8 +40,9 @@ class LogicModuleFactory {
         let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
 
         if (logicModuleItem === undefined) {
-            throw new IllegalArgumentException(
-                `Can not find the specified module class "${moduleClassName}" in package "${packageName}".`);
+            throw new LogicModuleNotFoundException(
+                `Can not find the specified module class "${moduleClassName}".`,
+                packageName, moduleClassName);
         }
 
         // 关于 defaultParameters 和 instanceParameters
@@ -136,7 +138,7 @@ class LogicModuleFactory {
 
             // 这是个用于实例逻辑模块所用的实例参数
             // 子模块的实例参数允许存在占位符
-            let instanceParameters = LogicModuleFactory.resolveConfigParameters(
+            let instanceParameters = LogicModuleFactory.resolveInheritedConfigParameters(
                 configLogicModule.parameters,
                 parameters);
 
@@ -172,7 +174,7 @@ class LogicModuleFactory {
      * @param {*} configValueString
      * @param {*} parameters
      */
-    static resolveConfigValue(configValueString, parameters) {
+    static resolvePlaceholderConfigValue(configValueString, parameters) {
         if (typeof configValueString === 'string') {
             let match = /^\${(.+)}$/.exec(configValueString); // 占位符的格式 ${placeholder}
             if (match !== null) {
@@ -184,11 +186,11 @@ class LogicModuleFactory {
         return configValueString;
     }
 
-    static resolveConfigParameters(configParameters, parentParameters) {
+    static resolveInheritedConfigParameters(configParameters, parentConfigParameters) {
         let resolvedConfigParameters = {};
         for (let key in configParameters) {
-            let value = LogicModuleFactory.resolveConfigValue(
-                configParameters[key], parentParameters);
+            let value = LogicModuleFactory.resolvePlaceholderConfigValue(
+                configParameters[key], parentConfigParameters);
             resolvedConfigParameters[key] = value;
         }
         return resolvedConfigParameters;

@@ -3,22 +3,28 @@ const assert = require('assert/strict');
 
 const { Binary } = require('jsbinary');
 
-const { LogicPackageLoader,
+const {
+    PackageRepositoryManager,
+    LogicPackageLoader,
     LogicModuleFactory,
     ModuleController,
     Signal } = require('../index');
 
-describe('Test sample_logic_package_by_mix', () => {
+describe('Test package-by-mix', () => {
     it('Test module controller - Full Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_mix';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-mix';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let fullAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'full_adder', 'full_adder1');
         let moduleController1 = new ModuleController(fullAdder1);
@@ -78,10 +84,14 @@ describe('Test sample_logic_package_by_mix', () => {
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_mix';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-mix';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let fourBitAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'four_bit_adder', 'four_bit_adder1');
         let moduleController1 = new ModuleController(fourBitAdder1);

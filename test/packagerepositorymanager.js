@@ -1,27 +1,33 @@
 const path = require('path');
 const assert = require('assert/strict');
 
-const { PackageRepositoryManager } = require('../index');
+const { PackageRepositoryManager, LogicPackageNotFoundException } = require('../index');
 
 describe('Test PackageRepositoryManager', ()=>{
-    it('Test findPackagePath()', async ()=>{
+    it('Test findPackageDirectoryInfo()', async ()=>{
         let testDirectory = __dirname;
-        let resourceDirectory = path.join(testDirectory, 'resources');
-        let repositoryPath1 = path.join(resourceDirectory, 'package-repository-1');
-        let repositoryPath2 = path.join(resourceDirectory, 'package-repository-2');
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath1 = path.join(testResourceDirectory, 'package-repository-1');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
 
         let packageRepositoryManager1 = new PackageRepositoryManager();
-        packageRepositoryManager1.addRepositoryDirectory(repositoryPath1);
-        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2);
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath1, true);
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
 
-        let packagePath1 = await packageRepositoryManager1.findPackagePath('sample-package');
-        assert.equal(packagePath1, path.join(repositoryPath1, 'sample-package'));
+        let packageDirectoryInfo1 = await packageRepositoryManager1.findPackageDirectoryInfo('sample-package');
+        assert.equal(packageDirectoryInfo1.packageDirectory, path.join(repositoryPath1, 'sample-package'));
+        assert.equal(packageDirectoryInfo1.isReadOnly, true);
 
-        let packagePath2 = await packageRepositoryManager1.findPackagePath('package-by-code');
-        assert.equal(packagePath2, path.join(repositoryPath2, 'package-by-code'));
+        let packageDirectoryInfo2 = await packageRepositoryManager1.findPackageDirectoryInfo('package-by-code');
+        assert.equal(packageDirectoryInfo2.packageDirectory, path.join(repositoryPath2, 'package-by-code'));
+        assert.equal(packageDirectoryInfo2.isReadOnly, false);
 
         // 尝试获取一个不存在的逻辑包路径
-        let packagePath3 = await packageRepositoryManager1.findPackagePath('no-this-package');
-        assert(packagePath3 === undefined);
+        try{
+            await packageRepositoryManager1.findPackageDirectoryInfo('no-this-package');
+            assert.fail();
+        }catch(err) {
+            assert(err instanceof LogicPackageNotFoundException);
+        }
     });
 });

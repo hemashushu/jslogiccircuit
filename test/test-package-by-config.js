@@ -4,19 +4,25 @@ const assert = require('assert/strict');
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
 
-const { LogicPackageLoader,
+const {
+    PackageRepositoryManager,
+    LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
     ModuleController,
     OscillatingException,
     Signal } = require('../index');
 
-describe('Test sample_logic_package_by_config', () => {
+describe('Test package-by-config', () => {
     it('Test load packages', async () => {
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let checkPropNames = [
             'name',
@@ -32,9 +38,9 @@ describe('Test sample_logic_package_by_config', () => {
         ];
 
         let expectLogicPackageItem = {
-            name: 'sample_logic_package_by_config',
+            name: 'package-by-config',
             title: 'Sample Logic Package (Config)',
-            dependencies: ['sample_logic_package_by_code'],
+            dependencies: ['package-by-code'],
             modules: ['half_adder', 'oscillation', 'rs'],
             mainModule: 'half_adder',
             version: '1.0.0',
@@ -53,10 +59,14 @@ describe('Test sample_logic_package_by_config', () => {
     });
 
     it('Test load modules', async () => {
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let moduleClassNames = logicPackageItem.modules;
 
@@ -79,7 +89,7 @@ describe('Test sample_logic_package_by_config', () => {
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'half_adder');
 
         let expectHalfAdderLogicModuleItem = {
-            packageName: 'sample_logic_package_by_config',
+            packageName: 'package-by-config',
             moduleClassName: 'half_adder',
             defaultParameters: {},
             title: 'Half Adder',
@@ -97,7 +107,7 @@ describe('Test sample_logic_package_by_config', () => {
         let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'rs');
 
         let expectRSLatchLogicModuleItem = {
-            packageName: 'sample_logic_package_by_config',
+            packageName: 'package-by-config',
             moduleClassName: 'rs',
             defaultParameters: {},
             title: 'RS',
@@ -115,10 +125,14 @@ describe('Test sample_logic_package_by_config', () => {
     });
 
     it('Test module factory', async () => {
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
 
@@ -193,10 +207,14 @@ describe('Test sample_logic_package_by_config', () => {
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
         assert(!halfAdder1.isInputSignalChanged);
@@ -268,10 +286,14 @@ describe('Test sample_logic_package_by_config', () => {
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let rs1 = LogicModuleFactory.createModuleInstance(packageName, 'rs', 'rs1');
         assert(!rs1.isInputSignalChanged);
@@ -341,11 +363,14 @@ describe('Test sample_logic_package_by_config', () => {
     });
 
     it('Test module controller - Oscillation', async () => {
+        let packageName = 'package-by-config';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
 
-        let packageName = 'sample_logic_package_by_config';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let oscillation1 = LogicModuleFactory.createModuleInstance(packageName, 'oscillation', 'oscillation1');
         let moduleController1 = new ModuleController(oscillation1);

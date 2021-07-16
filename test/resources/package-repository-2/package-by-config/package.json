@@ -1,5 +1,5 @@
 {
-    "name": "sample_logic_package_by_config",
+    "name": "package-by-config",
     "version": "1.0.0",
     "author": {"name": "Hippo Spark"},
     "homepage": "https://github.com/hemashushu/jslogiccircuit"

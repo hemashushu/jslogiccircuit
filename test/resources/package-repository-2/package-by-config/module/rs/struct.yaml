@@ -9,11 +9,11 @@ outputPins:
   - name: "_Q"
     bitWidth: 1
 logicModules:
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: nor_gate
     name: nor1
     parameters: {}
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: nor_gate
     name: nor2
     parameters: {}

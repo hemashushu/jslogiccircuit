@@ -35,16 +35,16 @@ outputPins:
     bitWidth: 1
 
 logicModules:
-  - packageName: sample_logic_package_by_mix
+  - packageName: package-by-mix
     moduleClassName: full_adder
     name: fa0
-  - packageName: sample_logic_package_by_mix
+  - packageName: package-by-mix
     moduleClassName: full_adder
     name: fa1
-  - packageName: sample_logic_package_by_mix
+  - packageName: package-by-mix
     moduleClassName: full_adder
     name: fa2
-  - packageName: sample_logic_package_by_mix
+  - packageName: package-by-mix
     moduleClassName: full_adder
     name: fa3
 

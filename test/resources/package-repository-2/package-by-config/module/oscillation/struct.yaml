@@ -5,22 +5,22 @@ outputPins:
   - name: Out
     bitWidth: 1
 logicModules:
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: or_gate
     name: or1
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: or_gate
     name: or2
 
 # 在 or2 和 nor1 之前插入一个 or0 模块用于额外测试
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: or_gate
     name: or0
 
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: nor_gate
     name: nor1
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: or_gate
     name: or3
 

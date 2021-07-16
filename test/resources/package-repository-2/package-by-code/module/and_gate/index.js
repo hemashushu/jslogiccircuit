@@ -1,4 +1,4 @@
-const { AbstractLogicModule, Signal } = require('../../../../../index');
+const { AbstractLogicModule, Signal } = require('../../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
@@ -15,7 +15,7 @@ class AndGate extends AbstractLogicModule {
     }
 
     getPackageName() {
-        return 'sample_logic_package_by_code'; // 同目录名
+        return 'package-by-code'; // 同目录名
     }
 
     getModuleClassName() {

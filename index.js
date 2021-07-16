@@ -1,5 +1,7 @@
 const LogicCircuitException = require('./src/exception/logiccircuitexception');
 const OscillatingException = require('./src/exception/oscillatingexception');
+const LogicPackageNotFoundException = require('./src/exception/logicpackagenotfoundexception');
+const LogicModuleNotFoundException = require('./src/exception/logicmodulenotfoundexception');
 
 const AbstractLogicModule = require('./src/abstractlogicmodule');
 const AbstractWire = require('./src/abstractwire');
@@ -26,6 +28,8 @@ const Wire = require('./src/wire');
 module.exports = {
     LogicCircuitException: LogicCircuitException,
     OscillatingException: OscillatingException,
+    LogicPackageNotFoundException: LogicPackageNotFoundException,
+    LogicModuleNotFoundException: LogicModuleNotFoundException,
 
     AbstractLogicModule: AbstractLogicModule,
     AbstractWire: AbstractWire,

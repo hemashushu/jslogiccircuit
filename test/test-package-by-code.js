@@ -4,20 +4,27 @@ const assert = require('assert/strict');
 const { Binary } = require('jsbinary');
 const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
 
-const { LogicPackageLoader,
+const {
+    PackageRepositoryManager,
+    LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
     ModuleController,
     Signal } = require('../index');
 
-describe('Test sample_logic_package_by_code', () => {
+describe('Test package-by-code', () => {
     it('Test load packages', async () => {
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
 
-        assert.equal(logicPackageItem.packageDirectory, path.join(testResourcePath, packageName));
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
+
+        assert.equal(logicPackageItem.packageDirectory,
+            path.join(repositoryPath2, packageName));
 
         let checkPropNames = [
             'name',
@@ -33,7 +40,7 @@ describe('Test sample_logic_package_by_code', () => {
         ];
 
         let expectLogicPackageItem = {
-            name: 'sample_logic_package_by_code',
+            name: 'package-by-code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
             modules: ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate'],
@@ -55,10 +62,14 @@ describe('Test sample_logic_package_by_code', () => {
     });
 
     it('Test load modules', async () => {
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let moduleClassNames = logicPackageItem.modules;
 
@@ -83,10 +94,10 @@ describe('Test sample_logic_package_by_code', () => {
 
         assert.equal(
             logicModuleItem1.moduleDirectory,
-            path.join(logicPackageItem.packageDirectory, 'src', 'and_gate'));
+            path.join(logicPackageItem.packageDirectory, 'module', 'and_gate'));
 
         let expectAndGateLogicModuleItem = {
-            packageName: 'sample_logic_package_by_code',
+            packageName: 'package-by-code',
             moduleClassName: 'and_gate',
             defaultParameters: {},
             title: 'AND Gate',
@@ -109,7 +120,7 @@ describe('Test sample_logic_package_by_code', () => {
         let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[1]);
 
         let expectAndGateExtLogicModuleItem = {
-            packageName: 'sample_logic_package_by_code',
+            packageName: 'package-by-code',
             moduleClassName: 'and_gate_ext',
             defaultParameters: { inputPinCount: 2, bitWidth: 1 },
             title: 'AND Gate Ext',
@@ -128,7 +139,7 @@ describe('Test sample_logic_package_by_code', () => {
         let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[2]);
 
         let expectXorGateLogicModuleItem = {
-            packageName: 'sample_logic_package_by_code',
+            packageName: 'package-by-code',
             moduleClassName: 'nor_gate',
             defaultParameters: {},
             title: 'NOR Gate',
@@ -162,10 +173,14 @@ describe('Test sample_logic_package_by_code', () => {
     });
 
     it('Test module factory', async () => {
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and1');
 
@@ -236,10 +251,14 @@ describe('Test sample_logic_package_by_code', () => {
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
         assert(!andGate1.isInputSignalChanged);
@@ -293,10 +312,14 @@ describe('Test sample_logic_package_by_code', () => {
         let signal0 = Signal.createWithoutHighZ(1, binary0);
         let signal1 = Signal.createWithoutHighZ(1, binary1);
 
-        let packageName = 'sample_logic_package_by_code';
-        let testPath = __dirname;
-        let testResourcePath = path.join(testPath, 'resources');
-        await LogicPackageLoader.loadLogicPackage(testResourcePath, packageName);
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
         assert(!norGate1.isInputSignalChanged);

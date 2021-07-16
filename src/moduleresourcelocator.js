@@ -18,26 +18,26 @@ const MODULE_STRUCT_FILE_NAME = 'struct.yaml'
  *     |    |-- base.validate.txt     // 单元测试脚本*
  */
 class ModuleResourceLocator {
-    constructor(packagePath, modulePath, moduleValidatePath) {
-        this.packagePath = packagePath;
-        this.modulePath = modulePath;
-        this.moduleValidatePath = moduleValidatePath;
+    constructor(packageDirectory, moduleDirectory, moduleTestDirectory) {
+        this.packageDirectory = packageDirectory;
+        this.moduleDirectory = moduleDirectory;
+        this.moduleTestDirectory = moduleTestDirectory;
     }
 
-    getModulePath() {
-        return this.modulePath;
+    getModuleDirectory() {
+        return this.moduleDirectory;
     }
 
-    getModuleValidatePath() {
-        return this.moduleValidatePath;
+    getTestDirectory() {
+        return this.moduleTestDirectory;
     }
 
     getConfigFilePath() {
-        return path.join(this.modulePath, MODULE_CONFIG_FILE_NAME);
+        return path.join(this.moduleDirectory, MODULE_CONFIG_FILE_NAME);
     }
 
     getStructFilePath() {
-        return path.join(this.modulePath, MODULE_STRUCT_FILE_NAME);
+        return path.join(this.moduleDirectory, MODULE_STRUCT_FILE_NAME);
     }
 }
 

@@ -11,13 +11,13 @@ outputPins:
   - name: Cout
     bitWidth: 1
 logicModules:
-  - packageName: sample_logic_package_by_config
+  - packageName: package-by-config
     moduleClassName: half_adder
     name: ha1
-  - packageName: sample_logic_package_by_config
+  - packageName: package-by-config
     moduleClassName: half_adder
     name: ha2
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: or_gate
     name: or1
 

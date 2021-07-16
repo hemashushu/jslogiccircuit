@@ -2,25 +2,18 @@ title: AND Gate Ext
 description: Logic "AND" Gate Extension
 iconFilename: icon.png
 defaultParameters:
-  - name: inputPinCount
+  inputPinCount:
     description: The count of input pins
     value: 2
     valueType: range
     valueRange:
       from: 2
       to: 32
-  - name: bitWidth
+  bitWidth:
     description: The bit width of each pins
     value: 1
     valueType: range
     valueRange:
       from: 1
       to: 32
-    # 此外还有 'option' 类型
-    # valueType: option
-    # valueOptions:
-    #   - 1
-    #   - 2
-    #   - 4
-    #   - 8
 group: "Logic"

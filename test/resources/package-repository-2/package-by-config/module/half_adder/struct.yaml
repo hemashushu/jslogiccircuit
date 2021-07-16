@@ -9,11 +9,11 @@ outputPins:
   - name: C
     bitWidth: 1
 logicModules:
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: and_gate
     name: and1
     parameters: {}
-  - packageName: sample_logic_package_by_code
+  - packageName: package-by-code
     moduleClassName: xor_gate
     name: xor1
     parameters: {}
