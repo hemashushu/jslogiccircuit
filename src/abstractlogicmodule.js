@@ -9,7 +9,7 @@ const PinDirection = require('./pindirection');
  *
  * - 相当于 Verilog 的 module。
  * - 当需要引用其他 logic package 里的 logic module 时，不能使用 JavaScript 的
- *   require() 或者 import() 方法加载然后创建实例，而应该使用
+ *   require() 或者 import() 方法加载，而应该使用
  *   LogicModuleFactory.createModuleInstance() 方法创建实例，该方法
  *   能解决模块的依赖问题。
  */
@@ -36,10 +36,19 @@ class AbstractLogicModule {
         // 模块实例的名称
         this.name = instanceName;
 
-        // 一个 {name:value, ...} 对象，只有实例化一个模块内部的
-        // 子模块时才有这个参数。实例一个逻辑包的顶层模块时，不存在这个参数。
-        // 不过有时作单元测试时，测试程序可能会构造不同的参数用于完整
-        // 测试各种情况。
+        // 一个 {name:value, ...} 对象
+        // value 的数据类型有：
+        // - 数字
+        // - 一个数据对象
+        // - 一个二进制数据（Nodejs 的 Buffer 对象）
+        //
+        // 一般来说只有：
+        // - 实例化一个模块内部的子模块时
+        // - 模块作作单元测试时
+        // 才会有这个参数。
+        //
+        // 实例一个模拟（simulation）模块时，不存在这个参数。
+
         this.instanceParameters = instanceParameters;
 
         // 模块的默认参数
@@ -64,66 +73,34 @@ class AbstractLogicModule {
         // 所有端口的集合，包括输入端口/输出端口/双向端口
         this.pins = [];
 
-        // 所有端口当中的具有输入属性的端口集合，是 pins 的子集。
+        // 端口当中的输入端口，是 pins 的子集，用于提高检索速度。
         this.inputPins = [];
 
-        // 所有端口当中的具有输出属性的端口集合，是 pins 的子集。
+        // 端口当中的输出端口，是 pins 的子集，用于提供检索速度。
         this.outputPins = [];
 
-
         // 表示输入信号有变化，需要重新计算模块的状态。
+        // 当 input pin 的信号值发生改变时，会自动更新此变量的值。
         this.inputSignalChangedFlag = false;
-        // this.inputSignalChangedFlag = 0 | 0;
 
         // 表示重新计算后，模块的状态有变化，需要传递信号给其他模块。
-        //
-        // 注意，对于复杂的逻辑模块，可能会包含有子模块，每次更新状态（ModuleController.step 方法）
-        // 可能需要多次循环才完成，这个 outputSignalChangedFlag 只记录了最后一次循环是否存在
-        // 输出变化的情况。所以存在输出信号在中间某次循环已经传输，而最后一次循环并不需输出
-        // 的情况（因为最后一次循环输出信号没变化），这时候 isOutputDataChanged 的值为 false，但对于
-        // 完整的一次更新周期来说，其实（中途）有输出数据变化。因此不能通过这个
-        // 标记（isOutputDataChanged）用于判断模块的输出有无变化。
-        //
-        // 也就是说，对于 ModuleController.step 方法完成之后，isOutputDataChanged 属性对于外部
-        // 并无多少意义，跟 inputSignalChangedFlag 属性一样，都是仅供 ModuleController.step 方法所使用。
+        // 当 output pin 的信号值发生改变时，会自动更新此变量的值。
         this.outputSignalChangedFlag = false;
-        // this.outputSignalChangedFlag = 0 | 0;
-    }
 
-//     get isInputSignalChanged() {
-//         return this.inputSignalChangedFlag; // !== 0;
-//     }
-//
-//     get isOutputSignalChanged() {
-//         return this.outputSignalChangedFlag; // !== 0;
-//     }
+        // 复杂的逻辑模块可能会包含有子模块，每次更新模块状态（即 ModuleController.step 方法）
+        // 可能需要多次循环才完成，这个 outputSignalChangedFlag 只记录了最后一次循环是否存在
+        // 输出变化的情况。
+        // 所以存在这样的情况：输出信号在中间某次循环发生改变并已经传输，而最后一次循环并没有再
+        // 发生改变（也不需再输出）。
+        // 这时候 outputSignalChangedFlag 的值为 false，但对于
+        // 完整的一次更新周期来说，其实（中途）输出数据是有变化且有输出。因此不能通过这个
+        // 标记（outputSignalChangedFlag）用于判断模块的输出有无变化。
+        // inputSignalChangedFlag 标记也有相同的情况，所以这两个属性仅供 ModuleController.step 方法
+        // 使用，对外部意义不大。
+    }
 
     /**
-     * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
-     * 不应该是 0，比如 “非门” 的实现的初始输出值为 0，而正确的初始输出值应该为 1。
-     * 对于这种情况，模块控制器（ModuleController）采用的方法是，在模拟刚开始的时候，将所有
-     * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
-     * 重新计算自己（内部）的信号值，然后改变输出信号，最后达到稳定且正确的状态。
-     */
-     setInputSignalChangedFlag() {
-        this.inputSignalChangedFlag = true;
-        // this.inputSignalChangedFlag = 1 | 0;
-    }
-
-    getAllLogicModules() {
-        return [this];
-    }
-
-    // computeInputSignalChanged() {
-    //     let changed = this.inputSignalChangedFlag;
-    //     for (let inputPin of this.inputPins) {
-    //         changed = changed | inputPin.signalChangedFlag;
-    //     }
-    //     this.inputSignalChangedFlag = changed;
-    // }
-
-    /**
-     * 确保子模块输入的信号是最新的值。
+     * 将 input pin 的信号传输到下一个端口。
      *
      * 更新周期的第 A1 步。
      */
@@ -143,6 +120,7 @@ class AbstractLogicModule {
     }
 
     /**
+     * 重置 output pin 的 signalChangedFlag
      *
      * 更新周期的第 A2 步。
      */
@@ -153,32 +131,25 @@ class AbstractLogicModule {
     }
 
     /**
+     * 重置 outputSignalChangedFlag。
      *
      * 更新周期的第 A3 步。
      */
     resetOutputSignalChangedFlag() {
         this.outputSignalChangedFlag = false;
-        // this.outputSignalChangedFlag = 0 | 0;
     }
 
     /**
+     * 更新模块的信号状态，这里是模块的 “业务逻辑” 代码的主要所在地。
      *
      * 更新周期的第 A4 步。
      */
     updateModuleState() {
-        // 这里是模块的 “业务逻辑” 代码的主要所在地，
-        // 需要获取输入端口的数值然后计算模块的数值。
+        throw new NotImplementedException();
     }
 
-    // computeOutputSignalChanged() {
-    //     let changed = this.outputSignalChangedFlag;
-    //     for (let outputPin of this.outputPins) {
-    //         changed = changed | outputPin.signalChangedFlag;
-    //     }
-    //     this.outputSignalChangedFlag = changed;
-    // }
-
     /**
+     * 重置 input pin 的 signalChangedFlag
      *
      * 更新周期的第 B1 步。
      */
@@ -189,39 +160,60 @@ class AbstractLogicModule {
     }
 
     /**
+     * 重置 inputSignalChangedFlag
      *
      * 更新周期的第 B2 步。
      */
     resetInputSignalChangedFlag() {
         this.inputSignalChangedFlag = false;
-        // this.inputSignalChangedFlag = 0 | 0;
     }
 
     /**
+     * 将 output pin 的信号传输到下一个端口。
+     *
+     * 一个 output pin 有可能连接到：
+     * - 下一个模块的 input pin
+     * - 父模块的 output pin
+     *
+     * 加上 transferInputPinSignal() 方法用于传递
+     * input pin 信号到子模块的 input pin。
+     *
+     * 两个方法共同完成了所有连接类型的信号传递。
      *
      * 更新周期的第 B3 步。
      */
     transferOutputPinSignal() {
-
-        // 实现模块之间的信号传递，即：
-        // - 上一个模块的 output pin 传到下一个模块的 input pin
-        // - 子模块的 output pin 传到父模块的 output pin
-        //
-        // 对于父模块的 input pin 传到 子模块的 input pin，则使用
-        // transferInputPinSignal() 方法实现。
-
         for (let outputPin of this.outputPins) {
-            // if (outputPin.signalChangedFlag) {
-            // 只有数据发生改变了的 output pin 才传递数据。
             outputPin.writeToNextPins();
-            // }
         }
     }
 
+    /**
+     * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
+     * 不应该是 0，比如 “非门” 的实现的初始输出值为 0，而正确的初始输出值应该为 1。
+     * 对于这种情况，模块控制器（ModuleController）采用的方法是，在模拟刚开始的时候，将所有
+     * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
+     * 重新计算自己（内部）的信号值，然后改变输出信号，最后达到稳定且正确的状态。
+     */
+    setInputSignalChangedFlag() {
+        this.inputSignalChangedFlag = true;
+    }
+
+    /**
+     * 获取当前模块即所有子模块。
+     *
+     * @returns
+     */
+    getAllLogicModules() {
+        // 对于终点模块（即没有子模块的模块），只需返回自身。
+        return [this];
+    }
+
     addPin(name, bitWidth, pinDirection) {
+        // 端口数据改变事件的监听者（一个 void function(Boolean) 函数）
         let signalChangeEventListener;
 
-        switch(pinDirection) {
+        switch (pinDirection) {
             case PinDirection.input:
                 signalChangeEventListener = (flag) => {
                     this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
@@ -233,19 +225,12 @@ class AbstractLogicModule {
                     this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
                 };
                 break;
-
-            // case PinDirection.bidirectional:
-            //     signalChangeEventListener = (flag) => {
-            //         this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
-            //         this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
-            //     };
-            //     break;
         }
 
         let pin = new Pin(name, bitWidth, pinDirection, signalChangeEventListener);
         this.pins.push(pin);
 
-        switch(pinDirection) {
+        switch (pinDirection) {
             case PinDirection.input:
                 this.inputPins.push(pin);
                 break;
@@ -253,110 +238,34 @@ class AbstractLogicModule {
             case PinDirection.output:
                 this.outputPins.push(pin);
                 break;
-
-            // case PinDirection.bidirectional:
-            //     this.inputPins.push(pin);
-            //     this.outputPins.push(pin);
-            //     break;
         }
 
         return pin;
     }
 
-    //     /**
-    //      *
-    //      * @param {*} name
-    //      * @param {*} bitWidth
-    //      * @returns
-    //      */
-    //     addInputPinByDetail(name, bitWidth) {
-    //         let inputPin = new Pin(name, bitWidth, PinDirection.input);
-    //         this.addInputPin(inputPin);
-    //         return inputPin;
-    //     }
-    //
-    //     addInputPin(inputPin) {
-    //         this.pins.push(inputPin);
-    //         this.inputPins.push(inputPin);
-    //
-    //         // inputPin.addSignalChangeEventListener(() => {
-    //         //     this.inputSignalChangedFlag = true;
-    //         // });
-    //     }
-    //
-    //     addOutputPinByDetail(name, bitWidth) {
-    //         let outputPin = new Pin(name, bitWidth, PinDirection.output);
-    //         this.addOutputPin(outputPin);
-    //         return outputPin;
-    //     }
-    //
-    //     addOutputPin(outputPin) {
-    //         this.pins.push(outputPin);
-    //         this.outputPins.push(outputPin);
-    //         // outputPin.addSignalChangeEventListener(() => {
-    //         //     this.outputSignalChangedFlag = true;
-    //         // });
-    //     }
-    //
-    //     addInoutPinByDetail(name, bitWidth) {
-    //         let inoutPin = new Pin(name, bitWidth, PinDirection.inout);
-    //         this.addInoutPin(inoutPin);
-    //         return inoutPin;
-    //     }
-    //
-    //     addInoutPin(inoutPin) {
-    //         this.pins.push(inoutPin);
-    //         this.inputPins.push(inoutPin);
-    //         this.outputPins.push(inoutPin);
-    //         // outputPin.addSignalChangeEventListener(() => {
-    //         //     this.outputSignalChangedFlag = true;
-    //         // });
-    //     }
-
     /**
      * LogicModule 实现所在的包的名称
      * 名称需同时符合 npm package 命名规范
      *
-     * @returns 返回名称字符串
+     * @returns 逻辑包名称字符串
      */
     getPackageName() {
-        // 子类需要重写（override）此方法
-        throw new NotImplementedException('Not implemented yet.');
+        throw new NotImplementedException();
     }
 
     /**
      * LogicModule 实现的名称
      *
-     * @returns 返回名称字符串
+     * @returns 逻辑模块名称字符串
      */
     getModuleClassName() {
-        // 子类需要重写（override）此方法
-        throw new NotImplementedException('Not implemented yet.');
+        throw new NotImplementedException();
     }
-
-    //     /**
-    //      * 通过名字获取输入端口实例对象
-    //      * @param {*} name
-    //      * @returns 返回 Pin 实例对象，如果找不到相应的端口，则返回 undefined.
-    //      */
-    //     getInputPin(name) {
-    //         return this.inputPins.find(item => item.name === name);
-    //     }
-    //
-    //     /**
-    //      * 通过名字获取输出端口实例对象
-    //      *
-    //      * @param {*} name
-    //      * @returns 返回 Pin 实例对象，如果找不到相应的端口，则返回 undefined.
-    //      */
-    //     getOutputPin(name) {
-    //         return this.outputPins.find(item => item.name === name);
-    //     }
 
     /**
      * 获取所有输入端口对象。
      *
-     * @returns 返回 Pin 实例对象数组
+     * @returns Pin 实例对象数组
      */
     getInputPins() {
         return this.inputPins;
@@ -365,12 +274,17 @@ class AbstractLogicModule {
     /**
      * 获取所有输出端口对象。
      *
-     * @returns 返回 Pin 实例对象数组
+     * @returns Pin 实例对象数组
      */
     getOutputPins() {
         return this.outputPins;
     }
 
+    /**
+     * 获取所有端口。
+     *
+     * @returns
+     */
     getPins() {
         return this.pins;
     }
@@ -379,7 +293,7 @@ class AbstractLogicModule {
      * 通过名字获取端口实例对象
      *
      * @param {*} name
-     * @returns 返回 Pin 实例对象，如果找不到相应的端口，则返回 undefined.
+     * @returns Pin 实例对象，如果找不到相应的端口，则返回 undefined.
      */
     getPin(name) {
         return this.pins.find(item => item.name === name);
@@ -390,7 +304,7 @@ class AbstractLogicModule {
      * 注意这个参数是定义模块时自带的默认配置的默认参数，并非实例参数。
      * 实例化模块时，会将实例参数跟这个默认参数合并作为最终运行时所用的参数。
      *
-     * @returns 返回参数对象，{name: value,...}
+     * @returns 参数对象，{name: value,...}
      */
     getDefaultParameters() {
         return this.defaultParameters;
@@ -399,7 +313,7 @@ class AbstractLogicModule {
     /**
      * 实例化当前模块时的参数
      *
-     * @returns 返回参数对象，{name: value,...}
+     * @returns 参数对象，{name: value,...}
      */
     getInstanceParameters() {
         return this.instanceParameters;
@@ -408,7 +322,7 @@ class AbstractLogicModule {
     /**
      * 当前实例真正使用的实际参数
      *
-     * @returns 返回参数对象，{name: value,...}
+     * @returns 参数对象，{name: value,...}
      */
     getParameters() {
         return this.parameters;
@@ -420,7 +334,7 @@ class AbstractLogicModule {
      * 此参数由实例化时传入的参数与模块类默认参数合并而得。
      *
      * @param {*} name
-     * @returns 返回属性值，如果指定属性名称找不到，则返回 undefined.
+     * @returns 属性值，如果指定属性名称找不到，则返回 undefined.
      */
     getParameter(name) {
         return this.parameters[name];

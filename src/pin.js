@@ -1,6 +1,7 @@
 const { IllegalArgumentException } = require('jsexception');
 
 const SignalAwareWire = require('./signalawarewire');
+const PinDirection = require('./pindirection');
 
 /**
  * 逻辑模块的 I/O 端口
@@ -31,8 +32,8 @@ class Pin extends SignalAwareWire {
      *     一个数据宽度为 N 的端口相当于 N 个（现实当中的）端口
      * @param {*} pinDirection 端口的数据传输方向。
      */
-    constructor(name, bitWidth, pinDirection, signalChangeEventListener = ()=>{}) {
-        super(bitWidth, signalChangeEventListener);
+    constructor(name, bitWidth, pinDirection = PinDirection.input, signalSetEventListener = ()=>{}) {
+        super(bitWidth, signalSetEventListener);
 
         // 端口名称名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
         if (!/^[a-zA-Z_][\w\$]*$/.test(name)) {

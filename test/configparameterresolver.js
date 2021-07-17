@@ -1,7 +1,7 @@
 const path = require('path');
 const assert = require('assert/strict');
 
-const { ParseException, IOException, FileNotFoundException } = require('jsexception');
+const { ParseException, FileNotFoundException } = require('jsexception');
 const { ObjectUtils } = require('jsobjectutils');
 
 const {
