@@ -28,8 +28,9 @@ describe('Test package-by-config', () => {
             'name',
             'title',
             'dependencies',
-            'modules',
-            'mainModule',
+            // 'modules',
+            'mainSimulationModule',
+            'isReadOnly',
             'version',
             'author',
             'homepage',
@@ -41,8 +42,9 @@ describe('Test package-by-config', () => {
             name: 'package-by-config',
             title: 'Sample Logic Package (Config)',
             dependencies: ['package-by-code'],
-            modules: ['half_adder', 'oscillation', 'rs'],
-            mainModule: 'half_adder',
+            // modules: ['half_adder', 'oscillation', 'rs'],
+            mainSimulationModule: undefined,
+            isReadOnly: false,
             version: '1.0.0',
             author: 'Hippo Spark',
             homepage: 'https://github.com/hemashushu/jslogiccircuit',
@@ -66,24 +68,24 @@ describe('Test package-by-config', () => {
 
         let packageRepositoryManager1 = new PackageRepositoryManager();
         packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
+        let logicPackageItem1 = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
-        let moduleClassNames = logicPackageItem.modules;
+        let logicModuleItems1 = LogicModuleLoader.getLogicModuleItemsByPackageName(packageName);
+        let moduleClassNames1 = logicModuleItems1.map(item => item.moduleClassName);
+        moduleClassNames1.sort(); // sort module names
 
-        // sort module names
-        moduleClassNames.sort();
-
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['half_adder', 'oscillation', 'rs']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames1,
+            ['half_adder', 'oscillation', 'rs']));
 
         let checkPropNames = [
             'packageName',
             'moduleClassName',
             'defaultParameters',
-            'group',
             'title',
+            'group',
+            'isSimulation',
             'iconFilename',
-            'description',
-            'documentIds'
+            'description'
         ];
 
         let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'half_adder');
@@ -94,9 +96,9 @@ describe('Test package-by-config', () => {
             defaultParameters: {},
             title: 'Half Adder',
             group: 'Combinatorial',
+            isSimulation: false,
             iconFilename: 'icon.png',
-            description: 'Half Adder by XOR and AND Gates',
-            documentIds: []
+            description: 'Half Adder by XOR and AND Gates'
         };
 
         assert(ObjectUtils.equals(
@@ -112,9 +114,9 @@ describe('Test package-by-config', () => {
             defaultParameters: {},
             title: 'RS',
             group: 'Sequential',
+            isSimulation: false,
             iconFilename: 'icon.png',
-            description: 'RS NOR latch',
-            documentIds: []
+            description: 'RS NOR latch'
         };
 
         assert(ObjectUtils.equals(

@@ -3,8 +3,3 @@ description: A logic package for unit testing.
 iconFilename: icon.png
 dependencies:
   - "package-by-code"
-modules:
-  - "half_adder"
-  - "oscillation"
-  - "rs"
-mainModule: "half_adder"

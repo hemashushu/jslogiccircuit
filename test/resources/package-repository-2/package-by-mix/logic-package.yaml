@@ -4,7 +4,3 @@ iconFilename: icon.png
 dependencies:
   - "package-by-code"
   - "package-by-config"
-modules:
-  - "full_adder"
-  - "four_bit_adder"
-mainModule: "full_adder"

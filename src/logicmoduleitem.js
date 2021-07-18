@@ -4,8 +4,13 @@
 class LogicModuleItem {
     /**
      *
-     * @param {*} packageName 逻辑模块的名称。在同一个逻辑包里，逻辑模块名称必须是唯一的。
-     * @param {*} moduleClassName 模块实现的名称，注意这有区别于模块实例的名称
+     * @param {*} packageName 逻辑包的名称。
+     * @param {*} moduleClassName 逻辑模块的名称
+     *     - 模块名称（moduleClassName）的组成规则：
+     *       父模块的名称 + '$' + 模块所在目录的名称
+     *       如果不从属于其他模块，则名称为其所在目录的名称。
+     *     - 在同一个逻辑包里，逻辑模块（包括普通逻辑模块和仿真逻辑模块）名称必须是唯一的。
+     *     - 注意模块名称不同于模块实例的名称
      * @param {*} moduleClass AbstractLogicModule 的实现或一个 YAML 配置对象。
      * @param {*} defaultParameters 模块的默认参数
      * @param {*} title 逻辑模块的标题，可本地化。
@@ -13,11 +18,15 @@ class LogicModuleItem {
      *     而 moduleClassName 主要用于程序内部标识（id）作用。
      * @param {*} group 分组名称，一个字符串，可本地化。
      * @param {*} moduleDirectory 模块的本地文件路径
+     * @param {*} isSimulation 标记是否为仿真模块，
+     *     - 仿真模块不能被外部逻辑包访问，也不能被所在包的普通模块所引用；
+     *     - 仿真模块可以引用普通模块；
+     *     - 仿真模块可以引用仿真模块；
      * @param {*} iconFilename 模块的图标文件名称，图标一般为 512x512 的 PNG 格式图片。
      * @param {*} description 模块的描述及说明文本。可本地化。
-     * @param {*} pins 对输入输出端口的描述，name 支持正则表达式，description 可本地化。
-     * @param {*} documentIds 模块的详细说明文档，指向 doc 的里面的文档的 id 的列表，用于生成
-     *     类似 MDN 文档的 'see also' 列表。
+     * @param {*} pins 对输入输出端口的描述，name 支持正则表达式，
+     *     description 可本地化，之所以把 pin 的描述放在这里，是因为有些
+     *     模块是用代码实现的，它们没有构造配置文件，所以只好写在模块的配置文件里。
      *
      */
     constructor(
@@ -28,10 +37,10 @@ class LogicModuleItem {
         title,
         group,
         moduleDirectory,
+        isSimulation,
         iconFilename,
         description,
-        pins,
-        documentIds = []) {
+        pins) {
 
         this.packageName = packageName;
         this.moduleClassName = moduleClassName;
@@ -41,10 +50,10 @@ class LogicModuleItem {
         this.title = title;
         this.group = group;
         this.moduleDirectory = moduleDirectory;
+        this.isSimulation = isSimulation;
         this.iconFilename = iconFilename;
         this.description = description;
         this.pins = pins;
-        this.documentIds = documentIds;
     }
 }
 

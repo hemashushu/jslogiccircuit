@@ -16,13 +16,21 @@ const LogicPackageItem = require('./logicpackageitem');
 const PackageResourceLocator = require('./packageresourcelocator');
 
 // 全局逻辑包集合
-// key: packagename
-// value: PackageItem
+// _logicPackageItemMap 的结构如下：
+// {
+//     packageName1: LogicPackageItem1,
+//     packageName2: LogicPackageItem2,
+//     ...
+// }
 global._logicPackageItemMap = new Map();
 
 // 全局逻辑包引用计数
-// key: packagename
-// value: int （值为该逻辑包被引用的次数）
+// _logicPackageReferenceCountMap 的结构如下：
+// {
+//     packageName1: Number1, // Number 为该逻辑包被引用的次数
+//     packageName2: Number2,
+//     ...
+// }
 global._logicPackageReferenceCountMap = new Map();
 
 // 简化引用
@@ -31,25 +39,26 @@ let logicPackageReferenceCountMap = global._logicPackageReferenceCountMap;
 
 /**
  * 一个逻辑包（logic package），同时也是一个标准的 npm package，
- * 可以包含一个或若多个逻辑模块（logic module class）。
+ * 可以包含一个或若多个逻辑模块（logic module class），
+ * 逻辑包的目录结构请见 PackageResourceLocator.
  *
- * 逻辑包根目录除了必须包含 package.json 文件之外，还必须有一个
- * 名字为 logic-package.yaml 的文件，此文件包含以下必要的属性：
+ * 逻辑包根目录必须包含 package.json 文件，该文件有以下必要的属性：
+ *
+ * - name：逻辑包的名称，需跟其目录名称一致；
+ * - version：逻辑包的版本；
+ * - author：作者的名称，格式为 "name <email> (url)" 字符串，
+ *   或者 {name, email, url} 对象，其中 email 和 url 都是可选的；
+ * - homepage：逻辑包的主页；
+ *
+ * 另外还有一个名字为 logic-package.yaml 的文件，此文件包含以下必要的属性：
  *
  * - title：逻辑包的标题，支持 locale；
- * - description：逻辑包的描述，Markdown 格式文本，支持 locale；
+ * - description：逻辑包的描述，支持 locale；
  * - iconFilename：图标文件名，图标文件存放于逻辑包的根目录，建议
  *   使用 512x512 的 png/webp 格式；
  * - dependencies：依赖项（逻辑包）的名称列表，为一个 String 数组；
  * - modules：当前逻辑包提供的逻辑模块项的名称列表，为一个 String 数组。
  *
- * package.json 文件有以下必要的属性：
- *
- * - name：逻辑包的名称，需跟其目录名称一致；
- * - version：逻辑包的版本；
- * - author：作者的名称，格式为 "name <email> (url)" 字符串，或者
- *   {name, email, url} 对象，其中 email 和 url 都是可选的；
- * - homepage：逻辑包的主页；
  */
 class LogicPackageLoader {
 
@@ -80,22 +89,25 @@ class LogicPackageLoader {
         let logicPackageItem = logicPackageItemMap.get(packageName);
 
         if (logicPackageItem === undefined) {
+            // 集合里未找到指定的逻辑包名称
+            // 可能是重复调用了 removeLogicPackageItemByName() 方法
             return;
         }
 
+        // 获取逻辑包的引用次数，如果
+        // - 大于 1 则减少引用数，但不移除 LogicPackageItem
+        // - 等于 1，说明没有其它逻辑包引用它，则真正移除 LogicPackageItem
         let count = logicPackageReferenceCountMap.get(packageName);
+
         if (count > 1) {
-            // 减少引用数量
+            // 减少引用数量，不移除 LogicPackageItem
             count--;
             logicPackageReferenceCountMap.set(packageName, count);
             return;
         }
 
         // 先移除逻辑模块
-        let moduleClassNames = logicPackageItem.modules;
-        for (let moduleClassName of moduleClassNames) {
-            LogicModuleLoader.removeModuleClass(moduleClassName);
-        }
+        LogicModuleLoader.removeAllLogicModuleItemsByPackageName(packageName);
 
         // 再移除依赖包
         let dependencyPackageNames = logicPackageItem.dependencies;
@@ -103,6 +115,7 @@ class LogicPackageLoader {
             LogicPackageLoader.removeLogicPackageItemByName(dependencyPackageName);
         }
 
+        // 再移除 LogicPackageItem 自身
         logicPackageReferenceCountMap.delete(packageName);
         logicPackageItemMap.delete(packageName);
     }
@@ -111,12 +124,13 @@ class LogicPackageLoader {
      * 加载逻辑包。
      *
      * 加载过程大致如下：
-     * 1. 分析依赖哪些逻辑包（logic package），并逐一加载它们，即先加载依赖包；
-     * 2. 分析当前逻辑包提供了哪些逻辑模块（logic module class），并通过
-     *    LogicModuleLoader 加载它们。
+     * 1. 分析依赖哪些逻辑包，并逐一加载它们，即先加载依赖包；
+     * 2. 分析当前逻辑包提供了哪些逻辑模块（logic module），包括普通的逻辑模块和
+     *    用于仿真的逻辑模块，并通过 LogicModuleLoader 加载它们。
      * 3. 把当前逻辑包加入到 "_logicPackageItemMap" 全局集合中。
-     * 4. 当一个逻辑包成功加载后，它所有的依赖包，依赖包的依赖包，以及所有逻辑包
-     *    里面的所有逻辑模块都完成加载，只是逻辑模块没有实例化而已。
+     * 4. 当一个逻辑包成功加载后，它所有的依赖包，以及依赖包的依赖包，以及所有
+     *    所有逻辑模块（包括普通逻辑模块和仿真逻辑模块）都已完成加载。
+     * 5. 逻辑模块需要实例化才能 “运行”，实例化由 LogicModuleFactory 完成。
      *
      * @param {*} packageRepositoryManager
      * @param {*} packageName 目标逻辑包的名称，这个名称同时也是目录名称。
@@ -136,17 +150,20 @@ class LogicPackageLoader {
                 `Invalid logic package name "${packageName}".`);
         }
 
+        // 检查是否已经加载
         let lastPackageItem = LogicPackageLoader.getLogicPackageItemByName(packageName);
         if (lastPackageItem !== undefined) {
             return lastPackageItem;
         }
 
+        // 如果指定的逻辑包找不到，findPackageDirectoryInfo() 会抛出 LogicPackageNotFoundException 异常。
         let packageDirectoryInfo = await packageRepositoryManager.findPackageDirectoryInfo(packageName);
         let packageDirectory = packageDirectoryInfo.packageDirectory;
 
+        let packageResourceLocator = PackageResourceLocator.create(packageDirectory);
+
         // 逻辑包的基本信息分布在目录的 package.json 以及 logic-package.yaml 这
         // 两个文件里。前者存放基本的信息，后者存放详细信息。
-        let packageResourceLocator = PackageResourceLocator.create(packageDirectory);
 
         // 获取 package name, version, author(name), email, homepage 等信息
         let packageBaseConfigFilePath = packageResourceLocator.getBaseConfigFilePath();
@@ -166,16 +183,18 @@ class LogicPackageLoader {
         let homepage = baseConfig.homepage;
 
         if (name !== packageName) {
-            // 为了便于管理，当前强制要求逻辑包名称必须跟所在的目录的名称一致
+            // 为了便于管理，当前强制要求逻辑包名称必须跟其目录的名称一致
             throw new LogicCircuitException(
                 `Logic package directory name "${packageName}" does not match the package name "${name}".`);
         }
 
         // 基本配置文件里的 author 属性可能是一个对象 ：
         // {name, email, url}
-        // 也可能是一个字符串：
+        //
+        // 也可能是如下的一个字符串：
         // "author": "Hippo Spark <hippospark@gmail.com> (https://twitter.com/hemashushu/)"
         // 字符串当中的 email 和 网址是可选的。
+        //
         // https://docs.npmjs.com/cli/v7/configuring-npm/package-json#people-fields-author-contributors
 
         if (typeof author === 'object') {
@@ -214,7 +233,7 @@ class LogicPackageLoader {
         let title = LocaleProperty.getValue(detailConfig, 'title', localeCode)
         let description = LocaleProperty.getValue(detailConfig, 'description', localeCode)
         let iconFilename = detailConfig.iconFilename;
-        let mainModule = detailConfig.mainModule;
+        let mainSimulationModule = detailConfig.mainSimulationModule;
 
         // 加载依赖项信息
         let dependencyPackageNames = detailConfig.dependencies;
@@ -223,16 +242,19 @@ class LogicPackageLoader {
                 packageRepositoryManager, dependencyPackageName, localeCode);
         }
 
-        // 加载逻辑模块项信息
-        let moduleClassNames = detailConfig.modules;
-        for (let moduleClassName of moduleClassNames) {
-            await LogicModuleLoader.loadLogicModule(
-                packageDirectory, packageName, moduleClassName, localeCode);
-        }
+        // 加载 module 目录里的逻辑模块
+        let modulesDirectory = packageResourceLocator.getModulesDirectory();
+        await LogicModuleLoader.loadLogicModuleDirectory(
+            packageDirectory, packageName, false, modulesDirectory, '', localeCode);
+
+        // 加载 simulation 目录里的逻辑模块
+        let simulationModulesDirectory = packageResourceLocator.getSimulationsDirectory();
+        await LogicModuleLoader.loadLogicModuleDirectory(
+            packageDirectory, packageName, true, simulationModulesDirectory, '', localeCode);
 
         let logicPackageItem = new LogicPackageItem(
             name, title,
-            dependencyPackageNames, moduleClassNames, mainModule,
+            dependencyPackageNames, mainSimulationModule,
             packageDirectory,
             packageDirectoryInfo.isReadOnly,
             version, author, homepage,
@@ -260,8 +282,6 @@ class LogicPackageLoader {
      * @returns LogicPackageItem
      */
     static async loadDependencyLogicPackage(packageRepositoryManager, packageName, localeCode) {
-        // 因为 packageName 是全局/全球唯一的，所以在判断目标包是否已加载时，
-        // 只需检查 packageName 即可。
         if (LogicPackageLoader.existPackageItem(packageName)) {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
             let count = logicPackageReferenceCountMap.get();

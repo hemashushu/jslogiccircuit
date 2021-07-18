@@ -91,6 +91,7 @@ class LogicModuleFactory {
         if (typeof moduleClass === 'function') {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
             return LogicModuleFactory.constructAbstractLogicModuleInstance(
+                packageName, moduleClassName,
                 moduleClass,
                 instanceName, instanceParameters, defaultParameters);
 
@@ -102,10 +103,13 @@ class LogicModuleFactory {
         }
     }
 
-    static constructAbstractLogicModuleInstance(moduleClass,
-        moduleInstanceName, instanceParameters, defaultParameters) {
+    static constructAbstractLogicModuleInstance(
+        packageName, moduleClassName,
+        moduleClass,
+        instanceName, instanceParameters, defaultParameters) {
         return Reflect.construct(moduleClass, [
-            moduleInstanceName,
+            packageName, moduleClassName,
+            instanceName,
             instanceParameters,
             defaultParameters]);
     }
@@ -113,11 +117,11 @@ class LogicModuleFactory {
     static constructConfigurableLogicModuleInstance(
         packageName, moduleClassName,
         moduleConfig,
-        moduleInstanceName, instanceParameters, defaultParameters) {
+        instanceName, instanceParameters, defaultParameters) {
 
         let moduleInstance = new ConfigurableLogicModule(
             packageName, moduleClassName,
-            moduleInstanceName, instanceParameters, defaultParameters);
+            instanceName, instanceParameters, defaultParameters);
 
         // 获取实例参数
         let parameters = moduleInstance.getParameters();
@@ -137,14 +141,6 @@ class LogicModuleFactory {
             let bitWidth = configOutputPin.bitWidth;
             moduleInstance.addPin(name, bitWidth, PinDirection.output);
         }
-
-        // // add in/out pins
-        // let configInoutPins = moduleConfig.inoutPins ?? [];
-        // for (let configInoutPin of configInoutPins) {
-        //     let name = configInoutPin.name;
-        //     let bitWidth = configInoutPin.bitWidth;
-        //     moduleInstance.addPin(name, bitWidth, PinDirection.bidirectional);
-        // }
 
         // add sub-module instances
         let configLogicModules = moduleConfig.logicModules;

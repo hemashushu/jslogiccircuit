@@ -1,11 +1,12 @@
+const path = require('path');
+
 const {
     YAMLFileConfig,
     PromiseFileConfig,
     LocaleProperty
 } = require('jsfileconfig');
 
-const { ObjectUtils } = require('jsobjectutils');
-const { PromiseFileUtils } = require('jsfileutils');
+const { PromiseFileUtils, FolderInfo } = require('jsfileutils');
 const { FileNotFoundException } = require('jsexception');
 
 const LogicCircuitException = require('./exception/logiccircuitexception');
@@ -17,10 +18,25 @@ const ConfigParameterResolver = require('./configparameterresolver');
 
 // 全局模块（类）对象
 // 模块工厂将使用从这里获得的模块（类）然后实例化为对象。
-global._logicModuleItemMap = new Map();
+// logicPackageToModuleItemMapMap 的结构如下:
+// {
+//      packageName: {
+//          moduleItemMap: {
+//              moduleClassName1: moduleItem1,
+//              moduleClassName2: moduleItem2,
+//              ...
+//          },
+//          simulationModuleItemMap: {
+//             moduleClassName1: moduleItem1,
+//             moduleClassName2: moduleItem2,
+//             ...
+//          }
+//      }
+// }
+global._logicPackageToModuleItemMapMap = new Map();
 
 // 简化引用
-let logicModuleItemMap = global._logicModuleItemMap;
+let logicPackageToModuleItemMapMap = global._logicPackageToModuleItemMapMap;
 
 /**
  * 每个逻辑模块必须存放于逻辑包根目录的 “src” 目录里的单独一个目录里。
@@ -49,14 +65,46 @@ let logicModuleItemMap = global._logicModuleItemMap;
  */
 class LogicModuleLoader {
 
-    static addLogicModuleItem(packageName, moduleClassName, logicModuleItem) {
-        let key = `${packageName}:${moduleClassName}`;
-        logicModuleItemMap.set(key, logicModuleItem);
+    static addLogicModuleItem(packageName, moduleClassName, logicModuleItem, isSimulation) {
+        let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
+        if (moduleItemMapMap === undefined) {
+            moduleItemMapMap = new Map();
+            logicPackageToModuleItemMapMap.set(packageName, moduleItemMapMap);
+        }
+
+        if (isSimulation) {
+            let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
+            if (simulationModuleItemMap === undefined) {
+                simulationModuleItemMap = new Map();
+                moduleItemMapMap.set('simulationModuleItemMap', simulationModuleItemMap);
+            }
+            simulationModuleItemMap.set(moduleClassName, logicModuleItem);
+
+        }else {
+            let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+            if (moduleItemMap === undefined) {
+                moduleItemMap = new Map();
+                moduleItemMapMap.set('moduleItemMap', moduleItemMap);
+            }
+            moduleItemMap.set(moduleClassName, logicModuleItem);
+        }
     }
 
     static removeLogicModuleItemByName(packageName, moduleClassName) {
-        let key = `${packageName}:${moduleClassName}`;
-        logicModuleItemMap.delete(key);
+        let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
+        if (moduleItemMapMap !== undefined) {
+            if (isSimulation) {
+                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
+                if (simulationModuleItemMap !== undefined) {
+                    simulationModuleItemMap.delete(moduleClassName);
+                }
+            }else {
+                let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+                if (moduleItemMap !== undefined) {
+                    moduleItemMap.delete(moduleClassName);
+                }
+            }
+        }
     }
 
     /**
@@ -65,42 +113,128 @@ class LogicModuleLoader {
      * @param {*} moduleClassName
      * @returns LogicModuleItem，如果找不到指定的模块，则返回 undefined.
      */
-    static getLogicModuleItemByName(packageName, moduleClassName) {
-        let key = `${packageName}:${moduleClassName}`;
-        return logicModuleItemMap.get(key);
+    static getLogicModuleItemByName(packageName, moduleClassName, enableSimulationModule) {
+        let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
+        if (moduleItemMapMap !== undefined) {
+            let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+            let logicModuleItem = moduleItemMap.get(moduleClassName);
+
+            // 如果普通逻辑模块找不到，则尝试从仿真逻辑模块中查找
+            if (logicModuleItem === undefined &&
+                enableSimulationModule) {
+                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
+                if (simulationModuleItemMap !== undefined) {
+                    logicModuleItem = simulationModuleItemMap.get(moduleClassName);
+                }
+            }
+
+            return logicModuleItem;
+        }
     }
 
-    static getLogicModuleItems() {
-        return Array.from(logicModuleItemMap.values());
+    static getLogicModuleItemsByPackageName(packageName, isSimulation) {
+        let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
+        if (moduleItemMapMap !== undefined) {
+            if (isSimulation) {
+                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
+                return Array.from(simulationModuleItemMap.values());
+            }else {
+                let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+                return Array.from(moduleItemMap.values());
+            }
+        }
+    }
+
+    static removeAllLogicModuleItemsByPackageName(packageName) {
+        logicPackageToModuleItemMapMap.delete(packageName);
     }
 
     /**
-     * 加载逻辑模块。
+     * 加载指定目录下的所有逻辑模块。
      *
-     * @param {*} logicPackagePath
+     * @param {*} packageDirectory
      * @param {*} packageName
-     * @param {*} moduleClassName 模块的名称
+     * @param {*} isSimulation 标记是否为仿真模块，
+     *     - 仿真模块不能被外部逻辑包访问，也不能被所在包的普通模块所引用；
+     *     - 仿真模块可以引用普通模块；
+     *     - 仿真模块可以引用仿真模块；
+     * @param {*} modulePath
+     * @param {*} parentModulePath
+     * @param {*} localeCode
+     * @returns
+     */
+    static async loadLogicModuleDirectory(packageDirectory, packageName,
+        isSimulation, modulePath, parentModulePath = '', localeCode) {
+
+        let childModulesDirectory = path.join(modulePath, parentModulePath);
+        if (!await PromiseFileUtils.exists(childModulesDirectory)) {
+            return []; // dir not found
+        }
+
+        let fileInfos = await PromiseFileUtils.list(childModulesDirectory);
+
+        // 筛选得出目录列表
+        let folderInfos = fileInfos.filter(item => {
+            return (item instanceof FolderInfo &&
+                item.fileName.charAt(0) !== '.'); // 过滤掉名字第一个字符为点号的隐藏文件
+        });
+
+        let moduleItems = [];
+
+        for(let folderInfo of folderInfos) {
+            let folderName = folderInfo.fileName;
+            let logicModuleItem = await LogicModuleLoader.loadLogicModule(
+                packageDirectory, packageName,
+                isSimulation, modulePath, parentModulePath, folderName, localeCode);
+
+            moduleItems.push(logicModuleItem);
+        }
+
+        return moduleItems;
+    }
+
+    /**
+     * 加载指定目录（同时也是逻辑模块名）的逻辑模块及其所有子模块。
+     *
+     * @param {*} packageDirectory
+     * @param {*} packageName
+     * @param {*} isSimulation 标记是否为仿真模块，
+     *     - 仿真模块不能被外部逻辑包访问，也不能被所在包的普通模块所引用；
+     *     - 仿真模块可以引用普通模块；
+     *     - 仿真模块可以引用仿真模块；
+     * @param {*} modulePath
+     * @param {*} parentModulePath
+     * @param {*} folderName 模块所在的目录的名称
      * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
      * @returns LogicModuleItem
      *     - 如果配置文件不存在，则抛出 FileNotFoundException 异常。
      *     - 如果指定的逻辑模块找不到，则抛出 LogicModuleNotFoundException 异常。
      *     - 如果逻辑模块名不符合规范，则抛出 LogicCircuitException 异常。
      */
-    static async loadLogicModule(logicPackagePath, packageName, moduleClassName, localeCode) {
+    static async loadLogicModule(packageDirectory, packageName,
+        isSimulation, modulePath,  parentModulePath = '', folderName, localeCode) {
+
         // 逻辑模块名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
-        if (!/^[a-zA-Z_][\w\$]*$/.test(moduleClassName)) {
+        if (!/^[a-zA-Z_][\w\$]*$/.test(folderName)) {
             throw new LogicCircuitException(
-                `Invalid logic module class name "${moduleClassName}".`);
+                `Invalid logic module class name "${folderName}".`);
         }
 
-        let lastLogicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
+        // 模块名称（moduleClassName）的组成规则：
+        // 父模块的名称 + '$' + 模块所在目录的名称
+        //
+        // 如果不从属于其他模块，则名称为其所在目录的名称。
+        let moduleNamePath = parentModulePath.replace(/\//g, '$');
+        let moduleClassName = moduleNamePath === '' ? folderName : (moduleNamePath + '$' + folderName);
+
+        let lastLogicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName, isSimulation);
         if (lastLogicModuleItem !== undefined) {
             return lastLogicModuleItem;
         }
 
-        let packageResourceLocator = PackageResourceLocator.create(logicPackagePath);
-        let moduleResourceLocator = packageResourceLocator.createModuleResourceLocator(moduleClassName);
-
+        // 模块全路径
+        let packageResourceLocator = PackageResourceLocator.create(packageDirectory);
+        let moduleResourceLocator = packageResourceLocator.createModuleResourceLocator(parentModulePath, folderName, isSimulation);
         let moduleDirectory = moduleResourceLocator.getModuleDirectory();
 
         if (!await PromiseFileUtils.exists(moduleDirectory)) {
@@ -109,8 +243,8 @@ class LogicModuleLoader {
                 packageName, moduleClassName);
         }
 
+        // 模块的配置文件
         let moduleConfigFilePath = moduleResourceLocator.getConfigFilePath();
-
         if (!await PromiseFileUtils.exists(moduleConfigFilePath)) {
             throw new FileNotFoundException(
                 `Can not find the logic module config file: "${moduleConfigFilePath}"`);
@@ -135,7 +269,6 @@ class LogicModuleLoader {
             });
         }
 
-        let documentIds = moduleConfig.documentIds;
         let iconFilename = moduleConfig.iconFilename;
 
         let defaultParameters = {};
@@ -169,23 +302,36 @@ class LogicModuleLoader {
 
         let moduleClass;
 
+        // 模块的构造文件
         let structConfigFilePath = moduleResourceLocator.getStructFilePath();
 
-        if (await PromiseFileUtils.exists(structConfigFilePath)) {
-            // 优先从 struct.yaml 加载逻辑模块
-            moduleClass = await promiseFileConfig.load(structConfigFilePath);
-        } else {
-            // 加载单一 JavaScript Class 文件
-            moduleClass = require(moduleDirectory);
+        try {
+            if (await PromiseFileUtils.exists(structConfigFilePath)) {
+                // 优先从 struct.yaml 加载逻辑模块
+                moduleClass = await promiseFileConfig.load(structConfigFilePath);
+            } else {
+                // 加载单一 JavaScript Class 文件
+                moduleClass = require(moduleDirectory);
+            }
+        }catch(err) {
+            throw new LogicCircuitException(
+                `Can not load module: "${moduleClassName}"`, err);
         }
 
         let logicModuleItem = new LogicModuleItem(
             packageName, moduleClassName, moduleClass, defaultParameters,
             title, group,
             moduleDirectory,
-            iconFilename, description, pins, documentIds);
+            isSimulation,
+            iconFilename, description, pins);
 
-        LogicModuleLoader.addLogicModuleItem(packageName, moduleClassName, logicModuleItem);
+        LogicModuleLoader.addLogicModuleItem(
+            packageName, moduleClassName, logicModuleItem, isSimulation);
+
+        // 加载子模块
+        let childModulePath = path.join(parentModulePath, folderName);
+        await LogicModuleLoader.loadLogicModuleDirectory(packageDirectory, packageName,
+            isSimulation, modulePath, childModulePath, localeCode);
 
         return logicModuleItem;
     }

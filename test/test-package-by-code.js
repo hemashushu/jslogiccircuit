@@ -6,6 +6,7 @@ const { ObjectUtils, ObjectComposer } = require('jsobjectutils');
 
 const {
     PackageRepositoryManager,
+    PackageResourceLocator,
     LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
@@ -20,7 +21,7 @@ describe('Test package-by-code', () => {
         let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
 
         let packageRepositoryManager1 = new PackageRepositoryManager();
-        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, true);
         let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         assert.equal(logicPackageItem.packageDirectory,
@@ -30,8 +31,9 @@ describe('Test package-by-code', () => {
             'name',
             'title',
             'dependencies',
-            'modules',
-            'mainModule',
+            // 'modules',
+            'mainSimulationModule',
+            'isReadOnly',
             'version',
             'author',
             'homepage',
@@ -43,8 +45,9 @@ describe('Test package-by-code', () => {
             name: 'package-by-code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
-            modules: ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate'],
-            mainModule: 'and_gate',
+            // modules: ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate'],
+            mainSimulationModule: 'and_gate_sim',
+            isReadOnly: true,
             version: '1.0.0',
             author: 'Hippo Spark',
             homepage: 'https://github.com/hemashushu/jslogiccircuit',
@@ -69,47 +72,54 @@ describe('Test package-by-code', () => {
 
         let packageRepositoryManager1 = new PackageRepositoryManager();
         packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
-        let logicPackageItem = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
+        let logicPackageItem1 = await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
-        let moduleClassNames = logicPackageItem.modules;
+        let logicModuleItems1 = LogicModuleLoader.getLogicModuleItemsByPackageName(packageName);
+        let moduleClassNames1 = logicModuleItems1.map(item => item.moduleClassName);
+        moduleClassNames1.sort(); // sort module names
 
-        // sort module names
-        moduleClassNames.sort();
-
-        assert(ObjectUtils.arrayEquals(moduleClassNames, ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate']));
+        assert(ObjectUtils.arrayEquals(moduleClassNames1,
+            ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate',
+            'parent_module', 'parent_module$child_module' ,'parent_module$child_module$mu_module' ,
+            'xor_gate']));
 
         let checkPropNames = [
             'packageName',
             'moduleClassName',
             'defaultParameters',
-            'group',
             'title',
+            'group',
+            'isSimulation',
             'iconFilename',
             'description',
-            'pins',
-            'documentIds'
+            'pins'
         ];
 
-        let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[0]);
+        let logicModuleItem1 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'and_gate');
+
+        // 检查模块目录
+        let packageResourceLocator1 = PackageResourceLocator.create(logicPackageItem1.packageDirectory);
+        let moduleResourceLocator1 = packageResourceLocator1.createModuleResourceLocator('', 'and_gate');
 
         assert.equal(
             logicModuleItem1.moduleDirectory,
-            path.join(logicPackageItem.packageDirectory, 'module', 'and_gate'));
+            moduleResourceLocator1.getModuleDirectory());
 
+        // 检查模块的属性
         let expectAndGateLogicModuleItem = {
             packageName: 'package-by-code',
             moduleClassName: 'and_gate',
             defaultParameters: {},
             title: 'AND Gate',
             group: 'Logic',
+            isSimulation: false,
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate',
             pins: [
                 { name: 'A', description: 'Input pin A' },
                 { name: 'B', description: 'Input pin B' },
                 { name: 'Q', description: 'Output pin Q. The value of Q is `A & B`' }
-            ],
-            documentIds: ['and_gate']
+            ]
         };
 
         assert(ObjectUtils.equals(
@@ -117,7 +127,7 @@ describe('Test package-by-code', () => {
             expectAndGateLogicModuleItem
         ));
 
-        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[1]);
+        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'and_gate_ext');
 
         let expectAndGateExtLogicModuleItem = {
             packageName: 'package-by-code',
@@ -125,10 +135,10 @@ describe('Test package-by-code', () => {
             defaultParameters: { inputPinCount: 2, bitWidth: 1 },
             title: 'AND Gate Ext',
             group: 'Logic',
+            isSimulation: false,
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate Extension',
-            pins: [],
-            documentIds: []
+            pins: []
         };
 
         assert(ObjectUtils.equals(
@@ -136,40 +146,18 @@ describe('Test package-by-code', () => {
             expectAndGateExtLogicModuleItem
         ));
 
-        let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[2]);
+        // 检查父子模块
+        let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'parent_module');
+        assert.equal(logicModuleItem3.moduleClassName, 'parent_module');
 
-        let expectXorGateLogicModuleItem = {
-            packageName: 'package-by-code',
-            moduleClassName: 'nor_gate',
-            defaultParameters: {},
-            title: 'NOR Gate',
-            group: 'Logic',
-            iconFilename: 'icon.png',
-            description: 'Logic "NOR" Gate',
-            pins: [],
-            documentIds: []
-        };
+        let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'parent_module$child_module');
+        assert.equal(logicModuleItem4.moduleClassName, 'parent_module$child_module');
 
-        assert(ObjectUtils.equals(
-            ObjectComposer.compose(logicModuleItem3, checkPropNames),
-            expectXorGateLogicModuleItem
-        ));
+        let moduleResourceLocator2 = packageResourceLocator1.createModuleResourceLocator('parent_module', 'child_module');
 
-        let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[3]);
-        assert.equal(logicModuleItem4.moduleClassName, 'or_gate');
-
-        let logicModuleItem5 = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassNames[4]);
-        assert.equal(logicModuleItem5.moduleClassName, 'xor_gate');
-
-        let logicModuleItems = LogicModuleLoader.getLogicModuleItems();
-        assert.equal(logicModuleItems.length, 5);
-
-        let allLogicModuleItemNames = logicModuleItems.map(item => {
-            return item.moduleClassName;
-        });
-
-        allLogicModuleItemNames.sort();
-        assert(ObjectUtils.arrayEquals(allLogicModuleItemNames, moduleClassNames));
+        assert.equal(
+            logicModuleItem4.moduleDirectory,
+            moduleResourceLocator2.getModuleDirectory());
     });
 
     it('Test module factory', async () => {
@@ -226,23 +214,30 @@ describe('Test package-by-code', () => {
         assert.equal(andGate1.getPackageName(), packageName);
         assert.equal(andGate1.getModuleClassName(), 'and_gate');
 
-        // 实例化 nor 模块
-        let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
-        assert.equal(norGate1.name, 'nor1');
-        assert.equal(norGate1.getPackageName(), packageName);
-        assert.equal(norGate1.getModuleClassName(), 'nor_gate');
+//         // 实例化 nor 模块
+//         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
+//         assert.equal(norGate1.name, 'nor1');
+//         assert.equal(norGate1.getPackageName(), packageName);
+//         assert.equal(norGate1.getModuleClassName(), 'nor_gate');
+//
+//         // 实例化 or 模块
+//         let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or_gate', 'or1');
+//         assert.equal(orGate1.name, 'or1');
+//         assert.equal(orGate1.getPackageName(), packageName);
+//         assert.equal(orGate1.getModuleClassName(), 'or_gate');
+//
+//         // 实例化 xor 模块
+//         let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor_gate', 'xor1');
+//         assert.equal(xorGate1.name, 'xor1');
+//         assert.equal(xorGate1.getPackageName(), packageName);
+//         assert.equal(xorGate1.getModuleClassName(), 'xor_gate');
 
-        // 实例化 or 模块
-        let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or_gate', 'or1');
-        assert.equal(orGate1.name, 'or1');
-        assert.equal(orGate1.getPackageName(), packageName);
-        assert.equal(orGate1.getModuleClassName(), 'or_gate');
+        // 实例化子模块
+        let childModule1 = LogicModuleFactory.createModuleInstance(packageName, 'parent_module$child_module', 'childModule1');
+        assert.equal(childModule1.name, 'childModule1');
+        assert.equal(childModule1.getPackageName(), packageName);
+        assert.equal(childModule1.getModuleClassName(), 'parent_module$child_module');
 
-        // 实例化 xor 模块
-        let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor_gate', 'xor1');
-        assert.equal(xorGate1.name, 'xor1');
-        assert.equal(xorGate1.getPackageName(), packageName);
-        assert.equal(xorGate1.getModuleClassName(), 'xor_gate');
     });
 
     it('Test module controller - AND gate', async () => {

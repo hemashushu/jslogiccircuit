@@ -7,8 +7,8 @@ const { Signal, AbstractLogicModule, PinDirection } = require('../../../../../..
  */
 class AndGate extends AbstractLogicModule {
 
-    constructor(name, instanceParameters, defaultParameters) {
-        super(name, instanceParameters, defaultParameters);
+    constructor(packageName, moduleClassName, name, instanceParameters, defaultParameters) {
+        super(packageName, moduleClassName, name, instanceParameters, defaultParameters);
 
         // 模块参数
         let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
@@ -25,14 +25,6 @@ class AndGate extends AbstractLogicModule {
         for (let idx = 0; idx < inputPinCount; idx++) {
             createInputPin(idx);
         }
-    }
-
-    getPackageName() {
-        return 'package-by-code'; // 同目录名
-    }
-
-    getModuleClassName() {
-        return 'and_gate_ext'; // 同目录名
     }
 
     // override

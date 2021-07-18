@@ -1,5 +1,6 @@
 const { IllegalArgumentException } = require('jsexception');
 
+const LogicCircuitException = require('./exception/logiccircuitexception');
 const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 const ConnectionItem = require('./connectionitem');
@@ -26,24 +27,13 @@ class ConfigurableLogicModule extends AbstractLogicModule {
      */
     constructor(packageName, moduleClassName,
         name, instanceParameters, defaultParameters) {
-        super(name, instanceParameters, defaultParameters);
-
-        this.packageName = packageName;
-        this.moduleClassName = moduleClassName;
+        super(packageName, moduleClassName, name, instanceParameters, defaultParameters);
 
         // 子逻辑模块集合
         this.logicModules = [];
 
         // 端口连接配置信息集合
         this.connectionItems = [];
-    }
-
-    getPackageName() {
-        return this.packageName;
-    }
-
-    getModuleClassName() {
-        return this.moduleClassName;
     }
 
     /**

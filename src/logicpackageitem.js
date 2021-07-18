@@ -8,11 +8,12 @@ class LogicPackageItem {
      * @param {*} name 同 npm package id，每个逻辑包的名称应该是全局/全球唯一的。
      * @param {*} title 逻辑包的标题，可本地化。
      * @param {*} dependencies 依赖包的名称列表
-     * @param {*} modules 模块（Class）名称列表
-     * @param {*} mainModule 主模块的名称，一个逻辑包可以有一个主模块，当用户“运行”
-     *     一个模块包时，主模块则是运行的入口。
+     * @param {*} mainSimulationModule 主仿真模块的名称，
+     *     一个逻辑包可以有一个主仿真模块，方便用户打开一个逻辑包项目时
+     *     快速 “运行（即开始仿真）”，主仿真模块是 “运行” 的入口。
      * @param {*} packageDirectory 逻辑包的本地文件路径。
-     * @param {*} isReadOnly
+     * @param {*} isReadOnly 标记是否只读逻辑包，只读逻辑包的内容不能被修改，但能运行
+     *     模拟程序。一般基础逻辑包、以及第三方模块逻辑包为只读。
      * @param {*} version 版本
      *     package title 跟 package name 不同，package title 主要
      *     是给人阅读，而 package name 主要用作标识（id）作用。
@@ -24,8 +25,7 @@ class LogicPackageItem {
     constructor(name,
         title,
         dependencies = [],
-        modules = [],
-        mainModule,
+        mainSimulationModule,
         packageDirectory,
         isReadOnly,
         version,
@@ -38,8 +38,7 @@ class LogicPackageItem {
         this.title = title;
 
         this.dependencies = dependencies;
-        this.modules = modules;
-        this.mainModule = mainModule;
+        this.mainSimulationModule = mainSimulationModule;
 
         this.packageDirectory = packageDirectory;
         this.isReadOnly = isReadOnly;

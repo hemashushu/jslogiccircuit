@@ -16,25 +16,33 @@ const PinDirection = require('./pindirection');
 class AbstractLogicModule {
 
     /**
-     * 实例化逻辑模块（类）
+     * 实例化逻辑模块
      *
      * - 继承此类时，需要保持构造函数的签名不变。除非确实不需要 instanceParameters 和
      *   defaultParameters。
      *
-     * @param {*} instanceName 模块实例的名称，只可以
+     * @param {*} packageName
+     * @param {*} moduleClassName
+     * @param {*} name 模块实例的名称，只可以
      *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 创建实例所需的初始参数，一个 {name:value, ...} 对象
      * @param {*} defaultParameters 模块的默认参数（定义模块时所定义的参数）
      */
-    constructor(instanceName, instanceParameters = {}, defaultParameters = {}) {
-        // 模块实例名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
-        if (!/^[a-zA-Z_][\w\$]*$/.test(instanceName)) {
+    constructor(
+        packageName, moduleClassName,
+        name, instanceParameters = {}, defaultParameters = {}) {
+
+            // 模块实例名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        if (!/^[a-zA-Z_][\w\$]*$/.test(name)) {
             throw new IllegalArgumentException(
-                `Invalid module instance name "${instanceName}"`);
+                `Invalid module instance name "${name}"`);
         }
 
+        this.packageName = packageName;
+        this.moduleClassName = moduleClassName;
+
         // 模块实例的名称
-        this.name = instanceName;
+        this.name = name;
 
         // 一个 {name:value, ...} 对象
         // value 的数据类型有：
@@ -46,8 +54,6 @@ class AbstractLogicModule {
         // - 实例化一个模块内部的子模块时
         // - 模块作作单元测试时
         // 才会有这个参数。
-        //
-        // 实例一个模拟（simulation）模块时，不存在这个参数。
 
         this.instanceParameters = instanceParameters;
 
@@ -230,6 +236,7 @@ class AbstractLogicModule {
         let pin = new Pin(name, bitWidth, pinDirection, signalChangeEventListener);
         this.pins.push(pin);
 
+        // inputPins 和 outputPins 是 pins 的子集，用于提高检索速度。
         switch (pinDirection) {
             case PinDirection.input:
                 this.inputPins.push(pin);
@@ -244,22 +251,22 @@ class AbstractLogicModule {
     }
 
     /**
-     * LogicModule 实现所在的包的名称
-     * 名称需同时符合 npm package 命名规范
+     * Logic module 所在的逻辑包的名称
      *
      * @returns 逻辑包名称字符串
      */
-    getPackageName() {
-        throw new NotImplementedException();
+     getPackageName() {
+        return this.packageName;
     }
 
+
     /**
-     * LogicModule 实现的名称
+     * Logic module 类的名称
      *
      * @returns 逻辑模块名称字符串
      */
     getModuleClassName() {
-        throw new NotImplementedException();
+        return this.moduleClassName;
     }
 
     /**

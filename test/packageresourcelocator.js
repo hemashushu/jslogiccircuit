@@ -34,7 +34,7 @@ describe('Test package and module resource locator', () => {
         assert.equal(packageResourceLocator1.getDetailConfigFilePath(),
             path.join(packagePath1, DETAIL_CONFIG_FILE_NAME));
 
-        assert.equal(packageResourceLocator1.getModuleDirectory(),
+        assert.equal(packageResourceLocator1.getModulesDirectory(),
             path.join(packagePath1, MODULE_DIRECTORY_NAME));
 
         assert.equal(packageResourceLocator1.getTestDirectory(),
@@ -46,7 +46,7 @@ describe('Test package and module resource locator', () => {
         assert.equal(packageResourceLocator1.getDocumentDirectory(),
             path.join(packagePath1, DOCUMENT_DIRECTORY_NAME));
 
-        assert.equal(packageResourceLocator1.getSimulationDirectory(),
+        assert.equal(packageResourceLocator1.getSimulationsDirectory(),
             path.join(packagePath1, SIMULATION_DIRECTORY_NAME));
 
         assert.equal(packageResourceLocator1.getSourceDirectory(),
@@ -63,19 +63,35 @@ describe('Test package and module resource locator', () => {
         let packagePath1 = path.join(repositoryPath1, 'sample-package');
 
         let packageResourceLocator1 = PackageResourceLocator.create(packagePath1);
-        let moduleResourceLocator1 = packageResourceLocator1.createModuleResourceLocator('my-module');
+        let moduleResourceLocator1 = packageResourceLocator1.createModuleResourceLocator('', 'my-module');
 
-        let moduleDirectory = moduleResourceLocator1.getModuleDirectory();
-        assert.equal(moduleDirectory,
-            path.join(packageResourceLocator1.getModuleDirectory(), 'my-module'));
+        let moduleDirectory1 = moduleResourceLocator1.getModuleDirectory();
+
+        assert.equal(moduleDirectory1,
+            path.join(packageResourceLocator1.getModulesDirectory(), 'my-module'));
 
         assert.equal(moduleResourceLocator1.getModuleTestDirectory(),
             path.join(packageResourceLocator1.getTestDirectory(), 'my-module'));
 
         assert.equal(moduleResourceLocator1.getConfigFilePath(),
-            path.join(moduleDirectory, MODULE_CONFIG_FILE_NAME));
+            path.join(moduleDirectory1, MODULE_CONFIG_FILE_NAME));
 
         assert.equal(moduleResourceLocator1.getStructFilePath(),
-            path.join(moduleDirectory, MODULE_STRUCT_FILE_NAME));
+            path.join(moduleDirectory1, MODULE_STRUCT_FILE_NAME));
+
+        // 带父模块的模块
+        let parentModulePath = path.join('foo', 'bar');
+        let moduleResourceLocator2 = packageResourceLocator1.createModuleResourceLocator(parentModulePath, 'child-module');
+
+        let moduleDirectory2 = moduleResourceLocator2.getModuleDirectory();
+        assert.equal(moduleDirectory2,
+            path.join(packageResourceLocator1.getModulesDirectory(), parentModulePath, 'child-module'));
+
+        // 仿真模块
+        let moduleResourceLocator3 = packageResourceLocator1.createModuleResourceLocator('', 'my-module-sim', true);
+        let moduleDirectory3 = moduleResourceLocator3.getModuleDirectory();
+        assert.equal(moduleDirectory3,
+            path.join(packageResourceLocator1.getSimulationsDirectory(), 'my-module-sim'));
+
     });
 });

@@ -222,11 +222,11 @@ class ConfigParameterResolver {
                             } catch (err) {
                                 if (err.code === 'ENOENT') {
                                     throw new FileNotFoundException(
-                                        `Can not find the specified file: "${detail.binarySourceFilePath}"`, err);
+                                        `Can not find the specified file: "${binaryFilePath}"`, err);
 
                                 }else {
                                     throw new IOException(
-                                        `Can not read file: "${detail.binarySourceFilePath}".`, err);
+                                        `Can not read file: "${binaryFilePath}".`, err);
                                 }
 
                             }
