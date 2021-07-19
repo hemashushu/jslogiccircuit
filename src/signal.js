@@ -42,8 +42,14 @@ class Signal {
     }
 
     static createWithoutHighZ(bitWidth, binary) {
-        let noHighZ = Binary.fromInt32(0, bitWidth);
-        return Signal.create(bitWidth, binary, noHighZ);
+        let notHighZ = Binary.fromInt32(0, bitWidth);
+        return Signal.create(bitWidth, binary, notHighZ);
+    }
+
+    static createHighZ(bitWidth) {
+        let isHighZ = Binary.fromInt32(1, bitWidth);
+        let lowBinary = Binary.fromInt32(0, bitWidth);
+        return Signal.create(bitWidth, lowBinary, isHighZ);
     }
 
     static createLow(bitWidth) {
@@ -66,7 +72,6 @@ class Signal {
     static equal(leftSingal, rightSignal) {
         return (Binary.equal(leftSingal.getBinary(), rightSignal.getBinary()) &&
                 Binary.equal(leftSingal.getHighZ(), rightSignal.getHighZ()));
-        // return Binary.equal(leftSingal.getBinary(), rightSignal.getBinary());
     }
 
     /**
