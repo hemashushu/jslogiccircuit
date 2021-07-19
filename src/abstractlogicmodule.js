@@ -215,6 +215,14 @@ class AbstractLogicModule {
         return [this];
     }
 
+    inputSignalChange(flag) {
+        this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
+    }
+
+    outputSignalChange(flag) {
+        this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
+    }
+
     addPin(name, bitWidth, pinDirection) {
         // 端口数据改变事件的监听者（一个 void function(Boolean) 函数）
         let signalChangeEventListener;
@@ -222,13 +230,13 @@ class AbstractLogicModule {
         switch (pinDirection) {
             case PinDirection.input:
                 signalChangeEventListener = (flag) => {
-                    this.inputSignalChangedFlag = this.inputSignalChangedFlag || flag;
+                    this.inputSignalChange(flag);
                 };
                 break;
 
             case PinDirection.output:
                 signalChangeEventListener = (flag) => {
-                    this.outputSignalChangedFlag = this.outputSignalChangedFlag || flag;
+                    this.outputSignalChange(flag);
                 };
                 break;
         }
