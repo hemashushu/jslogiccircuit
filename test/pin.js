@@ -2,7 +2,12 @@ const { Binary } = require('jsbinary');
 
 const assert = require('assert/strict');
 
-const { ConnectionUtils, Pin, PinDirection, Signal } = require('../index');
+const { ConnectionUtils,
+    Pin,
+    PinDirection,
+    Signal,
+    MultipleInputException,
+    ConnectionException } = require('../index');
 
 describe('Pin Test', () => {
     it('Test Constructor', () => {
@@ -72,7 +77,7 @@ describe('Pin Test', () => {
         assert(!pin1.signalChangedFlag);
     });
 
-    it('Test signal set event listener', (done) => {
+    it('Test signal setEventListener - no change', (done) => {
         let pin1 = new Pin('pin1', 4, PinDirection.input, (flag) => {
             assert(flag === false);
             done();
@@ -84,7 +89,7 @@ describe('Pin Test', () => {
         pin1.setSignal(signal1);
     });
 
-    it('Test signal changed event listener', (done) => {
+    it('Test signal setEventListener - signal change', (done) => {
         let pin1 = new Pin('pin1', 4, PinDirection.input, (flag) => {
             assert(flag === true);
             done();
@@ -103,7 +108,10 @@ describe('Pin Test', () => {
         let binary1 = Binary.fromBinaryString('0000', 4);
         let signal1 = Signal.createWithoutHighZ(4, binary1);
 
-        ConnectionUtils.connect(pin1, pin2);
+        let logicModule1 = {name: 'A'};
+        let logicModule2 = {name: 'B'};
+
+        ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
 
         // 改变 pin1 数据
         let binary2 = Binary.fromBinaryString('1010', 4);
@@ -138,9 +146,14 @@ describe('Pin Test', () => {
         // pin1 -|-- pin2 --- pin4
         //       |-- pin3
 
-        ConnectionUtils.connect(pin1, pin2);
-        ConnectionUtils.connect(pin1, pin3);
-        ConnectionUtils.connect(pin2, pin4);
+        let logicModule1 = {name: 'A'};
+        let logicModule2 = {name: 'B'};
+        let logicModule3 = {name: 'C'};
+        let logicModule4 = {name: 'D'};
+
+        ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
+        ConnectionUtils.connect(logicModule2, pin1, logicModule3, pin3);
+        ConnectionUtils.connect(logicModule2, pin2, logicModule4, pin4);
 
         let binary1 = Binary.fromBinaryString('0000', 4);
         let binary2 = Binary.fromBinaryString('1010', 4);
@@ -174,5 +187,55 @@ describe('Pin Test', () => {
         pin2.writeToNextPins();
         assert(pin4.signalChangedFlag);
         assert(Signal.equal(pin4.getSignal(), signal2));
+    });
+
+    it('Test connection error - bit width not match', () => {
+        let pin1 = new Pin('pin1', 4);
+        let pin2 = new Pin('pin2', 8);
+
+        let logicModule1 = {name: 'A'};
+        let logicModule2 = {name: 'B'};
+
+        try{
+            ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
+            assert.fail();
+        }catch(e){
+            assert(e instanceof ConnectionException);
+
+            let connection = e.connection;
+            assert.equal(connection.previousLogicModule.name, logicModule1.name);
+            assert.equal(connection.previousPin.name, pin1.name);
+
+            assert.equal(connection.nextLogicModule.name, logicModule2.name);
+            assert.equal(connection.nextPin.name, pin2.name);
+        }
+    });
+
+    it('Test connection error - multiple input', () => {
+        let pin1 = new Pin('pin1', 4);
+        let pin2 = new Pin('pin2', 4);
+        let pin3 = new Pin('pin3', 4);
+
+        let logicModule1 = {name: 'A'};
+        let logicModule2 = {name: 'B'};
+        let logicModule3 = {name: 'C'};
+
+        // pin1 --|-- pin2
+        // pin3 --|
+
+        try{
+            ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
+            ConnectionUtils.connect(logicModule3, pin3, logicModule2, pin2);
+            assert.fail();
+        }catch(e){
+            assert(e instanceof MultipleInputException);
+
+            let connection = e.connection;
+            assert.equal(connection.previousLogicModule.name, logicModule3.name);
+            assert.equal(connection.previousPin.name, pin3.name);
+
+            assert.equal(connection.nextLogicModule.name, logicModule2.name);
+            assert.equal(connection.nextPin.name, pin2.name);
+        }
     });
 });

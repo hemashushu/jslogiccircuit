@@ -1,7 +1,7 @@
 const { SimpleLogicModule } = require('../../../../../../../index');
 
 class ChildModule extends SimpleLogicModule {
-
+    // override
     init() {
         //
     }

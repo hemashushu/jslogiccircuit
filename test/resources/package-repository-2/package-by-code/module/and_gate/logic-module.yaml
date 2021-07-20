@@ -1,6 +1,5 @@
 title: AND Gate
 description: Logic "AND" Gate
-# https://en.wikipedia.org/wiki/Logic_gate
 iconFilename: icon.png
 group: "Logic"
 pins:

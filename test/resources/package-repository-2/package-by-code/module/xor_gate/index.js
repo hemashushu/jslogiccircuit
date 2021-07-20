@@ -16,8 +16,10 @@ class XorGate extends SimpleLogicModule {
     // override
     updateModuleState() {
         let signal1 = this.pinA.getSignal();
-        let siangl2 = this.pinB.getSignal();
-        let resultBinary = Binary.xor(signal1.getBinary(), siangl2.getBinary());
+        let signal2 = this.pinB.getSignal();
+        let binary1 = Binary.and(signal1.getBinary(), Binary.not(signal1.getHighZ()));
+        let binary2 = Binary.and(signal2.getBinary(), Binary.not(signal2.getHighZ()));
+        let resultBinary = Binary.xor(binary1, binary2);
         let resultSignal = Signal.createWithoutHighZ(1, resultBinary);
         this.pinQ.setSignal(resultSignal);
     }

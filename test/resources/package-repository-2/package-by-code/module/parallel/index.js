@@ -4,7 +4,10 @@ const { Binary } = require('jsbinary');
 /**
  * 并联器
  *
- * - 为简单起见，目前只支持数据最宽 32 位
+ * - 目前 Pin 只支持数据最宽 32 位
+ * - 目前 Pin 只支持单线路输入，
+ *   可以通过本模块（并联模块）来实现多条线路输入，并联模块
+ *   会判断有无短路的情况，然后选择非高阻抗的输入信号作为输出信号。
  */
 class Parallel extends SimpleLogicModule {
 
@@ -31,7 +34,7 @@ class Parallel extends SimpleLogicModule {
         let vOut;
         let zOut;
 
-        // 为简单起见，目前只考虑数据最宽 32 位的情况。
+        // 只考虑数据最宽 32 位的情况。
 
         let signalPrevious = firstPin.getSignal()
         let vPrevious = signalPrevious.getBinary().toInt32();

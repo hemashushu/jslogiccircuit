@@ -12,7 +12,9 @@ const PinDirection = require('./pindirection');
  *   对于这种情况，模拟控制器采用的方法是，在模拟刚开始的时候，将所有
  *   逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
  *   重新计算自己（内部）的值，然后改变输出数据，最后达到稳定且正确的状态。
- *
+ * - 目前 Pin 只支持数据最宽 32 位
+ * - 目前 Pin 只支持单线路输入，
+ *   如果一个端口被多条线路连接，则会抛出此异常。
  */
 class Pin extends SignalAwareWire {
 
@@ -43,6 +45,9 @@ class Pin extends SignalAwareWire {
 
         this.name = name;
         this.pinDirection = pinDirection;
+
+        // 标记是否已经被上游端口连接
+        this.hasBeenConnected = false;
 
         // 下游端口的集合。
         this.nextPins = [];

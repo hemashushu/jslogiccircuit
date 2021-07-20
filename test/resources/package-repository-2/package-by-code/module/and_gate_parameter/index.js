@@ -7,6 +7,7 @@ const { Signal, SimpleLogicModule, PinDirection } = require('../../../../../../i
  */
 class AndGate extends SimpleLogicModule {
 
+    // override
     init(){
         // 模块参数
         let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
@@ -22,13 +23,17 @@ class AndGate extends SimpleLogicModule {
 
     // override
     updateModuleState() {
-        let binaries = this.inputPins.map(pin => {
-            return pin.getSignal().getBinary();
+        let states = this.inputPins.map(pin => {
+            return pin.getSignal().getState();
         });
 
-        let resultBinary = binaries[0];
-        for (let idx = 1; idx < binaries.length; idx++) {
-            resultBinary = Binary.and(resultBinary, binaries[idx]);
+        let state = states[0];
+        let resultBinary = Binary.and(state.binary, Binary.not(state.highZ));
+
+        for (let idx = 1; idx < states.length; idx++) {
+            state = states[idx];
+            let currentBinary = Binary.and(state.binary, Binary.not(state.highZ));
+            resultBinary = Binary.and(resultBinary, currentBinary);
         }
 
         let resultSignal = Signal.createWithoutHighZ(this.pinOut.bitWidth, resultBinary);

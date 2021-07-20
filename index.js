@@ -1,6 +1,8 @@
+const ConnectionException = require('./src/exception/connectionexception');
 const LogicCircuitException = require('./src/exception/logiccircuitexception');
 const LogicModuleNotFoundException = require('./src/exception/logicmodulenotfoundexception');
 const LogicPackageNotFoundException = require('./src/exception/logicpackagenotfoundexception');
+const MultipleInputException = require('./src/exception/multipleinputexception');
 const OscillatingException = require('./src/exception/oscillatingexception');
 const ShortCircuitException = require('./src/exception/shortcircuitexception');
 
@@ -29,9 +31,11 @@ const Wire = require('./src/wire');
 
 
 module.exports = {
+    ConnectionException: ConnectionException,
     LogicCircuitException: LogicCircuitException,
     LogicModuleNotFoundException: LogicModuleNotFoundException,
     LogicPackageNotFoundException: LogicPackageNotFoundException,
+    MultipleInputException: MultipleInputException,
     OscillatingException: OscillatingException,
     ShortCircuitException: ShortCircuitException,
 

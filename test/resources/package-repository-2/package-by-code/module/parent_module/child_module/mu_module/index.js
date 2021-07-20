@@ -1,7 +1,7 @@
 const { SimpleLogicModule } = require('../../../../../../../../index');
 
 class MuModule extends SimpleLogicModule {
-
+    // override
     init() {
         //
     }

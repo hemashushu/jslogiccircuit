@@ -78,7 +78,7 @@ describe('Test package-by-code', () => {
         moduleClassNames1.sort(); // sort module names
 
         assert(ObjectUtils.arrayEquals(moduleClassNames1,
-            ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate',
+            ['and_gate', 'and_gate_parameter', 'nor_gate', 'or_gate',
                 'parallel',
                 'parent_module', 'parent_module$child_module', 'parent_module$child_module$mu_module',
                 'xor_gate']));
@@ -127,11 +127,11 @@ describe('Test package-by-code', () => {
             expectAndGateLogicModuleItem
         ));
 
-        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'and_gate_ext');
+        let logicModuleItem2 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'and_gate_parameter');
 
         let expectAndGateExtLogicModuleItem = {
             packageName: 'package-by-code',
-            moduleClassName: 'and_gate_ext',
+            moduleClassName: 'and_gate_parameter',
             defaultParameters: { inputPinCount: 2, bitWidth: 1 },
             title: 'AND Gate Ext',
             group: 'Logic',
@@ -170,14 +170,14 @@ describe('Test package-by-code', () => {
         packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
-        let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and1');
+        let andGateExt1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_parameter', 'and1');
 
         assert.equal(andGateExt1.name, 'and1');
         assert(ObjectUtils.isEmpty(andGateExt1.instanceParameters));
         assert(ObjectUtils.equals(andGateExt1.defaultParameters, { inputPinCount: 2, bitWidth: 1 }));
         assert(ObjectUtils.equals(andGateExt1.parameters, { inputPinCount: 2, bitWidth: 1 }));
         assert.equal(andGateExt1.getPackageName(), packageName);
-        assert.equal(andGateExt1.getModuleClassName(), 'and_gate_ext');
+        assert.equal(andGateExt1.getModuleClassName(), 'and_gate_parameter');
         assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
         assert.equal(andGateExt1.getParameter('bitWidth'), 1);
 
@@ -201,7 +201,7 @@ describe('Test package-by-code', () => {
         assert(Signal.equal(andOut.getSignal(), signal0));
 
         // 加入实例化参数
-        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
+        let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_parameter', 'and2', { bitWidth: 8, inputPinCount: 4 });
         assert.equal(andGateExt2.getInputPins().length, 4);
         assert.equal(andGateExt2.getPin('in_0').bitWidth, 8);
         assert.equal(andGateExt2.getPin('out').bitWidth, 8);

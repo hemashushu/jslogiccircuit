@@ -112,7 +112,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${nextPinName}" of the internal module "${nextModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(moduleInputPin, subModuleInputPin);
+            ConnectionUtils.connect(this, moduleInputPin, subModule, subModuleInputPin);
 
         } else if (nextModuleName === undefined ||
             nextModuleName === null ||
@@ -137,7 +137,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified output pin "${previousPinName}" of the internal module "${previousModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(subModuleOutputPin, moduleOutputPin);
+            ConnectionUtils.connect(subModule, subModuleOutputPin, this, moduleOutputPin);
 
         } else {
             // 连接一个子模块的 output pin 到另一个子模块的 input pin
@@ -166,7 +166,9 @@ class ConfigurableLogicModule extends AbstractLogicModule {
                     `Cannot find the specified input pin "${nextPinName}" of the internal module "${nextModuleName}" in module "${this.name}".`);
             }
 
-            ConnectionUtils.connect(previousModuleOutputPin, nextModuleInputPin);
+            ConnectionUtils.connect(
+                previousLogicModule, previousModuleOutputPin,
+                nextLogicModule, nextModuleInputPin);
         }
 
         let connectionItem = new ConnectionItem(name,
