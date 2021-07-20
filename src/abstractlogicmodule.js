@@ -12,6 +12,10 @@ const PinDirection = require('./pindirection');
  *   require() 或者 import() 方法加载，而应该使用
  *   LogicModuleFactory.createModuleInstance() 方法创建实例，该方法
  *   能解决模块的依赖问题。
+ *
+ * 注意：
+ * - 当前实现会忽略线路延迟，因此不会产生冒险（Hazard）问题（不会产生毛刺）。
+ * - 很多逻辑模块都会忽略高阻抗输入的情况。
  */
 class AbstractLogicModule {
 

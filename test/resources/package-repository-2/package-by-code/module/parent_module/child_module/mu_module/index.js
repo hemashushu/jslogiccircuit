@@ -1,9 +1,9 @@
-const { AbstractLogicModule } = require('../../../../../../../../index');
+const { SimpleLogicModule } = require('../../../../../../../../index');
 
-class MuModule extends AbstractLogicModule {
+class MuModule extends SimpleLogicModule {
 
-    constructor(packageName, moduleClassName, name) {
-        super(packageName, moduleClassName, name);
+    init() {
+        //
     }
 
     // override

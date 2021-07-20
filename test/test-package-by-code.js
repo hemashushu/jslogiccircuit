@@ -11,7 +11,8 @@ const {
     LogicModuleLoader,
     LogicModuleFactory,
     ModuleController,
-    Signal } = require('../index');
+    Signal,
+    ShortCircuitException } = require('../index');
 
 describe('Test package-by-code', () => {
     it('Test load packages', async () => {
@@ -31,7 +32,6 @@ describe('Test package-by-code', () => {
             'name',
             'title',
             'dependencies',
-            // 'modules',
             'mainSimulationModule',
             'isReadOnly',
             'version',
@@ -45,7 +45,6 @@ describe('Test package-by-code', () => {
             name: 'package-by-code',
             title: 'Sample Logic Package (Code)',
             dependencies: [],
-            // modules: ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate', 'xor_gate'],
             mainSimulationModule: 'and_gate_sim',
             isReadOnly: true,
             version: '1.0.0',
@@ -80,8 +79,9 @@ describe('Test package-by-code', () => {
 
         assert(ObjectUtils.arrayEquals(moduleClassNames1,
             ['and_gate', 'and_gate_ext', 'nor_gate', 'or_gate',
-            'parent_module', 'parent_module$child_module' ,'parent_module$child_module$mu_module' ,
-            'xor_gate']));
+                'parallel',
+                'parent_module', 'parent_module$child_module', 'parent_module$child_module$mu_module',
+                'xor_gate']));
 
         let checkPropNames = [
             'packageName',
@@ -180,21 +180,19 @@ describe('Test package-by-code', () => {
         assert.equal(andGateExt1.getModuleClassName(), 'and_gate_ext');
         assert.equal(andGateExt1.getParameter('inputPinCount'), 2);
         assert.equal(andGateExt1.getParameter('bitWidth'), 1);
-        // assert(!andGateExt1.isInputSignalChanged);
-        // assert(!andGateExt1.isOutputSignalChanged);
 
-        let andIn0 = andGateExt1.getPin('in0');
-        let andIn1 = andGateExt1.getPin('in1');
+        let andIn0 = andGateExt1.getPin('in_0');
+        let andIn1 = andGateExt1.getPin('in_1');
         let andOut = andGateExt1.getPin('out');
 
         let binary0 = Binary.fromDecimalString(0, 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
 
-        assert.equal(andIn0.name, 'in0');
+        assert.equal(andIn0.name, 'in_0');
         assert.equal(andIn0.bitWidth, 1);
         assert(Signal.equal(andIn0.getSignal(), signal0));
 
-        assert.equal(andIn1.name, 'in1');
+        assert.equal(andIn1.name, 'in_1');
         assert.equal(andIn1.bitWidth, 1);
         assert(Signal.equal(andIn1.getSignal(), signal0));
 
@@ -205,7 +203,7 @@ describe('Test package-by-code', () => {
         // 加入实例化参数
         let andGateExt2 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate_ext', 'and2', { bitWidth: 8, inputPinCount: 4 });
         assert.equal(andGateExt2.getInputPins().length, 4);
-        assert.equal(andGateExt2.getPin('in0').bitWidth, 8);
+        assert.equal(andGateExt2.getPin('in_0').bitWidth, 8);
         assert.equal(andGateExt2.getPin('out').bitWidth, 8);
 
         // 实例化 and 模块
@@ -213,24 +211,6 @@ describe('Test package-by-code', () => {
         assert.equal(andGate1.name, 'and1');
         assert.equal(andGate1.getPackageName(), packageName);
         assert.equal(andGate1.getModuleClassName(), 'and_gate');
-
-//         // 实例化 nor 模块
-//         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
-//         assert.equal(norGate1.name, 'nor1');
-//         assert.equal(norGate1.getPackageName(), packageName);
-//         assert.equal(norGate1.getModuleClassName(), 'nor_gate');
-//
-//         // 实例化 or 模块
-//         let orGate1 = LogicModuleFactory.createModuleInstance(packageName, 'or_gate', 'or1');
-//         assert.equal(orGate1.name, 'or1');
-//         assert.equal(orGate1.getPackageName(), packageName);
-//         assert.equal(orGate1.getModuleClassName(), 'or_gate');
-//
-//         // 实例化 xor 模块
-//         let xorGate1 = LogicModuleFactory.createModuleInstance(packageName, 'xor_gate', 'xor1');
-//         assert.equal(xorGate1.name, 'xor1');
-//         assert.equal(xorGate1.getPackageName(), packageName);
-//         assert.equal(xorGate1.getModuleClassName(), 'xor_gate');
 
         // 实例化子模块
         let childModule1 = LogicModuleFactory.createModuleInstance(packageName, 'parent_module$child_module', 'childModule1');
@@ -256,8 +236,6 @@ describe('Test package-by-code', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
-        // assert(!andGate1.isInputSignalChanged);
-        // assert(!andGate1.isOutputSignalChanged);
 
         let moduleController1 = new ModuleController(andGate1);
         assert(moduleController1.logicModule == andGate1);
@@ -266,38 +244,25 @@ describe('Test package-by-code', () => {
         assert.equal(moduleController1.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        // assert(andGate1.isInputSignalChanged);
-        // assert(!andGate1.isOutputSignalChanged);
-
         let moves1 = moduleController1.step();
         assert.equal(moves1, 1); // 只需一次更新
 
-        // assert(!andGate1.isInputSignalChanged);
-        // assert(!andGate1.isOutputSignalChanged);
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal0));
 
         // 改变输入信号为 1,1
         andGate1.getPin('A').setSignal(signal1);
         andGate1.getPin('B').setSignal(signal1);
-        // assert(andGate1.isInputSignalChanged);
-        // assert(!andGate1.isOutputSignalChanged);
 
         let moves2 = moduleController1.step();
         assert.equal(moves2, 1);
-        // assert(!andGate1.isInputSignalChanged);
-        // assert(andGate1.isOutputSignalChanged);
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal1));
 
         // 改变输入信号为 1,0
         andGate1.getPin('A').setSignal(signal1);
         andGate1.getPin('B').setSignal(signal0);
-        // assert(andGate1.isInputSignalChanged);
-        // assert(andGate1.isOutputSignalChanged);
 
         let moves3 = moduleController1.step();
         assert.equal(moves3, 1);
-        // assert(!andGate1.isInputSignalChanged);
-        // assert(andGate1.isOutputSignalChanged);
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal0));
     });
 
@@ -317,8 +282,6 @@ describe('Test package-by-code', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
-        // assert(!norGate1.isInputSignalChanged);
-        // assert(!norGate1.isOutputSignalChanged);
 
         let moduleController2 = new ModuleController(norGate1);
         assert(moduleController2.logicModule == norGate1);
@@ -327,38 +290,190 @@ describe('Test package-by-code', () => {
         assert.equal(moduleController2.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        // assert(norGate1.isInputSignalChanged);
-        // assert(!norGate1.isOutputSignalChanged);
-
         let movesb1 = moduleController2.step();
         assert.equal(movesb1, 1); // 只需一次更新
 
-        // assert(!norGate1.isInputSignalChanged);
-        // assert(norGate1.isOutputSignalChanged);
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal1));
 
         // 改变输入信号为 1,1
         norGate1.getPin('A').setSignal(signal1);
         norGate1.getPin('B').setSignal(signal1);
-        // assert(norGate1.isInputSignalChanged);
-        // assert(norGate1.isOutputSignalChanged);
 
         let movesb2 = moduleController2.step();
         assert.equal(movesb2, 1);
-        // assert(!norGate1.isInputSignalChanged);
-        // assert(norGate1.isOutputSignalChanged);
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal0));
 
         // 改变输入信号为 1,0
         norGate1.getPin('A').setSignal(signal1);
         norGate1.getPin('B').setSignal(signal0);
-        // assert(norGate1.isInputSignalChanged);
-        // assert(norGate1.isOutputSignalChanged);
 
         let movesb3 = moduleController2.step();
         assert.equal(movesb3, 1);
-        // assert(!norGate1.isInputSignalChanged);
-        // assert(!norGate1.isOutputSignalChanged);
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal0));
+    });
+
+    it('Test module controller - Parallel', async () => {
+        let binary0 = Binary.fromBinaryString('0', 1);
+        let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
+        let signalZ = Signal.createHighZ(1);
+
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
+
+        let parallel1 = LogicModuleFactory.createModuleInstance(packageName, 'parallel', 'parallel1');
+        let pin0 = parallel1.getPin('in_0');
+        let pin1 = parallel1.getPin('in_1');
+        let pinOut = parallel1.getPin('out');
+
+        let moduleController1 = new ModuleController(parallel1);
+
+        // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
+        let movesa1 = moduleController1.step();
+        assert.equal(movesa1, 1);
+        assert(Signal.equal(pin0.getSignal(), signal0));
+        assert(Signal.equal(pin1.getSignal(), signal0));
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试 Z - 1
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signal1);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal1));
+
+        // 测试 Z - 0
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signal0);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试 Z - Z
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signalZ);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signalZ));
+
+        // 测试 1 - 1
+        pin0.setSignal(signal1);
+        pin1.setSignal(signal1);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal1));
+
+        // 测试 0 - 0
+        pin0.setSignal(signal0);
+        pin1.setSignal(signal0);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试短路
+        pin0.setSignal(signal1);
+        pin1.setSignal(signal0);
+
+        try{
+            moduleController1.step();
+            assert.fail();
+        }catch(err) {
+            assert(err instanceof ShortCircuitException);
+        }
+
+    });
+
+    it('Test module controller - Parallel - 3 input pins', async () => {
+        let binary0 = Binary.fromBinaryString('0', 1);
+        let binary1 = Binary.fromBinaryString('1', 1);
+        let signal0 = Signal.createWithoutHighZ(1, binary0);
+        let signal1 = Signal.createWithoutHighZ(1, binary1);
+        let signalZ = Signal.createHighZ(1);
+
+        let packageName = 'package-by-code';
+        let testDirectory = __dirname;
+        let testResourceDirectory = path.join(testDirectory, 'resources');
+        let repositoryPath2 = path.join(testResourceDirectory, 'package-repository-2');
+
+        let packageRepositoryManager1 = new PackageRepositoryManager();
+        packageRepositoryManager1.addRepositoryDirectory(repositoryPath2, false);
+        await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
+
+        let parallel1 = LogicModuleFactory.createModuleInstance(packageName, 'parallel', 'parallel1', {
+            inputPinCount: 3
+        });
+
+        let pin0 = parallel1.getPin('in_0');
+        let pin1 = parallel1.getPin('in_1');
+        let pin2 = parallel1.getPin('in_2');
+        let pinOut = parallel1.getPin('out');
+
+        let moduleController1 = new ModuleController(parallel1);
+
+        // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
+        let movesa1 = moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试 Z - Z - 1
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signalZ);
+        pin2.setSignal(signal1);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal1));
+
+        // 测试 Z - 0 - Z
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signal0);
+        pin2.setSignal(signalZ);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试 1 - 1 - Z
+        pin0.setSignal(signal1);
+        pin1.setSignal(signal1);
+        pin2.setSignal(signalZ);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal1));
+
+        // 测试 Z - 0 - 0
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signal0);
+        pin2.setSignal(signal0);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signal0));
+
+        // 测试 Z - Z - Z
+        pin0.setSignal(signalZ);
+        pin1.setSignal(signalZ);
+        pin2.setSignal(signalZ);
+        moduleController1.step();
+        assert(Signal.equal(pinOut.getSignal(), signalZ));
+
+        // 测试短路 1 - 0 - Z
+        pin0.setSignal(signal1);
+        pin1.setSignal(signal0);
+        pin2.setSignal(signalZ);
+
+        try{
+            moduleController1.step();
+            assert.fail();
+        }catch(err) {
+            assert(err instanceof ShortCircuitException);
+        }
+
+        // 测试短路 0 - 1 - 0
+        pin0.setSignal(signal0);
+        pin1.setSignal(signal1);
+        pin2.setSignal(signal0);
+
+        try{
+            moduleController1.step();
+            assert.fail();
+        }catch(err) {
+            assert(err instanceof ShortCircuitException);
+        }
+
     });
 });

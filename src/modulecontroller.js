@@ -31,6 +31,8 @@ class ModuleController {
      * - 这里假设最多只需要经历跟“模块个数”一样的次数更新周期
      *   便能达到稳定状态，否则视为振荡电路，即状态永远不会停止
      *   的电路。振荡电路会抛出 OscillatingException 异常。
+     * - 如果有短路情况，即同一条信号同时有高电平和低电平的情况，
+     *   则抛出 ShortCircuitException 异常。
      *
      * @returns 达到稳定状态时所需的更新次数
      */

@@ -1,14 +1,12 @@
-const { AbstractLogicModule, Signal, PinDirection } = require('../../../../../../index');
+const { SimpleLogicModule, Signal, PinDirection } = require('../../../../../../index');
 const { Binary } = require('jsbinary');
 
 /**
  * 逻辑或非门
  */
-class NorGate extends AbstractLogicModule {
+class NorGate extends SimpleLogicModule {
 
-    constructor(packageName, moduleClassName, name) {
-        super(packageName, moduleClassName, name);
-
+    init() {
         this.pinA = this.addPin('A', 1, PinDirection.input);
         this.pinB = this.addPin('B', 1, PinDirection.input)
         this.pinQ = this.addPin('Q', 1, PinDirection.output);

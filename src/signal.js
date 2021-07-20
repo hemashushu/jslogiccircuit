@@ -20,6 +20,8 @@ const { Binary } = require('jsbinary');
  *
  * 简单来说，当 highZ 的值为 1 时，无视 binary 的值，结果为高阻抗；
  * 当 highZ 为 0 时，则视乎 binary，值为 0 时表示低电平，值为 1 时表示高电平。
+ *
+ * - 为简单起见，目前只支持数据最宽 32 位
  */
 class Signal {
     constructor(bitWidth) {
@@ -70,8 +72,14 @@ class Signal {
      * @returns
      */
     static equal(leftSingal, rightSignal) {
-        return (Binary.equal(leftSingal.getBinary(), rightSignal.getBinary()) &&
-                Binary.equal(leftSingal.getHighZ(), rightSignal.getHighZ()));
+        // 为简单起见，目前只考虑数据最宽 32 位的情况。
+        let leftV = leftSingal.getBinary().toInt32();
+        let leftZ = leftSingal.getHighZ().toInt32();
+        let rightV = rightSignal.getBinary().toInt32();
+        let rightZ = rightSignal.getHighZ().toInt32();
+
+        return leftZ === rightZ &&                   // 先比较高阻抗是否相同，再比较 binary 值。
+            (leftV & ~leftZ) === (rightV & ~rightZ); // 将高阻抗位对应的 binary 的位视为低电平。
     }
 
     /**

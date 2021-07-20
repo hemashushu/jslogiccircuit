@@ -28,7 +28,6 @@ describe('Test package-by-config', () => {
             'name',
             'title',
             'dependencies',
-            // 'modules',
             'mainSimulationModule',
             'isReadOnly',
             'version',
@@ -42,7 +41,6 @@ describe('Test package-by-config', () => {
             name: 'package-by-config',
             title: 'Sample Logic Package (Config)',
             dependencies: ['package-by-code'],
-            // modules: ['half_adder', 'oscillation', 'rs'],
             mainSimulationModule: undefined,
             isReadOnly: false,
             version: '1.0.0',
@@ -144,8 +142,6 @@ describe('Test package-by-config', () => {
         assert(ObjectUtils.isEmpty(halfAdder1.parameters));
         assert.equal(halfAdder1.getPackageName(), packageName);
         assert.equal(halfAdder1.getModuleClassName(), 'half_adder');
-        // assert(!halfAdder1.isInputSignalChanged);
-        // assert(!halfAdder1.isOutputSignalChanged);
 
         assert.equal(halfAdder1.getInputPins().length, 2);
         assert.equal(halfAdder1.getOutputPins().length, 2);
@@ -219,8 +215,6 @@ describe('Test package-by-config', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
-        // assert(!halfAdder1.isInputSignalChanged);
-        // assert(!halfAdder1.isOutputSignalChanged);
         let moduleController1 = new ModuleController(halfAdder1);
 
         assert(moduleController1.logicModule == halfAdder1);
@@ -241,27 +235,17 @@ describe('Test package-by-config', () => {
         // 1 1 1 0
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        // assert(halfAdder1.isInputSignalChanged);
-        // assert(!halfAdder1.isOutputSignalChanged);
-
         let moves1 = moduleController1.step();
         assert.equal(moves1, 1); // 只需一次更新
-
-        // assert(!halfAdder1.isInputSignalChanged);
-        // assert(!halfAdder1.isOutputSignalChanged);
         assert(Signal.equal(S.getSignal(), signal0));
         assert(Signal.equal(C.getSignal(), signal0));
 
         // 改变输入信号为 0,1
         A.setSignal(signal0);
         B.setSignal(signal1);
-        // assert(halfAdder1.isInputSignalChanged);
-        // assert(!halfAdder1.isOutputSignalChanged);
 
         let moves2 = moduleController1.step();
         assert.equal(moves2, 1);
-        // assert(!halfAdder1.isInputSignalChanged);
-        // assert(halfAdder1.isOutputSignalChanged);
         assert(Signal.equal(S.getSignal(), signal1));
         assert(Signal.equal(C.getSignal(), signal0));
 
@@ -298,8 +282,7 @@ describe('Test package-by-config', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let rs1 = LogicModuleFactory.createModuleInstance(packageName, 'rs', 'rs1');
-        // assert(!rs1.isInputSignalChanged);
-        // assert(!rs1.isOutputSignalChanged);
+
         let moduleController1 = new ModuleController(rs1);
 
         assert(moduleController1.logicModule == rs1);
@@ -328,14 +311,9 @@ describe('Test package-by-config', () => {
         // 设定第一次输入数据为 1,0
         R.setSignal(signal1);
         S.setSignal(signal0);
-        // assert(rs1.isInputSignalChanged);
-        // assert(!rs1.isOutputSignalChanged);
 
         let moves1 = moduleController1.step();
         assert.equal(moves1, 2); // 需2次更新
-
-        // assert(!rs1.isInputSignalChanged);
-        // assert(!rs1.isOutputSignalChanged);
         assert(Signal.equal(Q.getSignal(), signal0));
         assert(Signal.equal(Qneg.getSignal(), signal1));
 

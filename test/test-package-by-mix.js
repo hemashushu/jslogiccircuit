@@ -144,27 +144,26 @@ describe('Test package-by-mix', () => {
             assert(Signal.equal(Cout.getSignal(), numberToSignal(binS.getBit(4))));
         };
 
-        let start = new Date();
+        // let start = new Date();
 
-        for(let repeat = 0; repeat<100; repeat++) {
-            for (let a = 0; a < 15; a++) {
-                for (let b = 0; b < 15; b++) {
-                    let s = a + b;
-                    check(a, b, 0, s);
-                }
-            }
-
-            for (let a = 0; a < 15; a++) {
-                for (let b = 0; b < 15; b++) {
-                    let s = a + b + 1;
-                    check(a, b, 1, s);
-                }
+        // for(let repeat = 0; repeat<100; repeat++) {
+        for (let a = 0; a < 15; a++) {
+            for (let b = 0; b < 15; b++) {
+                let s = a + b;
+                check(a, b, 0, s);
             }
         }
 
-        let end = new Date();
+        for (let a = 0; a < 15; a++) {
+            for (let b = 0; b < 15; b++) {
+                let s = a + b + 1;
+                check(a, b, 1, s);
+            }
+        }
+        // }
 
-        let span = end - start;
-        console.log('Repeat 100 times: ' + span + ' ms');
+        // let end = new Date();
+        // let span = end - start;
+        // console.log('Repeat 100 times: ' + span + ' ms');
     });
 });

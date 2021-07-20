@@ -1,29 +1,22 @@
 const { Binary } = require('jsbinary');
 
-const { Signal, AbstractLogicModule, PinDirection } = require('../../../../../../index');
+const { Signal, SimpleLogicModule, PinDirection } = require('../../../../../../index');
 
 /**
  * 逻辑与门
  */
-class AndGate extends AbstractLogicModule {
+class AndGate extends SimpleLogicModule {
 
-    constructor(packageName, moduleClassName, name, instanceParameters, defaultParameters) {
-        super(packageName, moduleClassName, name, instanceParameters, defaultParameters);
-
+    init(){
         // 模块参数
         let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
         let bitWidth = this.getParameter('bitWidth'); // 数据宽度
 
         this.pinOut = this.addPin('out', bitWidth, PinDirection.output);
 
-        // 输入端口的名称分别为 in0, in1, ... inN
-        let createInputPin = (idx) => {
-            this.addPin('in' + idx, bitWidth, PinDirection.input);
-        };
-
-        // 输入端口
+        // 输入端口的名称分别为 in_0, in_1, ... in_N
         for (let idx = 0; idx < inputPinCount; idx++) {
-            createInputPin(idx);
+            this.addPin('in_' + idx, bitWidth, PinDirection.input);
         }
     }
 
