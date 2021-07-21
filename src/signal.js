@@ -49,7 +49,7 @@ class Signal {
     }
 
     static createHighZ(bitWidth) {
-        let isHighZ = Binary.fromInt32(1, bitWidth);
+        let isHighZ = Binary.fromInt32(~0, bitWidth);
         let lowBinary = Binary.fromInt32(0, bitWidth);
         return Signal.create(bitWidth, lowBinary, isHighZ);
     }
@@ -62,6 +62,25 @@ class Signal {
     static createHigh(bitWidth) {
         let highBinary = Binary.fromInt32(~0, bitWidth);
         return Signal.createWithoutHighZ(bitWidth, highBinary);
+    }
+
+    toBinaryString() {
+        let str = this._binary.toBinaryString();
+        let highZint32 = this._highZ.toInt32();
+
+        if (highZint32 !== 0) {
+            let length = this.bitWidth;
+            let arr = Array.from(str);
+            for (let idx = 0; idx < length; idx++) {
+                if (highZint32 & 1 === 1) {
+                    arr[length - idx - 1] = 'z'
+                }
+                highZint32 = highZint32 >> 1;
+            }
+            str = arr.join('');
+        }
+
+        return str;
     }
 
     /**
