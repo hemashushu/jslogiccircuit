@@ -121,10 +121,26 @@ describe('Test ConfigParameterResolver', () => {
             ]
         }));
 
-        // 测试 object 为外部文件 - 文件不存在的情况
-
+        // 测试 object 为外部文件 - 文件内容为空的情况
         let configParameters3 = {
             key3: {
+                valueType: ConfigParameterValueType.object,
+                objectSourceType: 'file',
+                objectSourceFilePath: 'empty.yaml'
+            }
+        }
+
+        try{
+            await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
+            assert.fail();
+        }catch(err){
+            assert(err instanceof ParseException);
+        }
+
+        // 测试 object 为外部文件 - 文件不存在的情况
+
+        let configParameters4 = {
+            key4: {
                 valueType: ConfigParameterValueType.object,
                 objectSourceType: 'file',
                 objectSourceFilePath: 'no-this-file.yaml'
@@ -132,7 +148,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try{
-            await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
+            await ConfigParameterResolver.resolve(configParameters4, packageResourceLocator1);
             assert.fail();
         }catch(err){
             assert(err instanceof FileNotFoundException);
@@ -160,7 +176,7 @@ describe('Test ConfigParameterResolver', () => {
         assert.equal(5, buffer1.length);
         assert.equal('hello', buffer1.toString('utf-8'));
 
-        // 测试 object 为外部文件
+        // 测试 binary 为外部文件
         let configParameters2 = {
             key2: {
                 valueType: ConfigParameterValueType.binary,
@@ -174,7 +190,7 @@ describe('Test ConfigParameterResolver', () => {
         assert.equal(5, buffer2.length);
         assert.equal('hello', buffer2.toString('utf-8'));
 
-        // 测试 object 为外部文件 - 文件不存在的情况
+        // 测试 binary 为外部文件 - 文件不存在的情况
 
         let configParameters3 = {
             key3: {

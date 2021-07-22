@@ -179,8 +179,14 @@ class ConfigParameterResolver {
                             let fileConfig = new YAMLFileConfig();
                             let promiseFileConfig = new PromiseFileConfig(fileConfig);
 
-                            // 如果文件不存在或者文件内容为空，value 的值为 undefined
+                            // 如果文件内容为空，value 的值为 undefined
+                            // 如果文件无实际数据，value 的值为 null
                             value = await promiseFileConfig.load(objectFilePath);
+
+                            if (value === undefined || value === null) {
+                                throw new ParseException(
+                                    `Parameter object source file is empty: ${objectFilePath}.`);
+                            }
 
                         } else {
                             throw new ParseException(
