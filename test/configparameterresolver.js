@@ -131,8 +131,12 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters3 = await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
-        assert(parameters3.key3 === undefined);
+        try{
+            await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
+            assert.fail();
+        }catch(err){
+            assert(err instanceof FileNotFoundException);
+        }
     });
 
     it('Test "binary" value type', async () => {
