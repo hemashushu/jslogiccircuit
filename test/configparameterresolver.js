@@ -95,7 +95,7 @@ describe('Test ConfigParameterResolver', () => {
 
         let parameters1 = await ConfigParameterResolver.resolve(configParameters1);
 
-        assert(ObjectUtils.objectEquals(parameters1,{
+        assert(ObjectUtils.objectEquals(parameters1, {
             key1: {
                 someKey: 'someValue'
             }
@@ -112,7 +112,7 @@ describe('Test ConfigParameterResolver', () => {
 
         let parameters2 = await ConfigParameterResolver.resolve(configParameters2, packageResourceLocator1);
 
-        assert(ObjectUtils.objectEquals(parameters2,{
+        assert(ObjectUtils.objectEquals(parameters2, {
             key2: [
                 { address: 0, value: 0 },
                 { address: 1, value: 0 },
@@ -130,27 +130,43 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        try{
+        try {
             await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
             assert.fail();
-        }catch(err){
+        } catch (err) {
+            assert(err instanceof ParseException);
+        }
+
+        // 测试 object 为外部文件 - 文件语法错误的情况
+        let configParameters4 = {
+            key4: {
+                valueType: ConfigParameterValueType.object,
+                objectSourceType: 'file',
+                objectSourceFilePath: 'error.yaml'
+            }
+        }
+
+        try {
+            await ConfigParameterResolver.resolve(configParameters4, packageResourceLocator1);
+            assert.fail();
+        } catch (err) {
             assert(err instanceof ParseException);
         }
 
         // 测试 object 为外部文件 - 文件不存在的情况
 
-        let configParameters4 = {
-            key4: {
+        let configParameters5 = {
+            key5: {
                 valueType: ConfigParameterValueType.object,
                 objectSourceType: 'file',
                 objectSourceFilePath: 'no-this-file.yaml'
             }
         }
 
-        try{
-            await ConfigParameterResolver.resolve(configParameters4, packageResourceLocator1);
+        try {
+            await ConfigParameterResolver.resolve(configParameters5, packageResourceLocator1);
             assert.fail();
-        }catch(err){
+        } catch (err) {
             assert(err instanceof FileNotFoundException);
         }
     });
@@ -200,10 +216,10 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        try{
+        try {
             await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
             assert.fail();
-        }catch(err){
+        } catch (err) {
             assert(err instanceof FileNotFoundException);
         }
     });

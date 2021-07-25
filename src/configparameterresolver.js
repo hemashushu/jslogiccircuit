@@ -80,8 +80,9 @@ class ConfigParameterResolver {
      *
      * - 如果配置值超出 range 范围，则抛出 ParseException 异常。
      * - 如果指定对象文件解析错误，则抛出 ParseException 异常。
-     * - 如果指定的二进制文件不存在，则抛出 FileNotFoundException 异常。
-     * - 如果指定的二进制文件读取错误，则抛出 IOException 异常。
+     * - 如果指定对象文件内容为空或者无实际数据，则抛出 ParseException 异常。
+     * - 如果指定的对象/二进制文件不存在，则抛出 FileNotFoundException 异常。
+     * - 如果指定的对象/二进制文件读取错误，则抛出 IOException 异常。
      *
      * @param {*} configParameters
      * @param {*} packageResourceLocator
@@ -230,7 +231,7 @@ class ConfigParameterResolver {
                                     throw new FileNotFoundException(
                                         `Can not find the specified file: "${binaryFilePath}"`, err);
 
-                                }else {
+                                } else {
                                     throw new IOException(
                                         `Can not read file: "${binaryFilePath}".`, err);
                                 }
