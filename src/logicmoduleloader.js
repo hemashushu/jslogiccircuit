@@ -196,6 +196,18 @@ class LogicModuleLoader {
     /**
      * 加载指定目录（同时也是逻辑模块名）的逻辑模块及其所有子模块。
      *
+     * 可能会抛出的异常：
+     * - 如果配置文件不存在，则抛出 FileNotFoundException 异常。
+     * - 如果指定的逻辑模块找不到，则抛出 LogicModuleNotFoundException 异常。
+     * - 如果逻辑模块名不符合规范，则抛出 LogicCircuitException 异常。
+     *
+     * 解析默认参数（defaultParameters）时可能会抛出的异常：
+     * - 如果配置值超出 range 范围，则抛出 IllegalArgumentException 异常。
+     * - 如果指定对象文件解析错误，则抛出 ParseException 异常。
+     * - 如果指定对象文件内容为空或者无实际数据，则抛出 IllegalArgumentException 异常。
+     * - 如果指定的对象/二进制文件不存在，则抛出 FileNotFoundException 异常。
+     * - 如果指定的对象/二进制文件读取错误，则抛出 IOException 异常。
+     *
      * @param {*} packageDirectory
      * @param {*} packageName
      * @param {*} isSimulation 标记是否为仿真模块，
@@ -207,9 +219,6 @@ class LogicModuleLoader {
      * @param {*} folderName 模块所在的目录的名称
      * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
      * @returns LogicModuleItem
-     *     - 如果配置文件不存在，则抛出 FileNotFoundException 异常。
-     *     - 如果指定的逻辑模块找不到，则抛出 LogicModuleNotFoundException 异常。
-     *     - 如果逻辑模块名不符合规范，则抛出 LogicCircuitException 异常。
      */
     static async loadLogicModule(packageDirectory, packageName,
         isSimulation, modulePath,  parentModulePath = '', folderName, localeCode) {

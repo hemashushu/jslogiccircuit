@@ -3,7 +3,7 @@ const fsPromise = require('fs/promises');
 
 const { Buffer } = require('buffer');
 
-const { ParseException, IOException, FileNotFoundException } = require('jsexception');
+const { ParseException, IllegalArgumentException, IOException, FileNotFoundException } = require('jsexception');
 const { PromiseFileConfig, YAMLFileConfig } = require('jsfileconfig');
 
 const ConfigParameterValueType = require('./configparametervaluetype');
@@ -78,9 +78,9 @@ class ConfigParameterResolver {
     /**
      * 将配置文件里的 parameters 转换成逻辑模块所使用的 parameters 对象。
      *
-     * - 如果配置值超出 range 范围，则抛出 ParseException 异常。
+     * - 如果配置值超出 range 范围，则抛出 IllegalArgumentException 异常。
      * - 如果指定对象文件解析错误，则抛出 ParseException 异常。
-     * - 如果指定对象文件内容为空或者无实际数据，则抛出 ParseException 异常。
+     * - 如果指定对象文件内容为空或者无实际数据，则抛出 IllegalArgumentException 异常。
      * - 如果指定的对象/二进制文件不存在，则抛出 FileNotFoundException 异常。
      * - 如果指定的对象/二进制文件读取错误，则抛出 IOException 异常。
      *
@@ -126,7 +126,7 @@ class ConfigParameterResolver {
                         let to = valueRange.to;
 
                         if (value < from || value > to) {
-                            throw new ParseException(
+                            throw new IllegalArgumentException(
                                 `Parameter "${key}" value out of range.`);
                         }
                         break;
@@ -145,7 +145,7 @@ class ConfigParameterResolver {
                         let valueOptions = detail.valueOptions;
 
                         if (!valueOptions.includes(value)) {
-                            throw new ParseException(
+                            throw new IllegalArgumentException(
                                 `Parameter "${key}" value out of options.`);
                         }
                         break;
@@ -185,7 +185,7 @@ class ConfigParameterResolver {
                             value = await promiseFileConfig.load(objectFilePath);
 
                             if (value === undefined || value === null) {
-                                throw new ParseException(
+                                throw new IllegalArgumentException(
                                     `Parameter object source file is empty: ${objectFilePath}.`);
                             }
 
@@ -245,6 +245,12 @@ class ConfigParameterResolver {
 
                         value = buffer;
                         break;
+                    }
+
+                default:
+                    {
+                        throw new ParseException(
+                            `Unknown value type: ${valueType}.`);
                     }
             }
 

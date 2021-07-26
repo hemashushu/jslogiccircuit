@@ -1,7 +1,7 @@
 const path = require('path');
 const assert = require('assert/strict');
 
-const { ParseException, FileNotFoundException } = require('jsexception');
+const { ParseException, IllegalArgumentException, FileNotFoundException } = require('jsexception');
 const { ObjectUtils } = require('jsobjectutils');
 
 const {
@@ -55,7 +55,7 @@ describe('Test ConfigParameterResolver', () => {
             await ConfigParameterResolver.resolve(configParameters2);
             assert.fail();
         } catch (err) {
-            assert(err instanceof ParseException);
+            assert(err instanceof IllegalArgumentException);
         }
 
         // 测试 valueType 为 option 类型的错误
@@ -71,7 +71,7 @@ describe('Test ConfigParameterResolver', () => {
             await ConfigParameterResolver.resolve(configParameters3);
             assert.fail();
         } catch (err) {
-            assert(err instanceof ParseException);
+            assert(err instanceof IllegalArgumentException);
         }
     });
 
@@ -134,7 +134,7 @@ describe('Test ConfigParameterResolver', () => {
             await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
             assert.fail();
         } catch (err) {
-            assert(err instanceof ParseException);
+            assert(err instanceof IllegalArgumentException);
         }
 
         // 测试 object 为外部文件 - 文件语法错误的情况
@@ -212,7 +212,7 @@ describe('Test ConfigParameterResolver', () => {
             key3: {
                 valueType: ConfigParameterValueType.binary,
                 binarySourceType: 'file',
-                binarySourceFilePath: 'no-this-file.yaml'
+                binarySourceFilePath: 'no-this-file.bin'
             }
         }
 
