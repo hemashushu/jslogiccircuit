@@ -1,3 +1,4 @@
+const { IllegalArgumentException } = require('jsexception');
 const { Binary } = require('jsbinary');
 
 const assert = require('assert/strict');
@@ -26,6 +27,20 @@ describe('Pin Test', () => {
         assert.equal(pin3.bitWidth, 8);
         assert.equal(pin3.pinDirection, PinDirection.output);
         assert.equal(pin3.getSignal().getBinary().toBinaryString(), '00000000');
+
+        try {
+            new Pin('pin4', 0);
+            assert.fail();
+        } catch (err) {
+            assert(err instanceof IllegalArgumentException);
+        }
+
+        try {
+            new Pin('pin5', 4, PinDirection.input, 'not-a-function');
+            assert.fail();
+        } catch (err) {
+            assert(err instanceof IllegalArgumentException);
+        }
     });
 
     it('Test setSignal()', () => {
@@ -108,8 +123,8 @@ describe('Pin Test', () => {
         let binary1 = Binary.fromBinaryString('0000', 4);
         let signal1 = Signal.createWithoutHighZ(4, binary1);
 
-        let logicModule1 = {name: 'A'};
-        let logicModule2 = {name: 'B'};
+        let logicModule1 = { name: 'A' };
+        let logicModule2 = { name: 'B' };
 
         ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
 
@@ -146,10 +161,10 @@ describe('Pin Test', () => {
         // pin1 -|-- pin2 --- pin4
         //       |-- pin3
 
-        let logicModule1 = {name: 'A'};
-        let logicModule2 = {name: 'B'};
-        let logicModule3 = {name: 'C'};
-        let logicModule4 = {name: 'D'};
+        let logicModule1 = { name: 'A' };
+        let logicModule2 = { name: 'B' };
+        let logicModule3 = { name: 'C' };
+        let logicModule4 = { name: 'D' };
 
         ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
         ConnectionUtils.connect(logicModule2, pin1, logicModule3, pin3);
@@ -193,13 +208,13 @@ describe('Pin Test', () => {
         let pin1 = new Pin('pin1', 4);
         let pin2 = new Pin('pin2', 8);
 
-        let logicModule1 = {name: 'A'};
-        let logicModule2 = {name: 'B'};
+        let logicModule1 = { name: 'A' };
+        let logicModule2 = { name: 'B' };
 
-        try{
+        try {
             ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
             assert.fail();
-        }catch(e){
+        } catch (e) {
             assert(e instanceof ConnectionException);
 
             let connection = e.connection;
@@ -216,18 +231,18 @@ describe('Pin Test', () => {
         let pin2 = new Pin('pin2', 4);
         let pin3 = new Pin('pin3', 4);
 
-        let logicModule1 = {name: 'A'};
-        let logicModule2 = {name: 'B'};
-        let logicModule3 = {name: 'C'};
+        let logicModule1 = { name: 'A' };
+        let logicModule2 = { name: 'B' };
+        let logicModule3 = { name: 'C' };
 
         // pin1 --|-- pin2
         // pin3 --|
 
-        try{
+        try {
             ConnectionUtils.connect(logicModule1, pin1, logicModule2, pin2);
             ConnectionUtils.connect(logicModule3, pin3, logicModule2, pin2);
             assert.fail();
-        }catch(e){
+        } catch (e) {
             assert(e instanceof MultipleInputException);
 
             let connection = e.connection;

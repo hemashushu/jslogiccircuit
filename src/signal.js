@@ -1,3 +1,4 @@
+const { IllegalArgumentException } = require('jsexception');
 const { Binary } = require('jsbinary');
 
 /**
@@ -25,6 +26,10 @@ const { Binary } = require('jsbinary');
  */
 class Signal {
     constructor(bitWidth) {
+        if (!(bitWidth >=1 && bitWidth <=32)) {
+            throw new IllegalArgumentException('Bit width out of range.');
+        }
+
         // 信号值的位宽
         // 信号值允许多位，用于简化一排端口或者一排导线的表示。
         this.bitWidth = bitWidth;

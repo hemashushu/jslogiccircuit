@@ -10,7 +10,6 @@ const { PromiseFileUtils } = require('jsfileutils');
 const { FileNotFoundException } = require('jsexception');
 
 const LogicCircuitException = require('./exception/logiccircuitexception');
-
 const LogicModuleLoader = require('./logicmoduleloader');
 const LogicPackageItem = require('./logicpackageitem');
 const PackageResourceLocator = require('./packageresourcelocator');

@@ -1,6 +1,5 @@
 const { IllegalArgumentException } = require('jsexception');
 
-const LogicCircuitException = require('./exception/logiccircuitexception');
 const ConnectionUtils = require('./connectionutils');
 const AbstractLogicModule = require('./abstractlogicmodule');
 const ConnectionItem = require('./connectionitem');

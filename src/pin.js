@@ -1,5 +1,3 @@
-const { IllegalArgumentException } = require('jsexception');
-
 const SignalAwareWire = require('./signalawarewire');
 const PinDirection = require('./pindirection');
 

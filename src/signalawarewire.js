@@ -1,3 +1,5 @@
+const { IllegalArgumentException } = require('jsexception');
+
 const Signal = require('./signal');
 const Wire = require('./wire');
 
@@ -14,6 +16,10 @@ class SignalAwareWire extends Wire {
      */
     constructor(bitWidth, signalSetEventListener) {
         super(bitWidth);
+
+        if (typeof signalSetEventListener !== 'function') {
+            throw new IllegalArgumentException('Signal-Set event listener should be a function.');
+        }
 
         // 表示导线的信号有变化。
         this.signalChangedFlag = false;

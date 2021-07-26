@@ -36,7 +36,7 @@ class AbstractLogicModule {
         packageName, moduleClassName,
         name, instanceParameters = {}, defaultParameters = {}) {
 
-            // 模块实例名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
+        // 模块实例名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
         if (!/^[a-zA-Z_][\w\$]*$/.test(name)) {
             throw new IllegalArgumentException(
                 `Invalid module instance name "${name}"`);

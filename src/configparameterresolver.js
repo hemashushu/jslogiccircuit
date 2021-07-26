@@ -1,6 +1,5 @@
 const path = require('path');
 const fsPromise = require('fs/promises');
-
 const { Buffer } = require('buffer');
 
 const { ParseException, IllegalArgumentException, IOException, FileNotFoundException } = require('jsexception');

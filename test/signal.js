@@ -1,13 +1,9 @@
 const { Binary } = require('jsbinary');
+const { IllegalArgumentException } = require('jsexception');
 
 const assert = require('assert/strict');
 
-const { ConnectionUtils,
-    Pin,
-    PinDirection,
-    Signal,
-    MultipleInputException,
-    ConnectionException } = require('../index');
+const { Signal } = require('../index');
 
 describe('Signal Test', () => {
     it('Test Constructor', () => {
@@ -30,13 +26,20 @@ describe('Signal Test', () => {
         let signal5 = Signal.createHighZ(4);
         assert.equal(signal5.getBinary().toBinaryString(), '0000');
         assert.equal(signal5.getHighZ().toBinaryString(), '1111');
+
+        try {
+            new Signal(0);
+            assert.fail();
+        } catch (err) {
+            assert(err instanceof IllegalArgumentException);
+        }
     });
 
-    it('Test toBinaryString', ()=>{
-        let binary1 = Binary.fromBinaryString('0000',4);
-        let binary2 = Binary.fromBinaryString('1010',4);
-        let highZ1 = Binary.fromBinaryString('0000',4);
-        let highZ2 = Binary.fromBinaryString('1100',4);
+    it('Test toBinaryString', () => {
+        let binary1 = Binary.fromBinaryString('0000', 4);
+        let binary2 = Binary.fromBinaryString('1010', 4);
+        let highZ1 = Binary.fromBinaryString('0000', 4);
+        let highZ2 = Binary.fromBinaryString('1100', 4);
 
         let signal1 = Signal.create(4, binary1, highZ1);
         assert.equal(signal1.toBinaryString(), '0000');

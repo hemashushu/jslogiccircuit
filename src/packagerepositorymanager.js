@@ -1,7 +1,8 @@
 const path = require('path');
 
-const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
 const { PromiseFileUtils } = require('jsfileutils');
+
+const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
 
 /**
  * 多个逻辑包可以放在同一个目录里，这个目录即逻辑包仓库（repository）

@@ -1,10 +1,9 @@
-const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
-const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
-
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
-const PinDirection = require('./pindirection');
+const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
 const LogicPackageLoader = require('./logicpackageloader');
+const LogicPackageNotFoundException = require('./exception/logicpackagenotfoundexception');
+const PinDirection = require('./pindirection');
 
 /**
  * 通过代码或者配置文件创建逻辑模块

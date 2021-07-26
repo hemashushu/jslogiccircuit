@@ -6,15 +6,14 @@ const {
     LocaleProperty
 } = require('jsfileconfig');
 
-const { PromiseFileUtils, FolderInfo } = require('jsfileutils');
 const { FileNotFoundException } = require('jsexception');
+const { PromiseFileUtils, FolderInfo } = require('jsfileutils');
 
-const LogicCircuitException = require('./exception/logiccircuitexception');
-const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
-
-const LogicModuleItem = require('./logicmoduleitem');
-const PackageResourceLocator = require('./packageresourcelocator');
 const ConfigParameterResolver = require('./configparameterresolver');
+const LogicCircuitException = require('./exception/logiccircuitexception');
+const LogicModuleItem = require('./logicmoduleitem');
+const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
+const PackageResourceLocator = require('./packageresourcelocator');
 
 // 全局模块（类）对象
 // 模块工厂将使用从这里获得的模块（类）然后实例化为对象。
