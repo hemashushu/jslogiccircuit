@@ -14,6 +14,7 @@ const ConfigParameterValueType = require('./src/configparametervaluetype');
 const ConfigurableLogicModule = require('./src/configurablelogicmodule');
 const ConnectionItem = require('./src/connectionitem');
 const ConnectionUtils = require('./src/connectionutils');
+const InteractiveLogicModule = require('./src/interactivelogicmodule');
 const LogicModuleFactory = require('./src/logicmodulefactory');
 const LogicModuleItem = require('./src/logicmoduleitem');
 const LogicModuleLoader = require('./src/logicmoduleloader');
@@ -28,7 +29,6 @@ const Signal = require('./src/signal');
 const SignalAwareWire = require('./src/signalawarewire');
 const SimpleLogicModule = require('./src/simplelogicmodule');
 const Wire = require('./src/wire');
-
 
 module.exports = {
     ConnectionException: ConnectionException,
@@ -47,6 +47,7 @@ module.exports = {
     ConfigurableLogicModule: ConfigurableLogicModule,
     ConnectionItem: ConnectionItem,
     ConnectionUtils: ConnectionUtils,
+    InteractiveLogicModule: InteractiveLogicModule,
     LogicModuleFactory: LogicModuleFactory,
     LogicModuleItem: LogicModuleItem,
     LogicModuleLoader: LogicModuleLoader,
