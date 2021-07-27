@@ -1,6 +1,13 @@
 const OscillatingException = require('./exception/oscillatingexception');
 
-class ModuleController {
+/**
+ * 模块状态控制器
+ */
+class ModuleStateController {
+    /**
+     *
+     * @param {*} logicModule 顶层模块
+     */
     constructor(logicModule) {
         this.logicModule = logicModule;
 
@@ -9,7 +16,7 @@ class ModuleController {
 
         this.logicModuleCount = this.allLogicModulesForRead.length;
 
-        // 首次通电（比如运行 step 方法）需要设置所有逻辑模块的
+        // 首次通电（比如运行 step 方法）需要设置所有（子）逻辑模块的
         // inputSignalChangedFlag 标记，以让它们都重新计算一次，以进入稳定状态。
         this.markAllLogicModulesStateToUnstable()
     }
@@ -22,7 +29,10 @@ class ModuleController {
 
     /**
      * 当设置了顶层模块（即 this.logicModule）的输入信号之后，
-     * 调用本方法以更新模块内部的信号状态，直到状态稳定为止。
+     * 调用本方法以
+     *
+     * 更新顶层模块（即 this.logicModule）内部个子模块的信号
+     * 状态，直到状态稳定为止。
      *
      * “信号状态稳定” 是指所有模块的输入和输出的信号都不再发生改变的情况。
      *
@@ -36,7 +46,7 @@ class ModuleController {
      *
      * @returns 达到稳定状态时所需的更新次数
      */
-    step() {
+    update() {
         let cycle = 0;
         let maxCycle = this.logicModuleCount + 1;
         for (; cycle < maxCycle; cycle++) {
@@ -92,7 +102,7 @@ class ModuleController {
         }
 
         if (cycle >= maxCycle) {
-            // 振荡电路一般是由多个模块组成的回路引起的，目前 ModuleController 只能获取
+            // 振荡电路一般是由多个模块组成的回路引起的，目前 ModuleStateController 只能获取
             // 整个回路当中输入信号不稳定的部分模块，而且会因 maxCycle 的不同而不同。
             let issuedLogicModule = this.allLogicModulesForRead.filter(item => (item.inputSignalChangedFlag));
             throw new OscillatingException('Oscillation circuit detected.', issuedLogicModule);
@@ -102,4 +112,4 @@ class ModuleController {
     }
 }
 
-module.exports = ModuleController;
+module.exports = ModuleStateController;

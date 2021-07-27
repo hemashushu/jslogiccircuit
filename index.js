@@ -19,7 +19,7 @@ const LogicModuleItem = require('./src/logicmoduleitem');
 const LogicModuleLoader = require('./src/logicmoduleloader');
 const LogicPackageItem = require('./src/logicpackageitem');
 const LogicPackageLoader = require('./src/logicpackageloader');
-const ModuleController = require('./src/modulecontroller');
+const ModuleStateController = require('./src/modulestatecontroller');
 const PackageRepositoryManager = require('./src/packagerepositorymanager');
 const PackageResourceLocator = require('./src/packageresourcelocator');
 const Pin = require('./src/pin');
@@ -52,7 +52,7 @@ module.exports = {
     LogicModuleLoader: LogicModuleLoader,
     LogicPackageItem: LogicPackageItem,
     LogicPackageLoader: LogicPackageLoader,
-    ModuleController: ModuleController,
+    ModuleStateController: ModuleStateController,
     PackageRepositoryManager: PackageRepositoryManager,
     PackageResourceLocator: PackageResourceLocator,
     Pin: Pin,

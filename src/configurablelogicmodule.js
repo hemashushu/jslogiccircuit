@@ -191,7 +191,7 @@ class ConfigurableLogicModule extends AbstractLogicModule {
     // override
     updateModuleState() {
         // 配置型逻辑模块（ConfigurableLogicModule）没有自己的业务逻辑代码。
-        // 子模块的终点模块的 updateModuleState() 会由 ModuleController.step() 方法
+        // 子模块的终点模块的 updateModuleState() 会由 ModuleStateController.step() 方法
         // 所调用，所以这里不用做任何事。
     }
 

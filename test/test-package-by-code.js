@@ -10,7 +10,7 @@ const {
     LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
-    ModuleController,
+    ModuleStateController,
     Signal,
     ShortCircuitException } = require('../index');
 
@@ -220,7 +220,7 @@ describe('Test package-by-code', () => {
 
     });
 
-    it('Test module controller - AND gate', async () => {
+    it('Test module state controller - AND gate', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -237,14 +237,14 @@ describe('Test package-by-code', () => {
 
         let andGate1 = LogicModuleFactory.createModuleInstance(packageName, 'and_gate', 'and1');
 
-        let moduleController1 = new ModuleController(andGate1);
-        assert(moduleController1.logicModule == andGate1);
-        assert.equal(moduleController1.allLogicModulesForRead.length, 1);
-        assert.equal(moduleController1.allLogicModulesForWrite.length, 1);
-        assert.equal(moduleController1.logicModuleCount, 1);
+        let moduleStateController1 = new ModuleStateController(andGate1);
+        assert(moduleStateController1.logicModule == andGate1);
+        assert.equal(moduleStateController1.allLogicModulesForRead.length, 1);
+        assert.equal(moduleStateController1.allLogicModulesForWrite.length, 1);
+        assert.equal(moduleStateController1.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        let moves1 = moduleController1.step();
+        let moves1 = moduleStateController1.update();
         assert.equal(moves1, 1); // 只需一次更新
 
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal0));
@@ -253,7 +253,7 @@ describe('Test package-by-code', () => {
         andGate1.getPin('A').setSignal(signal1);
         andGate1.getPin('B').setSignal(signal1);
 
-        let moves2 = moduleController1.step();
+        let moves2 = moduleStateController1.update();
         assert.equal(moves2, 1);
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal1));
 
@@ -261,12 +261,12 @@ describe('Test package-by-code', () => {
         andGate1.getPin('A').setSignal(signal1);
         andGate1.getPin('B').setSignal(signal0);
 
-        let moves3 = moduleController1.step();
+        let moves3 = moduleStateController1.update();
         assert.equal(moves3, 1);
         assert(Signal.equal(andGate1.getPin('Q').getSignal(), signal0));
     });
 
-    it('Test module controller - NOR gate', async () => {
+    it('Test module state controller - NOR gate', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -283,14 +283,14 @@ describe('Test package-by-code', () => {
 
         let norGate1 = LogicModuleFactory.createModuleInstance(packageName, 'nor_gate', 'nor1');
 
-        let moduleController2 = new ModuleController(norGate1);
-        assert(moduleController2.logicModule == norGate1);
-        assert.equal(moduleController2.allLogicModulesForRead.length, 1);
-        assert.equal(moduleController2.allLogicModulesForWrite.length, 1);
-        assert.equal(moduleController2.logicModuleCount, 1);
+        let moduleStateController2 = new ModuleStateController(norGate1);
+        assert(moduleStateController2.logicModule == norGate1);
+        assert.equal(moduleStateController2.allLogicModulesForRead.length, 1);
+        assert.equal(moduleStateController2.allLogicModulesForWrite.length, 1);
+        assert.equal(moduleStateController2.logicModuleCount, 1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        let movesb1 = moduleController2.step();
+        let movesb1 = moduleStateController2.update();
         assert.equal(movesb1, 1); // 只需一次更新
 
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal1));
@@ -299,7 +299,7 @@ describe('Test package-by-code', () => {
         norGate1.getPin('A').setSignal(signal1);
         norGate1.getPin('B').setSignal(signal1);
 
-        let movesb2 = moduleController2.step();
+        let movesb2 = moduleStateController2.update();
         assert.equal(movesb2, 1);
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal0));
 
@@ -307,12 +307,12 @@ describe('Test package-by-code', () => {
         norGate1.getPin('A').setSignal(signal1);
         norGate1.getPin('B').setSignal(signal0);
 
-        let movesb3 = moduleController2.step();
+        let movesb3 = moduleStateController2.update();
         assert.equal(movesb3, 1);
         assert(Signal.equal(norGate1.getPin('Q').getSignal(), signal0));
     });
 
-    it('Test module controller - Parallel', async () => {
+    it('Test module state controller - Parallel', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -333,10 +333,10 @@ describe('Test package-by-code', () => {
         let pin1 = parallel1.getPin('in_1');
         let pinOut = parallel1.getPin('out');
 
-        let moduleController1 = new ModuleController(parallel1);
+        let moduleStateController1 = new ModuleStateController(parallel1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        let movesa1 = moduleController1.step();
+        let movesa1 = moduleStateController1.update();
         assert.equal(movesa1, 1);
         assert(Signal.equal(pin0.getSignal(), signal0));
         assert(Signal.equal(pin1.getSignal(), signal0));
@@ -345,31 +345,31 @@ describe('Test package-by-code', () => {
         // 测试 Z - 1
         pin0.setSignal(signalZ);
         pin1.setSignal(signal1);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal1));
 
         // 测试 Z - 0
         pin0.setSignal(signalZ);
         pin1.setSignal(signal0);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal0));
 
         // 测试 Z - Z
         pin0.setSignal(signalZ);
         pin1.setSignal(signalZ);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signalZ));
 
         // 测试 1 - 1
         pin0.setSignal(signal1);
         pin1.setSignal(signal1);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal1));
 
         // 测试 0 - 0
         pin0.setSignal(signal0);
         pin1.setSignal(signal0);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal0));
 
         // 测试短路
@@ -377,7 +377,7 @@ describe('Test package-by-code', () => {
         pin1.setSignal(signal0);
 
         try{
-            moduleController1.step();
+            moduleStateController1.update();
             assert.fail();
         }catch(err) {
             assert(err instanceof ShortCircuitException);
@@ -385,7 +385,7 @@ describe('Test package-by-code', () => {
 
     });
 
-    it('Test module controller - Parallel - 3 input pins', async () => {
+    it('Test module state controller - Parallel - 3 input pins', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -410,45 +410,45 @@ describe('Test package-by-code', () => {
         let pin2 = parallel1.getPin('in_2');
         let pinOut = parallel1.getPin('out');
 
-        let moduleController1 = new ModuleController(parallel1);
+        let moduleStateController1 = new ModuleStateController(parallel1);
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        let movesa1 = moduleController1.step();
+        let movesa1 = moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal0));
 
         // 测试 Z - Z - 1
         pin0.setSignal(signalZ);
         pin1.setSignal(signalZ);
         pin2.setSignal(signal1);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal1));
 
         // 测试 Z - 0 - Z
         pin0.setSignal(signalZ);
         pin1.setSignal(signal0);
         pin2.setSignal(signalZ);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal0));
 
         // 测试 1 - 1 - Z
         pin0.setSignal(signal1);
         pin1.setSignal(signal1);
         pin2.setSignal(signalZ);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal1));
 
         // 测试 Z - 0 - 0
         pin0.setSignal(signalZ);
         pin1.setSignal(signal0);
         pin2.setSignal(signal0);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signal0));
 
         // 测试 Z - Z - Z
         pin0.setSignal(signalZ);
         pin1.setSignal(signalZ);
         pin2.setSignal(signalZ);
-        moduleController1.step();
+        moduleStateController1.update();
         assert(Signal.equal(pinOut.getSignal(), signalZ));
 
         // 测试短路 1 - 0 - Z
@@ -457,7 +457,7 @@ describe('Test package-by-code', () => {
         pin2.setSignal(signalZ);
 
         try{
-            moduleController1.step();
+            moduleStateController1.update();
             assert.fail();
         }catch(err) {
             assert(err instanceof ShortCircuitException);
@@ -469,7 +469,7 @@ describe('Test package-by-code', () => {
         pin2.setSignal(signal0);
 
         try{
-            moduleController1.step();
+            moduleStateController1.update();
             assert.fail();
         }catch(err) {
             assert(err instanceof ShortCircuitException);

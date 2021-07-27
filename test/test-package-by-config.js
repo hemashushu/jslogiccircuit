@@ -9,7 +9,7 @@ const {
     LogicPackageLoader,
     LogicModuleLoader,
     LogicModuleFactory,
-    ModuleController,
+    ModuleStateController,
     OscillatingException,
     Signal } = require('../index');
 
@@ -199,7 +199,7 @@ describe('Test package-by-config', () => {
 
     });
 
-    it('Test module controller - Half Adder', async () => {
+    it('Test module state controller - Half Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -215,12 +215,12 @@ describe('Test package-by-config', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let halfAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'half_adder', 'half_adder1');
-        let moduleController1 = new ModuleController(halfAdder1);
+        let moduleStateController1 = new ModuleStateController(halfAdder1);
 
-        assert(moduleController1.logicModule == halfAdder1);
-        assert.equal(moduleController1.allLogicModulesForRead.length, 3); // 两个内部模块 + 一个 Half-Adder 本模块
-        assert.equal(moduleController1.allLogicModulesForWrite.length, 3);
-        assert.equal(moduleController1.logicModuleCount, 3);
+        assert(moduleStateController1.logicModule == halfAdder1);
+        assert.equal(moduleStateController1.allLogicModulesForRead.length, 3); // 两个内部模块 + 一个 Half-Adder 本模块
+        assert.equal(moduleStateController1.allLogicModulesForWrite.length, 3);
+        assert.equal(moduleStateController1.logicModuleCount, 3);
 
         let A = halfAdder1.getPin('A');
         let B = halfAdder1.getPin('B');
@@ -235,7 +235,7 @@ describe('Test package-by-config', () => {
         // 1 1 1 0
 
         // 测试从初始状态（各输入端口初始值为 0）进入稳定状态
-        let moves1 = moduleController1.step();
+        let moves1 = moduleStateController1.update();
         assert.equal(moves1, 1); // 只需一次更新
         assert(Signal.equal(S.getSignal(), signal0));
         assert(Signal.equal(C.getSignal(), signal0));
@@ -244,7 +244,7 @@ describe('Test package-by-config', () => {
         A.setSignal(signal0);
         B.setSignal(signal1);
 
-        let moves2 = moduleController1.step();
+        let moves2 = moduleStateController1.update();
         assert.equal(moves2, 1);
         assert(Signal.equal(S.getSignal(), signal1));
         assert(Signal.equal(C.getSignal(), signal0));
@@ -252,7 +252,7 @@ describe('Test package-by-config', () => {
         // 改变输入信号为 1,0
         A.setSignal(signal1);
         B.setSignal(signal0);
-        let moves3 = moduleController1.step();
+        let moves3 = moduleStateController1.update();
         assert.equal(moves3, 1);
         assert(Signal.equal(S.getSignal(), signal1));
         assert(Signal.equal(C.getSignal(), signal0));
@@ -260,13 +260,13 @@ describe('Test package-by-config', () => {
         // 改变输入信号为 1,1
         A.setSignal(signal1);
         B.setSignal(signal1);
-        let moves4 = moduleController1.step();
+        let moves4 = moduleStateController1.update();
         assert.equal(moves4, 1);
         assert(Signal.equal(S.getSignal(), signal0));
         assert(Signal.equal(C.getSignal(), signal1));
     });
 
-    it('Test module controller - RS NOR latch', async () => {
+    it('Test module state controller - RS NOR latch', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -283,12 +283,12 @@ describe('Test package-by-config', () => {
 
         let rs1 = LogicModuleFactory.createModuleInstance(packageName, 'rs', 'rs1');
 
-        let moduleController1 = new ModuleController(rs1);
+        let moduleStateController1 = new ModuleStateController(rs1);
 
-        assert(moduleController1.logicModule == rs1);
-        assert.equal(moduleController1.allLogicModulesForRead.length, 3); // 两个内部模块 + 一个 RS 本模块
-        assert.equal(moduleController1.allLogicModulesForWrite.length, 3);
-        assert.equal(moduleController1.logicModuleCount, 3);
+        assert(moduleStateController1.logicModule == rs1);
+        assert.equal(moduleStateController1.allLogicModulesForRead.length, 3); // 两个内部模块 + 一个 RS 本模块
+        assert.equal(moduleStateController1.allLogicModulesForWrite.length, 3);
+        assert.equal(moduleStateController1.logicModuleCount, 3);
 
         let R = rs1.getPin('R');
         let S = rs1.getPin('S');
@@ -312,7 +312,7 @@ describe('Test package-by-config', () => {
         R.setSignal(signal1);
         S.setSignal(signal0);
 
-        let moves1 = moduleController1.step();
+        let moves1 = moduleStateController1.update();
         assert.equal(moves1, 2); // 需2次更新
         assert(Signal.equal(Q.getSignal(), signal0));
         assert(Signal.equal(Qneg.getSignal(), signal1));
@@ -320,7 +320,7 @@ describe('Test package-by-config', () => {
         // 改变输入信号为 0,0
         R.setSignal(signal0);
         S.setSignal(signal0);
-        let moves2 = moduleController1.step();
+        let moves2 = moduleStateController1.update();
         assert.equal(moves2, 1);
         assert(Signal.equal(Q.getSignal(), signal0));
         assert(Signal.equal(Qneg.getSignal(), signal1));
@@ -328,7 +328,7 @@ describe('Test package-by-config', () => {
         // 改变输入信号为 0,1
         R.setSignal(signal0);
         S.setSignal(signal1);
-        let moves3 = moduleController1.step();
+        let moves3 = moduleStateController1.update();
         assert.equal(moves3, 3);
         assert(Signal.equal(Q.getSignal(), signal1));
         assert(Signal.equal(Qneg.getSignal(), signal0));
@@ -336,13 +336,13 @@ describe('Test package-by-config', () => {
         // 改变输入信号为 0,0
         R.setSignal(signal0);
         S.setSignal(signal0);
-        let moves4 = moduleController1.step();
+        let moves4 = moduleStateController1.update();
         assert.equal(moves4, 1);
         assert(Signal.equal(Q.getSignal(), signal1));
         assert(Signal.equal(Qneg.getSignal(), signal0));
     });
 
-    it('Test module controller - Oscillation', async () => {
+    it('Test module state controller - Oscillation', async () => {
         let packageName = 'package-by-config';
         let testDirectory = __dirname;
         let testResourceDirectory = path.join(testDirectory, 'resources');
@@ -353,15 +353,15 @@ describe('Test package-by-config', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let oscillation1 = LogicModuleFactory.createModuleInstance(packageName, 'oscillation', 'oscillation1');
-        let moduleController1 = new ModuleController(oscillation1);
-        assert.equal(moduleController1.logicModuleCount, 6);
+        let moduleStateController1 = new ModuleStateController(oscillation1);
+        assert.equal(moduleStateController1.logicModuleCount, 6);
 
         try {
-            moduleController1.step();
+            moduleStateController1.update();
             assert.fail();
         } catch (e) {
             assert(e instanceof OscillatingException);
-            // 引起振荡的是 or2 -> or0 -> nor1 回路，但目前 moduleController 只能
+            // 引起振荡的是 or2 -> or0 -> nor1 回路，但目前 moduleStateController 只能
             // 获取整条回路当中的部分输入信号不稳定的模块。并且会因为 step() 方法的周期数而不同。
             let issuedLogicModuleNames = e.logicModules.map(item => item.name);
             issuedLogicModuleNames.sort();

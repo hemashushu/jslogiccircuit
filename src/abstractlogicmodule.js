@@ -97,7 +97,7 @@ class AbstractLogicModule {
         // 当 output pin 的信号值发生改变时，会自动更新此变量的值。
         this.outputSignalChangedFlag = false;
 
-        // 复杂的逻辑模块可能会包含有子模块，每次更新模块状态（即 ModuleController.step 方法）
+        // 复杂的逻辑模块可能会包含有子模块，每次更新模块状态（即 ModuleStateController.step 方法）
         // 可能需要多次循环才完成，这个 outputSignalChangedFlag 只记录了最后一次循环是否存在
         // 输出变化的情况。
         // 所以存在这样的情况：输出信号在中间某次循环发生改变并已经传输，而最后一次循环并没有再
@@ -105,7 +105,7 @@ class AbstractLogicModule {
         // 这时候 outputSignalChangedFlag 的值为 false，但对于
         // 完整的一次更新周期来说，其实（中途）输出数据是有变化且有输出。因此不能通过这个
         // 标记（outputSignalChangedFlag）用于判断模块的输出有无变化。
-        // inputSignalChangedFlag 标记也有相同的情况，所以这两个属性仅供 ModuleController.step 方法
+        // inputSignalChangedFlag 标记也有相同的情况，所以这两个属性仅供 ModuleStateController.step 方法
         // 使用，对外部意义不大。
     }
 
@@ -201,7 +201,7 @@ class AbstractLogicModule {
     /**
      * 因为所有端口的初始值都是 0，对于一些逻辑模块，其初始输出数据可能
      * 不应该是 0，比如 “非门” 的实现的初始输出值为 0，而正确的初始输出值应该为 1。
-     * 对于这种情况，模块控制器（ModuleController）采用的方法是，在模拟刚开始的时候，将所有
+     * 对于这种情况，模块控制器（ModuleStateController）采用的方法是，在模拟刚开始的时候，将所有
      * 逻辑模块都标记为 “输入数据已改变” 状态，从而迫使每一个逻辑模块都
      * 重新计算自己（内部）的信号值，然后改变输出信号，最后达到稳定且正确的状态。
      */

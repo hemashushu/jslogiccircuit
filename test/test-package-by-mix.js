@@ -7,11 +7,11 @@ const {
     PackageRepositoryManager,
     LogicPackageLoader,
     LogicModuleFactory,
-    ModuleController,
+    ModuleStateController,
     Signal } = require('../index');
 
 describe('Test package-by-mix', () => {
-    it('Test module controller - Full Adder', async () => {
+    it('Test module state controller - Full Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -27,10 +27,10 @@ describe('Test package-by-mix', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let fullAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'full_adder', 'full_adder1');
-        let moduleController1 = new ModuleController(fullAdder1);
+        let moduleStateController1 = new ModuleStateController(fullAdder1);
 
         // 2 个 Half Adder (3 modules each half adder) + 1 个 OR gate + Full Adder 本模块 = 8
-        assert.equal(moduleController1.logicModuleCount, 8);
+        assert.equal(moduleStateController1.logicModuleCount, 8);
 
         let A = fullAdder1.getPin('A');
         let B = fullAdder1.getPin('B');
@@ -60,7 +60,7 @@ describe('Test package-by-mix', () => {
             B.setSignal(numberToSignal(b));
             Cin.setSignal(numberToSignal(cin));
 
-            let moves1 = moduleController1.step();
+            let moves1 = moduleStateController1.update();
             assert(moves1, moves);
 
             // 测试输出信号
@@ -78,7 +78,7 @@ describe('Test package-by-mix', () => {
         check(1, 1, 1, 1, 1, 1);
     });
 
-    it('Test module controller - 4-bit Adder', async () => {
+    it('Test module state controller - 4-bit Adder', async () => {
         let binary0 = Binary.fromBinaryString('0', 1);
         let binary1 = Binary.fromBinaryString('1', 1);
         let signal0 = Signal.createWithoutHighZ(1, binary0);
@@ -94,10 +94,10 @@ describe('Test package-by-mix', () => {
         await LogicPackageLoader.loadLogicPackage(packageRepositoryManager1, packageName);
 
         let fourBitAdder1 = LogicModuleFactory.createModuleInstance(packageName, 'four_bit_adder', 'four_bit_adder1');
-        let moduleController1 = new ModuleController(fourBitAdder1);
+        let moduleStateController1 = new ModuleStateController(fourBitAdder1);
 
         // 4 * (full adder 8 modules) + 1 module self
-        assert.equal(moduleController1.logicModuleCount, 33);
+        assert.equal(moduleStateController1.logicModuleCount, 33);
 
         let Cin = fourBitAdder1.getPin('Cin');
         let A0 = fourBitAdder1.getPin('A0');
@@ -134,7 +134,7 @@ describe('Test package-by-mix', () => {
             B2.setSignal(numberToSignal(binB.getBit(2)));
             B3.setSignal(numberToSignal(binB.getBit(3)));
 
-            moduleController1.step();
+            moduleStateController1.update();
 
             let binS = Binary.fromInt32(s, 8); // 将 S 视为 5 位二进制数 {Cout, S3, S2, S1, S0}
             assert(Signal.equal(S0.getSignal(), numberToSignal(binS.getBit(0))));
