@@ -26,7 +26,7 @@ describe('Pin Test', () => {
         assert.equal(pin3.name, 'pin3');
         assert.equal(pin3.bitWidth, 8);
         assert.equal(pin3.pinDirection, PinDirection.output);
-        assert.equal(pin3.getSignal().getBinary().toBinaryString(), '00000000');
+        assert.equal(pin3.getSignal().getLevel().toBinaryString(), '00000000');
 
         try {
             new Pin('pin4', 0);

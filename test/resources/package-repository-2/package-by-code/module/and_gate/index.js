@@ -16,13 +16,13 @@ class AndGate extends SimpleLogicModule {
 
     // override
     updateModuleState() {
-        let signal1 = this._pinA.getSignal();
-        let signal2 = this._pinB.getSignal();
-        let binary1 = Binary.and(signal1.getBinary(), Binary.not(signal1.getHighZ()));
-        let binary2 = Binary.and(signal2.getBinary(), Binary.not(signal2.getHighZ()));
-        let resultBinary = Binary.and(binary1, binary2);
-        let resultSignal = Signal.createWithoutHighZ(1, resultBinary);
-        this._pinQ.setSignal(resultSignal);
+        let signalA = this._pinA.getSignal();
+        let signalB = this._pinB.getSignal();
+        let levelA = Binary.and(signalA.getLevel(), Binary.not(signalA.getHighZ()));
+        let levelB = Binary.and(signalB.getLevel(), Binary.not(signalB.getHighZ()));
+        let resultLevel = Binary.and(levelA, levelB);
+        let signalResult = Signal.createWithoutHighZ(1, resultLevel);
+        this._pinQ.setSignal(signalResult);
     }
 }
 

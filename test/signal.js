@@ -8,23 +8,23 @@ const { Signal } = require('../index');
 describe('Signal Test', () => {
     it('Test Constructor', () => {
         let signal1 = new Signal(1);
-        assert.equal(signal1.getBinary().toBinaryString(), '0');
+        assert.equal(signal1.getLevel().toBinaryString(), '0');
         assert.equal(signal1.getHighZ().toBinaryString(), '0');
 
         let signal2 = new Signal(4);
-        assert.equal(signal2.getBinary().toBinaryString(), '0000');
+        assert.equal(signal2.getLevel().toBinaryString(), '0000');
         assert.equal(signal2.getHighZ().toBinaryString(), '0000');
 
         let signal3 = Signal.createLow(4);
-        assert.equal(signal3.getBinary().toBinaryString(), '0000');
+        assert.equal(signal3.getLevel().toBinaryString(), '0000');
         assert.equal(signal3.getHighZ().toBinaryString(), '0000');
 
         let signal4 = Signal.createHigh(4);
-        assert.equal(signal4.getBinary().toBinaryString(), '1111');
+        assert.equal(signal4.getLevel().toBinaryString(), '1111');
         assert.equal(signal4.getHighZ().toBinaryString(), '0000');
 
         let signal5 = Signal.createHighZ(4);
-        assert.equal(signal5.getBinary().toBinaryString(), '0000');
+        assert.equal(signal5.getLevel().toBinaryString(), '0000');
         assert.equal(signal5.getHighZ().toBinaryString(), '1111');
 
         try {

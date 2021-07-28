@@ -16,8 +16,8 @@ class Wire extends AbstractWire {
     }
 
     setSignal(signal) {
-        let { binary, highZ } = signal.getState()
-        this._signal.setState(binary, highZ);
+        let { level, highZ } = signal.getState()
+        this._signal.setState(level, highZ);
     }
 
     getSignal() {

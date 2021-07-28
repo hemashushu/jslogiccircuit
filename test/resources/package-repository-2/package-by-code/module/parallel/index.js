@@ -33,39 +33,39 @@ class Parallel extends SimpleLogicModule {
         let inputPins = this.getInputPins();
         let firstPin = inputPins[0];
 
-        let bOut;
-        let zOut;
+        let levelInt32Out;
+        let highZInt32Out;
 
         // 只考虑数据最宽 32 位的情况。
 
         let signalPrevious = firstPin.getSignal()
-        let bPrevious = signalPrevious.getBinary().toInt32();
-        let zPrevious = signalPrevious.getHighZ().toInt32();
+        let levelInt32Previous = signalPrevious.getLevel().toInt32();
+        let highZInt32Previous = signalPrevious.getHighZ().toInt32();
 
         for (let idx = 1; idx < inputPins.length; idx++) {
             let signalNext = inputPins[idx].getSignal()
-            let vNext = signalNext.getBinary().toInt32();
-            let zNext = signalNext.getHighZ().toInt32();
+            let levelInt32Next = signalNext.getLevel().toInt32();
+            let highZInt32Next = signalNext.getHighZ().toInt32();
 
             // 仅当双方都不是高阻抗，且值不同时，才会短路
-            let bothValid = ~(zPrevious | zNext);
-            let diffV = bPrevious ^ vNext;
+            let bothValid = ~(highZInt32Previous | highZInt32Next);
+            let diffV = levelInt32Previous ^ levelInt32Next;
             let conflict = bothValid & diffV;
 
             if (conflict !== 0) {
                 throw new ShortCircuitException(undefined, [this]);
             }
 
-            bOut = (bPrevious & ~zPrevious) | (vNext & ~zNext); // 将高阻抗当作低电平
-            zOut = zPrevious & zNext; // 两者都为高阻抗时结果才高阻抗
+            levelInt32Out = (levelInt32Previous & ~highZInt32Previous) | (levelInt32Next & ~highZInt32Next); // 将高阻抗当作低电平
+            highZInt32Out = highZInt32Previous & highZInt32Next; // 两者都为高阻抗时结果才高阻抗
 
-            bPrevious = bOut;
-            zPrevious = zOut
+            levelInt32Previous = levelInt32Out;
+            highZInt32Previous = highZInt32Out
         }
 
         let signalResult = Signal.create(this._bitWidth,
-            Binary.fromInt32(bOut, this._bitWidth),
-            Binary.fromInt32(zOut, this._bitWidth));
+            Binary.fromInt32(levelInt32Out, this._bitWidth),
+            Binary.fromInt32(highZInt32Out, this._bitWidth));
 
         this.pinOut.setSignal(signalResult);
     }
