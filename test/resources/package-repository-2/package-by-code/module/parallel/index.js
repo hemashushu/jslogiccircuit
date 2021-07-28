@@ -13,16 +13,18 @@ class Parallel extends SimpleLogicModule {
 
     // override
     init() {
-        // 模块参数
-        let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
-        let bitWidth = this.getParameter('bitWidth'); // 数据宽度
+        // 输入端口的数量
+        this._inputPinCount = this.getParameter('inputPinCount');
+
+        // 数据宽度
+        this._bitWidth = this.getParameter('bitWidth');
 
         // 输出端口
-        this.pinOut = this.addPin('out', bitWidth, PinDirection.output);
+        this.pinOut = this.addPin('out', this._bitWidth, PinDirection.output);
 
         // 输入端口的名称分别为 in_0, in_1, ... in_N
-        for (let idx = 0; idx < inputPinCount; idx++) {
-            this.addPin('in_' + idx, bitWidth, PinDirection.input);
+        for (let idx = 0; idx < this._inputPinCount; idx++) {
+            this.addPin('in_' + idx, this._bitWidth, PinDirection.input);
         }
     }
 
@@ -31,13 +33,13 @@ class Parallel extends SimpleLogicModule {
         let inputPins = this.getInputPins();
         let firstPin = inputPins[0];
 
-        let vOut;
+        let bOut;
         let zOut;
 
         // 只考虑数据最宽 32 位的情况。
 
         let signalPrevious = firstPin.getSignal()
-        let vPrevious = signalPrevious.getBinary().toInt32();
+        let bPrevious = signalPrevious.getBinary().toInt32();
         let zPrevious = signalPrevious.getHighZ().toInt32();
 
         for (let idx = 1; idx < inputPins.length; idx++) {
@@ -47,24 +49,23 @@ class Parallel extends SimpleLogicModule {
 
             // 仅当双方都不是高阻抗，且值不同时，才会短路
             let bothValid = ~(zPrevious | zNext);
-            let diffV = vPrevious ^ vNext;
+            let diffV = bPrevious ^ vNext;
             let conflict = bothValid & diffV;
 
             if (conflict !== 0) {
                 throw new ShortCircuitException(undefined, [this]);
             }
 
-            vOut = (vPrevious & ~zPrevious) | (vNext & ~zNext); // 将高阻抗当作低电平
+            bOut = (bPrevious & ~zPrevious) | (vNext & ~zNext); // 将高阻抗当作低电平
             zOut = zPrevious & zNext; // 两者都为高阻抗时结果才高阻抗
 
-            vPrevious = vOut;
+            bPrevious = bOut;
             zPrevious = zOut
         }
 
-        let bitWidth = this.pinOut.bitWidth;
-        let signalResult = Signal.create(bitWidth,
-            Binary.fromInt32(vOut, bitWidth),
-            Binary.fromInt32(zOut, bitWidth));
+        let signalResult = Signal.create(this._bitWidth,
+            Binary.fromInt32(bOut, this._bitWidth),
+            Binary.fromInt32(zOut, this._bitWidth));
 
         this.pinOut.setSignal(signalResult);
     }

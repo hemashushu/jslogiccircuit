@@ -9,15 +9,17 @@ class AndGate extends SimpleLogicModule {
 
     // override
     init(){
-        // 模块参数
-        let inputPinCount = this.getParameter('inputPinCount'); // 输入端口的数量
-        let bitWidth = this.getParameter('bitWidth'); // 数据宽度
+        // 输入端口的数量
+        this._inputPinCount = this.getParameter('inputPinCount');
 
-        this.pinOut = this.addPin('out', bitWidth, PinDirection.output);
+        // 数据宽度
+        this._bitWidth = this.getParameter('bitWidth');
+
+        this._pinOut = this.addPin('out', this._bitWidth, PinDirection.output);
 
         // 输入端口的名称分别为 in_0, in_1, ... in_N
-        for (let idx = 0; idx < inputPinCount; idx++) {
-            this.addPin('in_' + idx, bitWidth, PinDirection.input);
+        for (let idx = 0; idx < this._inputPinCount; idx++) {
+            this.addPin('in_' + idx, this._bitWidth, PinDirection.input);
         }
     }
 
@@ -36,8 +38,8 @@ class AndGate extends SimpleLogicModule {
             resultBinary = Binary.and(resultBinary, currentBinary);
         }
 
-        let resultSignal = Signal.createWithoutHighZ(this.pinOut.bitWidth, resultBinary);
-        this.pinOut.setSignal(resultSignal);
+        let resultSignal = Signal.createWithoutHighZ(this._bitWidth, resultBinary);
+        this._pinOut.setSignal(resultSignal);
     }
 }
 
