@@ -26,8 +26,9 @@ const { Binary } = require('jsbinary');
  *           ^   ^   ^
  *   low --- |   |   |
  *   high -------/   \-- 高阻抗，这时 level 的值无关重要
-
- * - 为简单起见，目前只支持数据最宽 32 位
+ *
+ * 为方便起见，一个 Signal 对象可以包含多位（bit）信号。不过
+ * 目前只支持最多 32 位。
  */
 class Signal {
     constructor(bitWidth) {

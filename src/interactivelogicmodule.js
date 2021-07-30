@@ -2,14 +2,17 @@ const SimpleLogicModule = require('./simplelogicmodule');
 
 /**
  * 交互式的逻辑模块
+ *
+ * 当用户通过 UI 操作改变模块的状态时，比如按下按钮，
+ * 会触发一个 'activeEvent' 事件，模拟器程序应该监听此事件，
+ * 并让逻辑模块状态控制器（ModuleStateController）
+ * 更新顶层模块的信号状态。
  */
 class InteractiveLogicModule extends SimpleLogicModule {
     constructor(packageName, moduleClassName, name, instanceParameters = {}, defaultParameters = {}) {
         super(packageName, moduleClassName, name, instanceParameters, defaultParameters);
 
-        // 当用户通过 UI 操作改变模块的状态时，会触发一个 'activeEvent' 事件，
-        // 模拟器程序应该监听此事件，并让逻辑模块状态控制器（ModuleStateController）再次
-        // 更新顶层模块的信号状态。
+        // 'activeEvent' 事件监听者
         this.activeEventListener = () => {};
 
         this.init();
