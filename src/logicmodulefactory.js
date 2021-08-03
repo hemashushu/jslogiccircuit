@@ -1,3 +1,4 @@
+const ConfigParameterResolver = require('./configparameterresolver');
 const ConfigurableLogicModule = require('./configurablelogicmodule');
 const LogicModuleLoader = require('./logicmoduleloader');
 const LogicModuleNotFoundException = require('./exception/logicmodulenotfoundexception');
@@ -150,7 +151,22 @@ class LogicModuleFactory {
 
             // 这是个用于实例逻辑模块所用的实例参数
             // 子模块的实例参数允许存在占位符
-            let instanceParameters = LogicModuleFactory.resolveInheritedConfigParameters(
+            //
+            // parameters 的示例：
+            // parameters:
+            //   inputPinCount: 4         # 普通的数字/布尔/字符串类型参数
+            //   bitWidth: "${bitWidth}"  # 表示继承父模块的参数
+            //   inlineObject:            # 对象型参数
+            //     key1: value1
+            //     key2: value2
+            //
+            // 暂不支持外部文件的对象和字节数组：
+            //   object: "object(file:file_name.yaml)"     # 对象型参数
+            //   binary: "binary(file:file_name.bin)"      # 字节数组类型参数
+            //
+            // 如需上述两种类型，可以使用占位符从模块的默认属性里获取。
+
+            let instanceParameters = ConfigParameterResolver.resolveInstanceParameters(
                 configLogicModule.parameters,
                 parameters);
 
@@ -173,39 +189,6 @@ class LogicModuleFactory {
         }
 
         return moduleInstance;
-    }
-
-    /**
-     * - 配置文件里各项的值有可能是一种占位符，表示从指定映射里获取真正的值。
-     *   比如一个逻辑门的配置文件有一项 “bitWidth”，它的值可以：
-     *   1. 直接写成 “8”，表示数字 “8”。
-     *   2. 也可能不直接写值，而是写成 “${bitWidth}” 这样格式的占位符，
-     *      表示从当前逻辑模块的默认配置（defaultParameters）里读取
-     *      键为 “bitWidth” 的值。
-     *
-     * @param {*} configValueString
-     * @param {*} parameters
-     */
-    static resolvePlaceholderConfigValue(configValueString, parameters) {
-        if (typeof configValueString === 'string') {
-            let match = /^\${(.+)}$/.exec(configValueString); // 占位符的格式 ${placeholder}
-            if (match !== null) {
-                let placeholderName = match[1];
-                return parameters[placeholderName];
-            }
-        }
-
-        return configValueString;
-    }
-
-    static resolveInheritedConfigParameters(configParameters, parentConfigParameters) {
-        let resolvedConfigParameters = {};
-        for (let key in configParameters) {
-            let value = LogicModuleFactory.resolvePlaceholderConfigValue(
-                configParameters[key], parentConfigParameters);
-            resolvedConfigParameters[key] = value;
-        }
-        return resolvedConfigParameters;
     }
 }
 

@@ -51,7 +51,8 @@ let logicPackageToModuleItemMapMap = global._logicPackageToModuleItemMapMap;
  *   使用 512x512 的 png/webp 格式；
  * - defaultParameters：逻辑模块的默认参数，为一个 [{key, value, description, valueType, ...},] 对象数组。
  *       其中 description 支持 locale；
- * - pins: [{name, description}, ...]: 对输入输出端口的描述，name 支持正则表达式，description 支持 locale；
+ * - pins: [{name, description, edge:false/true, negative: false/true, direction: auto/up/bottom}, ...]
+ *   对输入输出端口的描述，name 支持正则表达式，description 支持 locale；
  *
  * 另外逻辑模块根目录还必须包含一个 index.js 或者 struct.yaml 文件。
  *
@@ -272,7 +273,25 @@ class LogicModuleLoader {
             pins = moduleConfig.pins.map(item => {
                 return {
                     name: item.name,
-                    description: LocaleProperty.getValue(item, 'description', localeCode)
+                    description: LocaleProperty.getValue(item, 'description', localeCode),
+
+                    // 当 edge == true 是，表示上升沿/下降沿（positive/negative）触发
+                    // 在 UI 上会多个小三角形。
+                    // Boolean: false(default)|true
+                    edge: item.edge ?? false,
+
+                    // 表示低电平有效，在 UI 上会多一个小空心圆圈。
+                    // Boolean: false(default)|true
+                    negative: item.negative ?? false,
+
+                    // 引脚在 UI 上的方向
+                    // 默认情况下模块的 UI 是自动绘制的，通常是一个矩形，
+                    // 引脚会根据信号方向自动排在矩形左侧或者右侧。
+                    //
+                    // 但有时需要如把诸如时钟/控制信号等引脚放置在矩形的上侧
+                    // 或下侧，这时就需要设置 direction 属性，属性的可能值有：
+                    // String: 'auto'(default)|'up'|'bottom'
+                    direction: item.direction ?? 'auto'
                 };
             });
         }
@@ -304,7 +323,7 @@ class LogicModuleLoader {
 
         let configDefaultParameterItems = moduleConfig.defaultParameters;
         if (configDefaultParameterItems !== undefined) {
-            defaultParameters = await ConfigParameterResolver.resolve(
+            defaultParameters = await ConfigParameterResolver.resolveDefaultParameters(
                 configDefaultParameterItems, packageResourceLocator);
         }
 

@@ -32,7 +32,7 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters1 = await ConfigParameterResolver.resolve(configParameters1);
+        let parameters1 = await ConfigParameterResolver.resolveDefaultParameters(configParameters1);
         assert(ObjectUtils.objectEquals(parameters1, {
             key1: 123,
             key2: 4,
@@ -52,7 +52,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters2);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters2);
             assert.fail();
         } catch (err) {
             assert(err instanceof IllegalArgumentException);
@@ -68,7 +68,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters3);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters3);
             assert.fail();
         } catch (err) {
             assert(err instanceof IllegalArgumentException);
@@ -93,7 +93,7 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters1 = await ConfigParameterResolver.resolve(configParameters1);
+        let parameters1 = await ConfigParameterResolver.resolveDefaultParameters(configParameters1);
 
         assert(ObjectUtils.objectEquals(parameters1, {
             key1: {
@@ -110,7 +110,7 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters2 = await ConfigParameterResolver.resolve(configParameters2, packageResourceLocator1);
+        let parameters2 = await ConfigParameterResolver.resolveDefaultParameters(configParameters2, packageResourceLocator1);
 
         assert(ObjectUtils.objectEquals(parameters2, {
             key2: [
@@ -131,7 +131,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters3, packageResourceLocator1);
             assert.fail();
         } catch (err) {
             assert(err instanceof IllegalArgumentException);
@@ -147,7 +147,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters4, packageResourceLocator1);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters4, packageResourceLocator1);
             assert.fail();
         } catch (err) {
             assert(err instanceof ParseException);
@@ -164,7 +164,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters5, packageResourceLocator1);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters5, packageResourceLocator1);
             assert.fail();
         } catch (err) {
             assert(err instanceof FileNotFoundException);
@@ -187,7 +187,7 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters1 = await ConfigParameterResolver.resolve(configParameters1);
+        let parameters1 = await ConfigParameterResolver.resolveDefaultParameters(configParameters1);
         let buffer1 = parameters1.key1;
         assert.equal(5, buffer1.length);
         assert.equal('hello', buffer1.toString('utf-8'));
@@ -201,7 +201,7 @@ describe('Test ConfigParameterResolver', () => {
             }
         }
 
-        let parameters2 = await ConfigParameterResolver.resolve(configParameters2, packageResourceLocator1);
+        let parameters2 = await ConfigParameterResolver.resolveDefaultParameters(configParameters2, packageResourceLocator1);
         let buffer2 = parameters2.key2;
         assert.equal(5, buffer2.length);
         assert.equal('hello', buffer2.toString('utf-8'));
@@ -217,7 +217,7 @@ describe('Test ConfigParameterResolver', () => {
         }
 
         try {
-            await ConfigParameterResolver.resolve(configParameters3, packageResourceLocator1);
+            await ConfigParameterResolver.resolveDefaultParameters(configParameters3, packageResourceLocator1);
             assert.fail();
         } catch (err) {
             assert(err instanceof FileNotFoundException);

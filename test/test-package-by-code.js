@@ -116,9 +116,27 @@ describe('Test package-by-code', () => {
             iconFilename: 'icon.png',
             description: 'Logic "AND" Gate',
             pins: [
-                { name: 'A', description: 'Input pin A' },
-                { name: 'B', description: 'Input pin B' },
-                { name: 'Q', description: 'Output pin Q. The value of Q is `A & B`' }
+                {
+                    name: 'A',
+                    description: 'Input pin A',
+                    edge: false,
+                    negative: false,
+                    direction: 'auto'
+                    },
+                {
+                    name: 'B',
+                    description: 'Input pin B',
+                    edge: false,
+                    negative: false,
+                    direction: 'auto'
+                    },
+                {
+                    name: 'Q',
+                    description: 'Output pin Q. The value of Q is `A & B`',
+                    edge: false,
+                    negative: false,
+                    direction: 'auto'
+                    }
             ]
         };
 
