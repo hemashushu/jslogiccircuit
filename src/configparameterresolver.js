@@ -166,7 +166,7 @@ class ConfigParameterResolver {
                         let minLength = detail.minLength ?? 0;
                         let maxLength = detail.maxLength ?? 0;
 
-                        if (value.length < minLength){
+                        if (value.length < minLength) {
                             throw new IllegalArgumentException(
                                 `The length of parameter "${key}" should equals or greater than ${minLength}.`);
                         }
@@ -333,38 +333,10 @@ class ConfigParameterResolver {
 
     static resolveInstanceParameters(configParameters, parentConfigParameters) { //, packageResourceLocator) {
         // 先解析占位符
-        configParameters = ConfigParameterResolver.resolveInheritedConfigParameters(
+        let resolvedConfigParameters = ConfigParameterResolver.resolveInheritedConfigParameters(
             configParameters, parentConfigParameters);
 
-        return configParameters;
-
-//         // 暂不支持外部文件的对象和字节数组：
-//         let resolvedConfigParameters = {};
-//
-//         for(let key in configParameters) {
-//             let value = configParameters[key];
-//
-//             // 解析 object(file:...) 以及 binary(file:...) 表达式
-//             if (typeof value === 'string') {
-//                 let match = /^(object|binary)\s*\((.+)\)$/.exec(value);
-//                 if (match === null) {
-//                     resolvedConfigParameters[key] = value;
-//                     continue;
-//                 }
-//
-//                 let sourceType = match[1];
-//                 let sourcePath = match[2].trim();
-//                 let dataDirectory = packageResourceLocator.getDataDirectory();
-//
-//                 resolvedConfigParameters[key] = await ConfigParameterResolver.resolveFileValue(
-//                     sourceType, sourcePath, dataDirectory);
-//
-//             }else {
-//                 resolvedConfigParameters[key] = value;
-//             }
-//         }
-//
-//         return resolvedConfigParameters;
+        return resolvedConfigParameters;
     }
 
     static resolveInheritedConfigParameters(configParameters, parentConfigParameters) {
@@ -373,7 +345,7 @@ class ConfigParameterResolver {
             let value = configParameters[key];
             if (typeof value === 'string') {
                 value = ConfigParameterResolver.resolveParameterValuePlaceholder(
-                    value , parentConfigParameters);
+                    value, parentConfigParameters);
             }
             resolvedConfigParameters[key] = value;
         }
@@ -397,90 +369,11 @@ class ConfigParameterResolver {
             let placeholderName = match[1];
             return parameters[placeholderName];
 
-        }else {
+        } else {
             return stringValue;
         }
     }
 
-    /**
-     * 解析诸如的头信息值：
-     * - object(file:file_name.yaml)
-     * - binary(file:file_name.bin)
-     *
-     * @param {*} sourceType
-     * @param {*} sourcePath
-     * @param {*} dataDirectory
-     * @returns
-     */
-     static async resolveFileValue(sourceType, sourcePath, dataDirectory) {
-        if (!sourcePath.startsWith('file:')) {
-            throw new ParseException(
-                `Unsupport source type for parameter: ${key}.`);
-        }
-
-        let sourceFileName = sourcePath.substring('file:'.length);
-        let sourceFilePath = path.join(dataDirectory, sourceFileName);
-
-        let sourceValue = await FrontMatterResolver.loadSourceFile(
-            sourceType, sourceFilePath);
-
-        return sourceValue;
-    }
-
-    static async loadSourceFile(sourceType, sourceFilePath) {
-        if (sourceType === 'object') {
-            return await FrontMatterResolver.loadObjectSourceFile(sourceFilePath);
-        }else if(sourceType === 'binary') {
-            return await FrontMatterResolver.loadBinarySourceFile(sourceFilePath);
-        }
-    }
-
-    /**
-     * - 如果 YAML 对象文件解析失败，会抛出 ParseException。
-     * - 如果文件内容为空或者无实际数据，会抛出 ScriptParseException。
-     * - 如果文件不存在，则抛出 FileNotFoundException 异常。
-     * - 如果读取文件失败，则抛出 IOException 异常。
-     *
-     * @param {*} sourceFilePath
-     * @returns 一个数据对象或者数据数组，
-     */
-    static async loadObjectSourceFile(sourceFilePath) {
-        let fileConfig = new YAMLFileConfig();
-        let promiseFileConfig = new PromiseFileConfig(fileConfig);
-
-        // 如果文件内容为空，value 的值为 undefined
-        // 如果文件无实际数据，value 的值为 null
-        let config = await promiseFileConfig.load(sourceFilePath);
-
-        if (config === undefined || config === null) {
-            throw new ParseException(
-                `The object source file "${sourceFilePath}" is empty.`);
-        }
-
-        return config;
-    }
-
-    /**
-     * - 如果文件不存在，则抛出 FileNotFoundException 异常。
-     * - 如果读取文件失败，则抛出 IOException 异常。
-     * @param {*} sourceFilePath
-     * @returns Nodejs 的 Buffer 对象
-     */
-    static async loadBinarySourceFile(sourceFilePath) {
-        // https://nodejs.org/api/fs.html#fs_fspromises_readfile_path_options
-        try {
-            return await fsPromise.readFile(sourceFilePath);
-        } catch (err) {
-            if (err.code === 'ENOENT') {
-                throw new FileNotFoundException(
-                    `Can not find the specified file: "${sourceFilePath}"`, err);
-
-            }else {
-                throw new IOException(
-                    `Can not read file: "${sourceFilePath}".`, err);
-            }
-        }
-    }
 }
 
 module.exports = ConfigParameterResolver;

@@ -40,7 +40,7 @@ class LogicModuleFactory {
     static createModuleInstance(packageName, moduleClassName,
         instanceName, instanceParameters = {}) {
 
-        if (!LogicPackageLoader.existPackageItem(packageName)){
+        if (!LogicPackageLoader.existPackageItem(packageName)) {
             throw new LogicPackageNotFoundException(
                 `Can not find the specified package "${packageName}".`,
                 packageName);
@@ -160,11 +160,7 @@ class LogicModuleFactory {
             //     key1: value1
             //     key2: value2
             //
-            // 暂不支持外部文件的对象和字节数组：
-            //   object: "object(file:file_name.yaml)"     # 对象型参数
-            //   binary: "binary(file:file_name.bin)"      # 字节数组类型参数
-            //
-            // 如需上述两种类型，可以使用占位符从模块的默认属性里获取。
+            // 不支持外部文件的对象和字节数组，如需这两种类型，可以使用占位符从模块的默认属性里获取。
 
             let instanceParameters = ConfigParameterResolver.resolveInstanceParameters(
                 configLogicModule.parameters,
