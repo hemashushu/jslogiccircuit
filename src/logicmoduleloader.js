@@ -37,6 +37,9 @@ global._logicPackageToModuleItemMapMap = new Map();
 // 简化引用
 let logicPackageToModuleItemMapMap = global._logicPackageToModuleItemMapMap;
 
+const SIMULATION_MODULE_ITEM_MAP_NAME = 'simulationModuleItemMap';
+const MODULE_ITEM_MAP_NAME = 'moduleItemMap';
+
 /**
  * 每个逻辑模块必须存放于逻辑包根目录的 “src” 目录里的单独一个目录里。
  *
@@ -65,49 +68,59 @@ let logicPackageToModuleItemMapMap = global._logicPackageToModuleItemMapMap;
  */
 class LogicModuleLoader {
 
+    /**
+     * 添加逻辑模块
+     * @param {*} packageName
+     * @param {*} moduleClassName
+     * @param {*} logicModuleItem
+     * @param {*} isSimulation
+     */
     static addLogicModuleItem(packageName, moduleClassName, logicModuleItem, isSimulation) {
         let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
         if (moduleItemMapMap === undefined) {
+            // 构建树状结构:
+            // {
+            //     packageName: {
+            //         moduleItemMap: {},
+            //         simulationModuleItemMap: {}
+            //     }
+            // }
             moduleItemMapMap = new Map();
+            moduleItemMapMap.set(SIMULATION_MODULE_ITEM_MAP_NAME, new Map());
+            moduleItemMapMap.set(MODULE_ITEM_MAP_NAME, new Map());
             logicPackageToModuleItemMapMap.set(packageName, moduleItemMapMap);
         }
 
         if (isSimulation) {
-            let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
-            if (simulationModuleItemMap === undefined) {
-                simulationModuleItemMap = new Map();
-                moduleItemMapMap.set('simulationModuleItemMap', simulationModuleItemMap);
-            }
+            let simulationModuleItemMap = moduleItemMapMap.get(SIMULATION_MODULE_ITEM_MAP_NAME);
             simulationModuleItemMap.set(moduleClassName, logicModuleItem);
-
         }else {
-            let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
-            if (moduleItemMap === undefined) {
-                moduleItemMap = new Map();
-                moduleItemMapMap.set('moduleItemMap', moduleItemMap);
-            }
+            let moduleItemMap = moduleItemMapMap.get(MODULE_ITEM_MAP_NAME);
             moduleItemMap.set(moduleClassName, logicModuleItem);
         }
     }
 
+    /**
+     * 移除指定逻辑模块（包括仿真模块）
+     *
+     * @param {*} packageName
+     * @param {*} moduleClassName
+     */
     static removeLogicModuleItemByName(packageName, moduleClassName) {
         let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
         if (moduleItemMapMap !== undefined) {
             if (isSimulation) {
-                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
-                if (simulationModuleItemMap !== undefined) {
-                    simulationModuleItemMap.delete(moduleClassName);
-                }
+                let simulationModuleItemMap = moduleItemMapMap.get(SIMULATION_MODULE_ITEM_MAP_NAME);
+                simulationModuleItemMap.delete(moduleClassName);
             }else {
-                let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
-                if (moduleItemMap !== undefined) {
-                    moduleItemMap.delete(moduleClassName);
-                }
+                let moduleItemMap = moduleItemMapMap.get(MODULE_ITEM_MAP_NAME);
+                moduleItemMap.delete(moduleClassName);
             }
         }
     }
 
     /**
+     * 获取指定逻辑模块
      *
      * @param {*} packageName
      * @param {*} moduleClassName
@@ -116,16 +129,14 @@ class LogicModuleLoader {
     static getLogicModuleItemByName(packageName, moduleClassName, enableSimulationModule) {
         let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
         if (moduleItemMapMap !== undefined) {
-            let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+            let moduleItemMap = moduleItemMapMap.get(MODULE_ITEM_MAP_NAME);
             let logicModuleItem = moduleItemMap.get(moduleClassName);
 
             // 如果普通逻辑模块找不到，则尝试从仿真逻辑模块中查找
             if (logicModuleItem === undefined &&
                 enableSimulationModule) {
-                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
-                if (simulationModuleItemMap !== undefined) {
-                    logicModuleItem = simulationModuleItemMap.get(moduleClassName);
-                }
+                let simulationModuleItemMap = moduleItemMapMap.get(SIMULATION_MODULE_ITEM_MAP_NAME);
+                logicModuleItem = simulationModuleItemMap.get(moduleClassName);
             }
 
             return logicModuleItem;
@@ -133,6 +144,7 @@ class LogicModuleLoader {
     }
 
     /**
+     * 获取指定逻辑包的逻辑模块列表
      *
      * @param {*} packageName
      * @param {*} isSimulation
@@ -142,10 +154,10 @@ class LogicModuleLoader {
         let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
         if (moduleItemMapMap !== undefined) {
             if (isSimulation) {
-                let simulationModuleItemMap = moduleItemMapMap.get('simulationModuleItemMap');
+                let simulationModuleItemMap = moduleItemMapMap.get(SIMULATION_MODULE_ITEM_MAP_NAME);
                 return Array.from(simulationModuleItemMap.values());
             }else {
-                let moduleItemMap = moduleItemMapMap.get('moduleItemMap');
+                let moduleItemMap = moduleItemMapMap.get(MODULE_ITEM_MAP_NAME);
                 return Array.from(moduleItemMap.values());
             }
         }
@@ -153,6 +165,15 @@ class LogicModuleLoader {
 
     static removeAllLogicModuleItemsByPackageName(packageName) {
         logicPackageToModuleItemMapMap.delete(packageName);
+    }
+
+    /**
+     * 获取衍生逻辑模块列表
+     *
+     * @param {*} logicModuleItem
+     */
+    static getDerivativeModuleItems(logicModuleItem) {
+        // TODO::
     }
 
     /**
