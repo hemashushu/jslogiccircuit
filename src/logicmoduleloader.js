@@ -132,6 +132,12 @@ class LogicModuleLoader {
         }
     }
 
+    /**
+     *
+     * @param {*} packageName
+     * @param {*} isSimulation
+     * @returns LogicModuleItem[]，如果找不到指定的模块，则返回 undefined.
+     */
     static getLogicModuleItemsByPackageName(packageName, isSimulation) {
         let moduleItemMapMap = logicPackageToModuleItemMapMap.get(packageName);
         if (moduleItemMapMap !== undefined) {
@@ -236,6 +242,7 @@ class LogicModuleLoader {
         let moduleNamePath = parentModulePath.replace(/\//g, '$');
         let moduleClassName = moduleNamePath === '' ? folderName : (moduleNamePath + '$' + folderName);
 
+        // 仿真模块和普通模块也不能重名
         let lastLogicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName, isSimulation);
         if (lastLogicModuleItem !== undefined) {
             return lastLogicModuleItem;

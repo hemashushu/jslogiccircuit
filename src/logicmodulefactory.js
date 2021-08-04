@@ -34,11 +34,13 @@ class LogicModuleFactory {
      *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 实例参数，一个 {name:value, ...} 对象，注意这个
      *     是实例的参数，它将会跟模块的默认参数（即定义模块是所定义的参数进行合并）
+     * @param {*} enableSimulationModule 是否允许实例化仿真模块，
+     *     普通逻辑模块不能引用仿真模块，但仿真模块允许引用普通模块
      * @returns AbstractLogicModule 实例。
      *     - 如果找不到指定的逻辑模块类，则抛出 LogicModuleNotFoundException 异常。
      */
     static createModuleInstance(packageName, moduleClassName,
-        instanceName, instanceParameters = {}) {
+        instanceName, instanceParameters = {}, enableSimulationModule = false) {
 
         if (!LogicPackageLoader.existPackageItem(packageName)) {
             throw new LogicPackageNotFoundException(
@@ -46,7 +48,7 @@ class LogicModuleFactory {
                 packageName);
         }
 
-        let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName);
+        let logicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName, enableSimulationModule);
 
         if (logicModuleItem === undefined) {
             throw new LogicModuleNotFoundException(
@@ -96,10 +98,15 @@ class LogicModuleFactory {
                 instanceName, instanceParameters, defaultParameters);
 
         } else {
+            // 普通逻辑模块不允许引用仿真模块
+            if (!logicModuleItem.isSimulation) {
+                enableSimulationModule = false;
+            }
+
             return LogicModuleFactory.constructConfigurableLogicModuleInstance(
                 packageName, moduleClassName,
                 moduleClass,
-                instanceName, instanceParameters, defaultParameters);
+                instanceName, instanceParameters, defaultParameters, enableSimulationModule);
         }
     }
 
@@ -117,7 +124,8 @@ class LogicModuleFactory {
     static constructConfigurableLogicModuleInstance(
         packageName, moduleClassName,
         moduleConfig,
-        instanceName, instanceParameters, defaultParameters) {
+        instanceName, instanceParameters, defaultParameters,
+        enableSimulationModule) {
 
         let moduleInstance = new ConfigurableLogicModule(
             packageName, moduleClassName,
@@ -145,9 +153,9 @@ class LogicModuleFactory {
         // add sub-module instances
         let configLogicModules = moduleConfig.logicModules;
         for (let configLogicModule of configLogicModules) {
-            let packageName = configLogicModule.packageName;
-            let moduleClassName = configLogicModule.moduleClassName;
-            let name = configLogicModule.name;
+            let subPackageName = configLogicModule.packageName;
+            let subModuleClassName = configLogicModule.moduleClassName;
+            let subInstanceName = configLogicModule.name;
 
             // 这是个用于实例逻辑模块所用的实例参数
             // 子模块的实例参数允许存在占位符
@@ -166,8 +174,13 @@ class LogicModuleFactory {
                 configLogicModule.parameters,
                 parameters);
 
+            // 仿真模块不能引用不同逻辑包的仿真模块
+            let subEnableSimulationModule = enableSimulationModule &&
+                (packageName === subPackageName);
+
             let subModuleInstance = LogicModuleFactory.createModuleInstance(
-                packageName, moduleClassName, name, instanceParameters);
+                subPackageName, subModuleClassName, subInstanceName,
+                instanceParameters, subEnableSimulationModule);
 
             moduleInstance.addLogicModule(subModuleInstance);
         }
