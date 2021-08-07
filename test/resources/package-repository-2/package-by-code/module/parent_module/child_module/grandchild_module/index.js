@@ -1,6 +1,6 @@
 const { SimpleLogicModule } = require('../../../../../../../../index');
 
-class MuModule extends SimpleLogicModule {
+class GrandchildModule extends SimpleLogicModule {
     // override
     init() {
         //
@@ -13,4 +13,4 @@ class MuModule extends SimpleLogicModule {
 }
 
 
-module.exports = MuModule;
+module.exports = GrandchildModule;

@@ -29,7 +29,9 @@ class LogicModuleFactory {
      * 创建逻辑模块实例
      *
      * @param {*} packageName
-     * @param {*} moduleClassName
+     * @param {*} moduleClassName 模块的名称
+     *     模块可以是普通的逻辑模块（或仿真逻辑模块），也可以是一个子模块（包括子模块的子模块），
+     *     当加载子模块时，需要在父模块和子模块的名称之间使用点号（.）分隔。
      * @param {*} instanceName 模块实例名称，只可以
      *     包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
      * @param {*} instanceParameters 实例参数，一个 {name:value, ...} 对象，注意这个

@@ -80,7 +80,7 @@ describe('Test package-by-code', () => {
         assert(ObjectUtils.arrayEquals(moduleClassNames1,
             ['and_gate', 'and_gate_parameter', 'nor_gate', 'or_gate',
                 'parallel',
-                'parent_module', 'parent_module$child_module', 'parent_module$child_module$mu_module',
+                'parent_module', 'parent_module.child_module', 'parent_module.child_module.grandchild_module',
                 'xor_gate']));
 
         let checkPropNames = [
@@ -168,8 +168,8 @@ describe('Test package-by-code', () => {
         let logicModuleItem3 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'parent_module');
         assert.equal(logicModuleItem3.moduleClassName, 'parent_module');
 
-        let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'parent_module$child_module');
-        assert.equal(logicModuleItem4.moduleClassName, 'parent_module$child_module');
+        let logicModuleItem4 = LogicModuleLoader.getLogicModuleItemByName(packageName, 'parent_module.child_module');
+        assert.equal(logicModuleItem4.moduleClassName, 'parent_module.child_module');
 
         let moduleResourceLocator2 = packageResourceLocator1.createModuleResourceLocator('parent_module', 'child_module');
 
@@ -231,10 +231,10 @@ describe('Test package-by-code', () => {
         assert.equal(andGate1.getModuleClassName(), 'and_gate');
 
         // 实例化子模块
-        let childModule1 = LogicModuleFactory.createModuleInstance(packageName, 'parent_module$child_module', 'childModule1');
+        let childModule1 = LogicModuleFactory.createModuleInstance(packageName, 'parent_module.child_module', 'childModule1');
         assert.equal(childModule1.name, 'childModule1');
         assert.equal(childModule1.getPackageName(), packageName);
-        assert.equal(childModule1.getModuleClassName(), 'parent_module$child_module');
+        assert.equal(childModule1.getModuleClassName(), 'parent_module.child_module');
 
     });
 

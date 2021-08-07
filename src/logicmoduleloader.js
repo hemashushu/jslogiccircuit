@@ -179,21 +179,38 @@ class LogicModuleLoader {
     /**
      * 加载指定目录下的所有逻辑模块。
      *
-     * @param {*} packageDirectory
-     * @param {*} packageName
-     * @param {*} isSimulation 标记是否为仿真模块，
+     * @param {*} packageDirectory 逻辑包的目录（一个绝对路径）
+     * @param {*} packageName 逻辑包的名称
+     * @param {*} isSimulation 标记是否加载仿真模块，
      *     - 仿真模块不能被外部逻辑包访问，也不能被所在包的普通模块所引用；
      *     - 仿真模块可以引用普通模块；
      *     - 仿真模块可以引用仿真模块；
-     * @param {*} modulePath
-     * @param {*} parentModulePath
+     * @param {*} parentModulePath 模块的父目录的路径，一个相对于当前逻辑包的相对路径。
      * @param {*} localeCode
      * @returns
      */
-    static async loadLogicModuleDirectory(packageDirectory, packageName,
-        isSimulation, modulePath, parentModulePath = '', localeCode) {
+    static async loadLogicModuleByDirectory(packageDirectory, packageName,
+        isSimulation, parentModulePath = '', localeCode) {
 
-        let childModulesDirectory = path.join(modulePath, parentModulePath);
+        // 逻辑包当中存储逻辑模块的路径
+        // 因为逻辑包可以包含普通逻辑模块，也可以包含仿真逻辑模块，所以这个参数
+        // 对于具体的一个逻辑包来说，实际上有两个可能的值：
+        // - ${packageDirectory}/module
+        // - ${packageDirectory}/simulation
+        let packageModulePath;
+
+        let packageResourceLocator = PackageResourceLocator.create(packageDirectory);
+        if (isSimulation) {
+            // 加载 simulation 目录里的逻辑模块
+            packageModulePath = packageResourceLocator.getSimulationsDirectory();
+        }else {
+            // 加载 module 目录里的逻辑模块
+            packageModulePath = packageResourceLocator.getModulesDirectory();
+        }
+
+        // 当前方法不仅用于加载一级逻辑模块，同时也用于加载子模块，所以这里
+        // 拼接 packageModulePath 和 parentModulePath，得到当前要加载的实际目录。
+        let childModulesDirectory = path.join(packageModulePath, parentModulePath);
         if (!await PromiseFileUtils.exists(childModulesDirectory)) {
             return []; // dir not found
         }
@@ -202,8 +219,10 @@ class LogicModuleLoader {
 
         // 筛选得出目录列表
         let folderInfos = fileInfos.filter(item => {
-            return (item instanceof FolderInfo &&
-                item.fileName.charAt(0) !== '.'); // 过滤掉名字第一个字符为点号的隐藏文件
+            return (item instanceof FolderInfo &&  // 过滤掉非目录文件
+                item.fileName.charAt(0) !== '.' && // 过滤掉名字第一个字符为点号的隐藏文件夹，包括 “.DS_Store”
+                item.fileName !== '__MACOSX'       // 过滤掉 macOS 里常见的隐藏文件夹
+                );
         });
 
         let moduleItems = [];
@@ -212,7 +231,7 @@ class LogicModuleLoader {
             let folderName = folderInfo.fileName;
             let logicModuleItem = await LogicModuleLoader.loadLogicModule(
                 packageDirectory, packageName,
-                isSimulation, modulePath, parentModulePath, folderName, localeCode);
+                isSimulation, parentModulePath, folderName, localeCode);
 
             moduleItems.push(logicModuleItem);
         }
@@ -241,14 +260,13 @@ class LogicModuleLoader {
      *     - 仿真模块不能被外部逻辑包访问，也不能被所在包的普通模块所引用；
      *     - 仿真模块可以引用普通模块；
      *     - 仿真模块可以引用仿真模块；
-     * @param {*} modulePath
-     * @param {*} parentModulePath
+     * @param {*} parentModulePath 模块的父目录的路径，一个相对于当前逻辑包的相对路径。
      * @param {*} folderName 模块所在的目录的名称
      * @param {*} localeCode 诸如 'en', 'zh-CN', 'jp' 等本地化语言代号
      * @returns LogicModuleItem
      */
     static async loadLogicModule(packageDirectory, packageName,
-        isSimulation, modulePath,  parentModulePath = '', folderName, localeCode) {
+        isSimulation, parentModulePath = '', folderName, localeCode) {
 
         // 逻辑模块名称只可以包含 [0-9a-zA-Z_\$] 字符，且只能以 [a-zA-Z_] 字符开头
         if (!/^[a-zA-Z_][\w\$]*$/.test(folderName)) {
@@ -256,12 +274,12 @@ class LogicModuleLoader {
                 `Invalid logic module class name "${folderName}".`);
         }
 
-        // 模块名称（moduleClassName）的组成规则：
-        // 父模块的名称 + '$' + 模块所在目录的名称
+        // 一个模块可能会包含有子模块，模块完整名称（moduleClassName）的组成规则：
+        // 父模块的名称 + '.' + 模块所在目录的名称
         //
-        // 如果不从属于其他模块，则名称为其所在目录的名称。
-        let moduleNamePath = parentModulePath.replace(/\//g, '$');
-        let moduleClassName = moduleNamePath === '' ? folderName : (moduleNamePath + '$' + folderName);
+        // 如果一个模块不从属于其他模块，则其模块名称即为其所在目录的名称。
+        let moduleNamePath = parentModulePath.replace(/[\/\\]/g, '.');
+        let moduleClassName = (moduleNamePath === '') ? folderName : (moduleNamePath + '.' + folderName);
 
         // 仿真模块和普通模块也不能重名
         let lastLogicModuleItem = LogicModuleLoader.getLogicModuleItemByName(packageName, moduleClassName, isSimulation);
@@ -383,10 +401,10 @@ class LogicModuleLoader {
         LogicModuleLoader.addLogicModuleItem(
             packageName, moduleClassName, logicModuleItem, isSimulation);
 
-        // 加载子模块
+        // 尝试加载当前模块的子模块
         let childModulePath = path.join(parentModulePath, folderName);
-        await LogicModuleLoader.loadLogicModuleDirectory(packageDirectory, packageName,
-            isSimulation, modulePath, childModulePath, localeCode);
+        await LogicModuleLoader.loadLogicModuleByDirectory(packageDirectory, packageName,
+            isSimulation, childModulePath, localeCode);
 
         return logicModuleItem;
     }

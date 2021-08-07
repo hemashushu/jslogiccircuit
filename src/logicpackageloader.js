@@ -242,14 +242,12 @@ class LogicPackageLoader {
         }
 
         // 加载 module 目录里的逻辑模块
-        let modulesDirectory = packageResourceLocator.getModulesDirectory();
-        await LogicModuleLoader.loadLogicModuleDirectory(
-            packageDirectory, packageName, false, modulesDirectory, '', localeCode);
+        await LogicModuleLoader.loadLogicModuleByDirectory(
+            packageDirectory, packageName, false, '', localeCode);
 
         // 加载 simulation 目录里的逻辑模块
-        let simulationModulesDirectory = packageResourceLocator.getSimulationsDirectory();
-        await LogicModuleLoader.loadLogicModuleDirectory(
-            packageDirectory, packageName, true, simulationModulesDirectory, '', localeCode);
+        await LogicModuleLoader.loadLogicModuleByDirectory(
+            packageDirectory, packageName, true, '', localeCode);
 
         let logicPackageItem = new LogicPackageItem(
             name, title,
