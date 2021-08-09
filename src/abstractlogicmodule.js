@@ -68,9 +68,15 @@ class AbstractLogicModule {
 
         // 实例实际使用的参数，由实例参数与模块（类）提供的默认参数
         // 合并而得。
-        this.parameters = ObjectUtils.objectMerge(
-            instanceParameters,
-            defaultParameters);
+        this.parameters = {};
+
+        for(let key in defaultParameters) {
+            this.parameters[key] = defaultParameters[key];
+        }
+
+        for(let key in instanceParameters) {
+            this.parameters[key] = instanceParameters[key];
+        }
 
         // 注意：
         // 1. instanceParameters，defaultParameters，parameters 都只读，不要往里面添加
